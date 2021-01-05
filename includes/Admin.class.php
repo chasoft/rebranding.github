@@ -2116,6 +2116,15 @@ class Admin{
             )
     );     
 
+    $connection->setConfig(
+          [
+            'log.LogEnabled' => false,
+            'log.FileName' => 'PayPal.log',
+            'log.LogLevel' => 'DEBUG',
+            'mode' => 'live'
+          ]
+    );  
+
     $plan = new PayPal\Api\Plan();
 
       $plan->setName($data->name)
@@ -2767,12 +2776,20 @@ class Admin{
                 $this->config["ppprivate"]
             )
     );       
+    $connection->setConfig(
+          [
+            'log.LogEnabled' => false,
+            'log.FileName' => 'PayPal.log',
+            'log.LogLevel' => 'DEBUG',
+            'mode' => 'live'
+          ]
+    );  
 
     foreach ($this->db->get("plans", ["free" => "0"]) as $data) {
       $plan = new PayPal\Api\Plan();
 
       $plan->setName($data->name)
-        ->setDescription($data->description)
+        ->setDescription($data->description ? $data->description : $plan->name)
         ->setType('fixed'); 
 
       $paymentDefinitionM = new PayPal\Api\PaymentDefinition();
@@ -3856,21 +3873,7 @@ class Admin{
 
           $mail["to"] = $user->email;
           $mail["subject"] = $_POST["subject"];              
-          $mail["message"] = "<td class='column' style='padding: 0;vertical-align: top;text-align: left'>
-                               <div>
-                                  <div class='column-top' style='font-size: 50px;line-height: 50px'>&nbsp;</div>
-                               </div>
-                               <table class='contents' style='border-collapse: collapse;border-spacing: 0;width: 100%'>
-                                  <tbody>
-                                     <tr>
-                                        <td class='padded' style='padding: 0;vertical-align: top;padding-left: 50px;padding-right: 50px'>
-                                          $content
-                                        </td>
-                                     </tr>
-                                  </tbody>
-                               </table>
-                               <div class='column-bottom' style='font-size: 26px;line-height: 26px'>&nbsp;</div>
-                            </td>";
+          $mail["message"] = $content;
 
           Main::send($mail);   
         }
@@ -4873,9 +4876,9 @@ class Admin{
             'log.LogEnabled' => false,
             'log.FileName' => 'PayPal.log',
             'log.LogLevel' => 'DEBUG',
-            'mode' => 'sandbox'
+            'mode' => 'live'
           ]
-    );    
+    );     
     $webhook = new \PayPal\Api\Webhook();
 
     $webhook->setUrl(Main::href("webhook/paypal"));
