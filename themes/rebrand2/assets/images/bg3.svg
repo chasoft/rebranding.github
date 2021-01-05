@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="342px" height="66px" viewBox="0 0 1140 220" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 55.1 (78136) - https://sketchapp.com -->
+    <title>commission-bg</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="0%" y1="48.1378886%" x2="100%" y2="51.8621114%" id="linearGradient-1">
+            <stop stop-color="#CC65E3" offset="0%"></stop>
+            <stop stop-color="#AB65E3" offset="20.9542041%"></stop>
+            <stop stop-color="#5D65F5" offset="100%"></stop>
+        </linearGradient>
+        <rect id="path-2" x="0" y="0" width="1140" height="220"></rect>
+        <linearGradient x1="23.844862%" y1="32.5493573%" x2="75.6483312%" y2="65.8782386%" id="linearGradient-4">
+            <stop stop-color="#7B6FF1" offset="0%"></stop>
+            <stop stop-color="#726FF3" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="4.56805704%" y1="9.60682476%" x2="84.063848%" y2="73.0152162%" id="linearGradient-5">
+            <stop stop-color="#CE6FE4" offset="0%"></stop>
+            <stop stop-color="#B26FE4" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Help/demo/affiliate" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Affiliate-Copy" transform="translate(-421.000000, -6233.000000)">
+            <g id="commission-bg" transform="translate(421.000000, 6233.000000)">
+                <mask id="mask-3" fill="white">
+                    <use xlink:href="#path-2"></use>
+                </mask>
+                <use id="Rectangle" fill="url(#linearGradient-1)" xlink:href="#path-2"></use>
+                <path d="M930.694243,44.9997328 C956.55923,22.8924599 986.004303,7.82623124 1019.02946,5.68434189e-14 L1140,5.68434189e-14 L1140,124.077882 C1100.5411,103.970245 1061.97488,103.970245 1024.30134,124.077882 C986.6278,144.18552 965.287663,176.159559 960.28093,220 L841,220 C846.692367,149.576651 876.590448,91.2432283 930.694243,44.9997328 Z" id="Rectangle-Copy-3" fill="url(#linearGradient-4)" fill-rule="nonzero" mask="url(#mask-3)"></path>
+                <path d="M2.84217094e-13,0 L222.141098,0 C234.047033,47.736259 233.125335,89.9695923 219.376004,126.7 C205.626673,163.430408 174.241104,194.530408 125.219297,220 L2.84217094e-13,220 L2.84217094e-13,0 Z" id="Rectangle-Copy" fill="url(#linearGradient-5)" fill-rule="nonzero" mask="url(#mask-3)"></path>
+            </g>
+        </g>
+    </g>
+</svg>

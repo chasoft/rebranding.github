@@ -174,7 +174,7 @@ var ctx = $("#browsers").get(0).getContext("2d")
   }
  function os($b){
       $a = array(
-          'Windows 10' => '#4200FF',
+          'Windows 10' => '#0078D7',
           'Windows 8.1' => '#4FA7FF',
           'Windows 8' => '#0F87FF',
           'Windows 7' => '#0080C0',

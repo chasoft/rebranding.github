@@ -86,7 +86,7 @@
       if(s.confimation){
           var proceed="";
       }else{
-          var proceed="<a href='" + s.link + "' class='btn btn-success btn-xs'>"+lang.modal.proceed+"</a> <a href='#' class='btn btn-danger btn-xs close-modal'>"+lang.modal.cancel+"</a>";
+          var proceed="<a href='" + s.link + "' class='btn btn-success btn'>"+lang.modal.proceed+"</a>&nbsp;&nbsp;<a href='#' class='btn btn-danger btn close-modal'>"+lang.modal.cancel+"</a>";
       }
       $.fn.modal_destroy=function(){
         $("#modal-shadow").fadeOut('normal',function(){
@@ -106,7 +106,7 @@
       $("#modal-alert").css({"top":top,"left":left}).hide();
       $("#modal-alert").fadeIn();
       if(s.header == true){
-        $("#modal-alert").html("<div class='title'>"+s.title+" <a href='#' class='btn btn-danger btn-xs pull-right close-modal'>Close</a></div><p>"+ s.content +"</p>"+proceed);
+        $("#modal-alert").html("<div class='title'>"+s.title+" <a href='#' class='btn btn-danger btn-xs pull-right close-modal'>"+lang.modal.close+"</a></div><p>"+ s.content +"</p>"+proceed);
       }else {
         $("#modal-alert").html("<a href='#' class='btn btn-danger btn-xs pull-right close-modal'>"+lang.modal.close+"</a><p>"+ s.content +"</p>"+proceed);
       }

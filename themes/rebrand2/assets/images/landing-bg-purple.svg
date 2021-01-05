@@ -1,0 +1,90 @@
+<svg width="2100" height="1100" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <linearGradient y2="NaN" y1="0" x2="NaN" x1="0" id="a">
+   <stop stop-color="#F0EDFC" offset="0"/>
+   <stop stop-color="#F0EDFC" offset="1"/>
+  </linearGradient>
+  <pattern viewBox="0 0 1080 900" y="0" x="0" height="450" width="540" id="b" patternUnits="userSpaceOnUse">
+   <g id="svg_1" fill-opacity="0.02">
+    <polygon id="svg_2" points="90 150 0 300 180 300" fill="#444"/>
+    <polygon id="svg_3" points="90 150 180 0 0 0"/>
+    <polygon id="svg_4" points="270 150 360 0 180 0" fill="#AAA"/>
+    <polygon id="svg_5" points="450 150 360 300 540 300" fill="#DDD"/>
+    <polygon id="svg_6" points="450 150 540 0 360 0" fill="#999"/>
+    <polygon id="svg_7" points="630 150 540 300 720 300"/>
+    <polygon id="svg_8" points="630 150 720 0 540 0" fill="#DDD"/>
+    <polygon id="svg_9" points="810 150 720 300 900 300" fill="#444"/>
+    <polygon id="svg_10" points="810 150 900 0 720 0" fill="#FFF"/>
+    <polygon id="svg_11" points="990 150 900 300 1080 300" fill="#DDD"/>
+    <polygon id="svg_12" points="990 150 1080 0 900 0" fill="#444"/>
+    <polygon id="svg_13" points="90 450 0 600 180 600" fill="#DDD"/>
+    <polygon id="svg_14" points="90 450 180 300 0 300"/>
+    <polygon id="svg_15" points="270 450 180 600 360 600" fill="#666"/>
+    <polygon id="svg_16" points="270 450 360 300 180 300" fill="#AAA"/>
+    <polygon id="svg_17" points="450 450 360 600 540 600" fill="#DDD"/>
+    <polygon id="svg_18" points="450 450 540 300 360 300" fill="#999"/>
+    <polygon id="svg_19" points="630 450 540 600 720 600" fill="#999"/>
+    <polygon id="svg_20" points="630 450 720 300 540 300" fill="#FFF"/>
+    <polygon id="svg_21" points="810 450 720 600 900 600"/>
+    <polygon id="svg_22" points="810 450 900 300 720 300" fill="#DDD"/>
+    <polygon id="svg_23" points="990 450 900 600 1080 600" fill="#AAA"/>
+    <polygon id="svg_24" points="990 450 1080 300 900 300" fill="#444"/>
+    <polygon id="svg_25" points="90 750 0 900 180 900" fill="#222"/>
+    <polygon id="svg_26" points="270 750 180 900 360 900"/>
+    <polygon id="svg_27" points="270 750 360 600 180 600" fill="#DDD"/>
+    <polygon id="svg_28" points="450 750 540 600 360 600"/>
+    <polygon id="svg_29" points="630 750 540 900 720 900"/>
+    <polygon id="svg_30" points="630 750 720 600 540 600" fill="#444"/>
+    <polygon id="svg_31" points="810 750 720 900 900 900" fill="#AAA"/>
+    <polygon id="svg_32" points="810 750 900 600 720 600" fill="#666"/>
+    <polygon id="svg_33" points="990 750 900 900 1080 900" fill="#999"/>
+    <polygon id="svg_34" points="180 0 90 150 270 150" fill="#999"/>
+    <polygon id="svg_35" points="360 0 270 150 450 150" fill="#444"/>
+    <polygon id="svg_36" points="540 0 450 150 630 150" fill="#FFF"/>
+    <polygon id="svg_37" points="900 0 810 150 990 150"/>
+    <polygon id="svg_38" points="0 300 -90 450 90 450" fill="#222"/>
+    <polygon id="svg_39" points="0 300 90 150 -90 150" fill="#FFF"/>
+    <polygon id="svg_40" points="180 300 90 450 270 450" fill="#FFF"/>
+    <polygon id="svg_41" points="180 300 270 150 90 150" fill="#666"/>
+    <polygon id="svg_42" points="360 300 270 450 450 450" fill="#222"/>
+    <polygon id="svg_43" points="360 300 450 150 270 150" fill="#FFF"/>
+    <polygon id="svg_44" points="540 300 450 450 630 450" fill="#444"/>
+    <polygon id="svg_45" points="540 300 630 150 450 150" fill="#222"/>
+    <polygon id="svg_46" points="720 300 630 450 810 450" fill="#AAA"/>
+    <polygon id="svg_47" points="720 300 810 150 630 150" fill="#666"/>
+    <polygon id="svg_48" points="900 300 810 450 990 450" fill="#FFF"/>
+    <polygon id="svg_49" points="900 300 990 150 810 150" fill="#999"/>
+    <polygon id="svg_50" points="0 600 -90 750 90 750"/>
+    <polygon id="svg_51" points="0 600 90 450 -90 450" fill="#666"/>
+    <polygon id="svg_52" points="180 600 90 750 270 750" fill="#AAA"/>
+    <polygon id="svg_53" points="180 600 270 450 90 450" fill="#444"/>
+    <polygon id="svg_54" points="360 600 270 750 450 750" fill="#444"/>
+    <polygon id="svg_55" points="360 600 450 450 270 450" fill="#999"/>
+    <polygon id="svg_56" points="540 600 630 450 450 450" fill="#666"/>
+    <polygon id="svg_57" points="720 600 630 750 810 750" fill="#222"/>
+    <polygon id="svg_58" points="900 600 810 750 990 750" fill="#FFF"/>
+    <polygon id="svg_59" points="900 600 990 450 810 450" fill="#222"/>
+    <polygon id="svg_60" points="0 900 90 750 -90 750" fill="#DDD"/>
+    <polygon id="svg_61" points="180 900 270 750 90 750" fill="#444"/>
+    <polygon id="svg_62" points="360 900 450 750 270 750" fill="#FFF"/>
+    <polygon id="svg_63" points="540 900 630 750 450 750" fill="#AAA"/>
+    <polygon id="svg_64" points="720 900 810 750 630 750" fill="#FFF"/>
+    <polygon id="svg_65" points="900 900 990 750 810 750" fill="#222"/>
+    <polygon id="svg_66" points="1080 300 990 450 1170 450" fill="#222"/>
+    <polygon id="svg_67" points="1080 300 1170 150 990 150" fill="#FFF"/>
+    <polygon id="svg_68" points="1080 600 990 750 1170 750"/>
+    <polygon id="svg_69" points="1080 600 1170 450 990 450" fill="#666"/>
+    <polygon id="svg_70" points="1080 900 1170 750 990 750" fill="#DDD"/>
+   </g>
+  </pattern>
+ </defs>
+ <g>
+  <title>background</title>
+  <rect fill="none" id="canvas_background" height="1100" width="2100" y="-1" x="-1"/>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <rect id="svg_71" height="100%" width="100%" fill="url(#a)" y="0" x="0"/>
+  <rect id="svg_72" height="100%" width="100%" fill="url(#b)" y="0" x="0"/>
+ </g>
+</svg>

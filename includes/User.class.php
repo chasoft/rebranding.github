@@ -1362,7 +1362,7 @@ class User extends App{
 	        <label for='url' class='col-sm-3 control-label'>".e("Long URL")."</label>
 	        <div class='col-sm-9'>
 	          <input type='url' class='form-control' name='url' id='url' value='{$url->url}' ".(!$this->pro() ? "disabled":"").">
-	          <p class='help-block'>Please note that only pro users can edit URLs once they are shortened.</p>
+	          <p class='help-block'>".e("Please note that only pro users can edit URLs once they are shortened.")."</p>
 	        </div>
 	      </div>  
 
@@ -1370,7 +1370,7 @@ class User extends App{
 	        <label for='alias' class='col-sm-3 control-label'>".e("Alias")."</label>
 	        <div class='col-sm-9'>
 	          <input type='text' class='form-control' name='alias' id='alias' value='{$url->alias}' disabled>
-	          <p class='help-block'>The short alias cannot be changed.</p>
+	          <p class='help-block'>".e("The short alias cannot be changed.")."</p>
 	        </div>
 	      </div>  
 	      ".($this->permission("alias") !== FALSE ? "
@@ -1448,7 +1448,7 @@ class User extends App{
 			$content.="<hr>";
 			if($this->permission("geo") !== FALSE){
 					$content .="
-		      <h4>".e("Geotargeting Data")." <a href='#' class='btn btn-primary btn-xs pull-right add_geo'>".e("Add a Field")."</a></h4>
+		      <h4>".e("Geotargeting Data")." <a href='#' class='btn btn-primary btn-sm pull-right add_geo'>".e("Add a Field")."</a></h4>
 		      <div id='geo'>";    	
 		    if(!empty($url->location)){		      
 	        $geo=json_decode($url->location);
@@ -1483,7 +1483,7 @@ class User extends App{
 		}
 		if($this->permission("device") !== FALSE){
 			$content.="<hr>
-		      <h4>".e("Device Data")." <a href='#' class='btn btn-primary btn-xs pull-right add_device'>".e("Add a Field")."</a></h4>
+		      <h4>".e("Device Data")." <a href='#' class='btn btn-primary btn-sm pull-right add_device'>".e("Add a Field")."</a></h4>
 		      <div id='device'>";    	
 		    if(!empty($url->devices)){		      
 	        $devices = json_decode($url->devices);
@@ -1587,7 +1587,7 @@ class User extends App{
 
 		if($this->permission("parameters") !== FALSE){
 			$content.="<hr>
-		      <h4>".e("Parameter Builder")." <a href='#' class='btn btn-primary btn-xs pull-right add_parameter'>".e("Add parameters")."</a></h4>
+		      <h4>".e("Parameter Builder")." <a href='#' class='btn btn-primary btn-sm pull-right add_parameter'>".e("Add parameters")."</a></h4>
 		      <div id='parameters'>";    	
 		    if(!empty($url->parameters)){		      
 	        $parameters = json_decode($url->parameters, TRUE);
@@ -1628,7 +1628,7 @@ class User extends App{
 	    ".Main::csrf_token(TRUE)."
 	    <input type='submit' value='".e("Update")."' class='btn btn-primary' />
 	    <a href='".Main::href("{$url->id}+")."' class='btn btn-success' target='_blank'>".e("Stats")."</a>
-	    <a href='".Main::href("user/delete/{$url->id}").Main::nonce("delete_url-{$url->id}")."' class='btn btn-danger delete pull-right'>".e("Delete")."</a>"; 
+	    <a href='".Main::href("user/delete/{$url->id}").Main::nonce("delete_url-{$url->id}")."' class='btn btn-danger delete pull-right text-white'>".e("Delete")."</a>"; 
 	  // Add widget
 	  
 	  $widgets = $this->widgets("countries", array("urlid"=>$url->id));
@@ -1692,7 +1692,7 @@ class User extends App{
 		$header = e("Create a Custom Splash Page");
 
 		if(!$this->isTeam() || ($this->isTeam() && $this->teamPermission("splash.create"))){
-			$header .= "<a href='".Main::href("user/splash/create")."' class='btn btn-primary btn-xs pull-right'>".e("Create")."</a>";
+			$header .= "<a href='".Main::href("user/splash/create")."' class='btn btn-primary btn-sm pull-right'>".e("Create")."</a>";
 		}		
 	  $widgets='<div class="panel panel-default panel-body">';
 			$widgets.='<h3>'.e("Info").'</h3>';	
@@ -2063,7 +2063,7 @@ class User extends App{
 		$header=e("Create a Custom Overlay Page");
 
 		if(!$this->isTeam() || ($this->isTeam() && $this->teamPermission("overlay.create"))){
-			$header .= "<a href='".Main::href("user/overlay/create")."' class='btn btn-primary btn-xs pull-right'>".e("Create")."</a>";
+			$header .= "<a href='".Main::href("user/overlay/create")."' class='btn btn-primary btn-sm pull-right'>".e("Create")."</a>";
 		}
 
 	  $widgets='<div class="panel panel-default panel-body" id="'.__FUNCTION__.'">';

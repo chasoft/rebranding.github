@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" baseProfile="basic" id="Layer_1"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 1140 220"
+	 xml:space="preserve">
+<desc>Created with Sketch.</desc>
+<g id="Help_x2F_demo_x2F_affiliate">
+	<g id="Affiliate-Copy" transform="translate(-421.000000, -6233.000000)">
+		<g id="commission-bg" transform="translate(421.000000, 6233.000000)">
+			<g id="Rectangle">
+				
+					<linearGradient id="path-2_4_" gradientUnits="userSpaceOnUse" x1="-388.6588" y1="648.5686" x2="-387.6588" y2="648.5314" gradientTransform="matrix(-1140 0 0 -220 -441931 142791)">
+					<stop  offset="0" style="stop-color:#CC65E3"/>
+					<stop  offset="0.2095" style="stop-color:#AB65E3"/>
+					<stop  offset="1" style="stop-color:#5D65F5"/>
+				</linearGradient>
+				<rect id="path-2_1_" y="0" fill-rule="evenodd" clip-rule="evenodd" fill="url(#path-2_4_)" width="1140" height="220"/>
+			</g>
+			<defs>
+				<filter id="Adobe_OpacityMaskFilter" filterUnits="userSpaceOnUse" x="0" y="0" width="299" height="220">
+					<feColorMatrix  type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/>
+				</filter>
+			</defs>
+			<mask maskUnits="userSpaceOnUse" x="0" y="0" width="299" height="220" id="mask-3_1_">
+				<g filter="url(#Adobe_OpacityMaskFilter)">
+					<rect id="path-2_2_" y="0" fill-rule="evenodd" clip-rule="evenodd" fill="#FFFFFF" width="1140" height="220"/>
+				</g>
+			</mask>
+			
+				<linearGradient id="Rectangle-Copy-3_1_" gradientUnits="userSpaceOnUse" x1="-387.4634" y1="648.7201" x2="-386.9453" y2="648.3868" gradientTransform="matrix(-299 0 0 -220 -115623 142791)">
+				<stop  offset="0" style="stop-color:#7B6FF1"/>
+				<stop  offset="1" style="stop-color:#726FF3"/>
+			</linearGradient>
+			<path id="Rectangle-Copy-3" mask="url(#mask-3_1_)" fill="url(#Rectangle-Copy-3_1_)" d="M299,220H179.7
+				c-5-43.8-26.3-75.8-64-95.9C78,104,39.5,104,0,124.1L0,0l121,0c33,7.8,62.5,22.9,88.3,45C263.4,91.2,293.3,149.6,299,220z"/>
+			<defs>
+				<filter id="Adobe_OpacityMaskFilter_1_" filterUnits="userSpaceOnUse" x="909.6" y="0" width="230.4" height="220">
+					<feColorMatrix  type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/>
+				</filter>
+			</defs>
+			<mask maskUnits="userSpaceOnUse" x="909.6" y="0" width="230.4" height="220" id="mask-3_2_">
+				<g filter="url(#Adobe_OpacityMaskFilter_1_)">
+					<rect id="path-2_3_" y="0" fill-rule="evenodd" clip-rule="evenodd" fill="#FFFFFF" width="1140" height="220"/>
+				</g>
+			</mask>
+			
+				<linearGradient id="Rectangle-Copy_1_" gradientUnits="userSpaceOnUse" x1="-387.2934" y1="648.9198" x2="-386.4984" y2="648.2857" gradientTransform="matrix(-230.4289 0 0 -220 -88107.8594 142791)">
+				<stop  offset="0" style="stop-color:#CE6FE4"/>
+				<stop  offset="1" style="stop-color:#B26FE4"/>
+			</linearGradient>
+			<path id="Rectangle-Copy" mask="url(#mask-3_2_)" fill="url(#Rectangle-Copy_1_)" d="M1140,220h-125.2
+				c-49-25.5-80.4-56.6-94.2-93.3C906.9,90,906,47.7,917.9,0L1140,0V220z"/>
+		</g>
+	</g>
+</g>
+</svg>

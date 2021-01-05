@@ -376,7 +376,7 @@ $(function() {
         "message": lang.cookie,
         "dismiss": lang.cookieok,
         "link": lang.cookiemore,
-        "href": appurl + "/page/privacy"
+        "href": appurl + "/page/privacy-policy"
       }
     });    
   }

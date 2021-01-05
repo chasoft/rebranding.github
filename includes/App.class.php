@@ -1798,7 +1798,9 @@ class App{
 		Main::set("body_class","light");
 
 		if(file_exists(TEMPLATE."/shared/404.php")) {
-			include($this->t("shared/404"));			
+			$this->header();
+			include($this->t("shared/404"));		
+			$this->footer();	
 		} else {
 			$content="<section class='blue rounded wshadow'><h1>404</h1>
 								<h2>".e("Not Found")."</h2></section>";		
@@ -2020,7 +2022,7 @@ class App{
           }    		      
 					$menu.='<li><a href="'.Main::href("user/login").'">'.e("Login").'</a></li>';
 					if($this->config["user"] && !$this->config["private"] && !$this->config["maintenance"]){
-						$menu.='<li><a href="'.Main::href("user/register").'" class="active">'.e("Get Started").'</a></li>';
+						$menu.='<li><a href="'.Main::href("user/register").'" class="btn btn-outline-primary btn-round">'.e("Get Started").'</a></li>';
 					}
 	      }else{
           if ($this->admin()){
