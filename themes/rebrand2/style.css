@@ -2859,11 +2859,21 @@ footer .new_footer_top .languages .langs a {
   display: block;
   float: left;
 }
+
+body.dark-mode footer .languages .langs a, body.dark-mode footer .new_footer_top .languages .langs a {
+    color: #eee !important;
+}
+
 footer .languages .langs a:hover,
 footer .new_footer_top .languages .langs a:hover{
     color: #484848 !important;
     background-color: #EDF0FD;
 	border:0px;
+}/*added*/
+body.dark-mode footer .languages .langs a:hover,
+body.dark-mode footer .new_footer_top .languages .langs a:hover{
+    color: #eee !important;
+    background-color: #424861;
 }/*added*/
 footer a {
   /*margin-left: 5px;*/
@@ -3151,6 +3161,11 @@ body.dark-mode .chosen-container-single .chosen-single div b {
     height: 100%;
     background: url(https://rebranding.today/static/css/img/chosen-sprite-dark.png) no-repeat 0 7px;
 }
+
+/*.dark-mode-logo {display: block !important;}*/
+.dark-mode-logo{display: none !important;}
+body.dark-mode .dark-mode-logo {display: block !important;}
+body.dark-mode .light-mode-logo{display: none !important;}
 
 /*end start pricing theme*/
 
@@ -4227,11 +4242,11 @@ body.dark-mode #modal-alert a {
 }
 body.dark-mode footer a:hover,
 body.dark-mode footer a.active {
-  background: #000;
+  background: #3d526f;
   color: #fff;
 }
 body.dark-mode footer .languages .langs {
-  background: #121212;
+  background: #101924;
 }
 .data-holder {
   position: relative;

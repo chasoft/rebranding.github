@@ -55,13 +55,20 @@
                   <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse,.sidebar">
                     <i class="glyphicon glyphicon-align-justify"></i>
                   </button>
-                  <a class="navbar-brand" href="<?php echo $this->config["url"] ?>">
+                  <a class="navbar-brand light-mode-logo" href="<?php echo $this->config["url"] ?>">
                     <?php if (!empty($this->config["logo"])): ?>
-                    <img src="<?php echo $this->config["url"] ?>/content/<?php echo $this->config["logo"] ?>" alt="<?php echo $this->config["title"] ?>">
+                    <img src="<?php echo $this->config["url"] ?>/content/re-logo-dark.png" alt="<?php echo $this->config["title"] ?>">
                     <?php else: ?>
                       <?php echo $this->config["title"] ?>
                     <?php endif ?>
                   </a>
+                  <a class="navbar-brand dark-mode-logo" href="<?php echo $this->config["url"] ?>">
+                    <?php if (!empty($this->config["logo"])): ?>
+                    <img src="<?php echo $this->config["url"] ?>/content/re-logo-light.png" alt="<?php echo $this->config["title"] ?>">
+                    <?php else: ?>
+                      <?php echo $this->config["title"] ?>
+                    <?php endif ?>
+                  </a>				  
                 </div>            
               </div>
               <div class="col-md-10">
