@@ -127,7 +127,7 @@
                <h5><?php echo e("Excluding domain names") ?></h5>
                <p><?php echo e("You can exclude domain names if you wish. You can add an exclude parameter to exclude domain names. The example below shortens all URLs but excludes URLs from google.com or gempixel.com") ?></p>
 
-               <p><pre class="code"><span class="m-x-3">&lt;script type=&quot;text/javascript&quot;&gt;</span><span class="m-x-4">var key = &quot;<?php echo md5($this->user->api) ?>&quot;;</span><span class="m-x-4">var exclude = [&quot;google.com&quot;,&quot;gempixel.com&quot;];</span><span class="m-x-3">&lt;/script&gt;<span class="m-x-3">&lt;script type=&quot;text/javascript&quot; src=&quot;<?php echo Main::href("script.js") ?>&quot;&gt;&lt;/script&gt;</span></span></pre></p>
+               <p><pre class="code"><span class="m-x-3">&lt;script type=&quot;text/javascript&quot;&gt;</span><span class="m-x-4">var key = &quot;<?php echo md5($this->user->api) ?>&quot;;</span><span class="m-x-4">var exclude = [&quot;google.com&quot;,&quot;bizchain.vn&quot;];</span><span class="m-x-3">&lt;/script&gt;<span class="m-x-3">&lt;script type=&quot;text/javascript&quot; src=&quot;<?php echo Main::href("script.js") ?>&quot;&gt;&lt;/script&gt;</span></span></pre></p>
 
                <h5><?php echo e("Restricting domain names") ?></h5>
                <p><?php echo e("You can restrict domain names by adding an include parameter to restrict domain names. The example below shortens all URLs within the include domain name.") ?></p>

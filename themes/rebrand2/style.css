@@ -3058,9 +3058,75 @@ section .promo p .yellow-underline {
 }
 .text-normal {font-weight: normal !important;}
 .text-white {color: #fff!important;}
+.text-primary {color: #5563d6!important;}
 /*for typing effect*/
 .cursor {}
 .typing {animation: none;}
+
+.re-menu-heading {color: #8094ae;padding-left: 0;padding-right: 0;padding-top: 2.5rem;}
+.re-menu-heading.clear-top {padding-top: 0rem;}
+.text-success {
+	color: #6e82a5!important;
+    background-color: #dfe2e62e;
+    padding: 10px 14px 10px 14px;
+    margin-left: -14px;
+    margin-right: -14px;
+    border: 1px solid #dfe2e6;
+	font-size: 15px !important;
+}
+.text-success:hover {
+    color: #0e1d15c7 !important;
+    background-color: #EDF0FD;
+    border-color: darkgray;
+    border: 1px solid #d4d4d4;
+}
+
+.overline-title {
+    font-size: 11px;
+    line-height: 1.2;
+    letter-spacing: 0.2em;
+    color: #8094ae;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-family: Roboto, sans-serif, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+/*start pricing theme*/
+.text-center {
+    text-align: center !important;
+}
+.card-bordered {
+    border: 1px solid #dbdfea;
+}
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border: 0 solid rgba(0, 0, 0, 0.125);
+    border-radius: 4px;
+}
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -14px;
+    margin-left: -14px;
+}
+.g-gs {
+    margin: -14px !important;
+}
+.g-gs > li, .g-gs > div {
+    padding: 14px !important;
+}
+.card-inner {
+    padding: 1.25rem;
+}
+
+/*end start pricing theme*/
+
+
 
 /*end of added 28-29-30/12/20 */
 

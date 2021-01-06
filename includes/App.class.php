@@ -2065,22 +2065,26 @@ class App{
 	 **/
 	protected function user_menu($option=array()){
 		$menu='<ul class="nav nav-sidebar">';
+			$menu.='<li class="re-menu-heading clear-top"><h6 class="overline-title text-primary-alt">'.e('Links').'</h6></li>';
 			$menu.='<li><a href="'.Main::href("user").'" class="active"><span class="glyphicon glyphicon-home"></span> '.e('Dashboard').'</a></li>';
 			$menu.='<li><a href="'.Main::href("user/archive").'"><span class="glyphicon glyphicon-briefcase"></span> '.e('Archived Links').'</a></li>';
 			$menu.='<li><a href="'.Main::href("user/expired").'"><span class="glyphicon glyphicon-calendar"></span> '.e('Expired Links').'</a></li>';
-
 			if ($this->permission("bundle") !== FALSE) {
 				$menu.='<li><a href="'.Main::href("user/bundles").'"><span class="glyphicon glyphicon-folder-open"></span> '.e('Bundles').'</a></li>';
 			}
+			
+			$menu.='<li class="re-menu-heading"><h6 class="overline-title text-primary-alt">'.e('Advanced features').'</h6></li>';
 			$menu.='<li'.($this->permission("splash") === FALSE ? ' class="locked"': '').'><a href="'.Main::href("user/splash").'"><span class="glyphicon glyphicon-transfer"></span> '.e('Splash Pages').''.($this->permission("splash") === FALSE ? '<span class="label label-secondary pull-right">'.e('Pro').'</span>': '').'</a></li>';
 
 			$menu.='<li'.($this->permission("overlay") === FALSE ? ' class="locked"': '').'><a href="'.Main::href("user/overlay").'"><span class="glyphicon glyphicon-record"></span> '.e('Overlay Pages').''.($this->permission("overlay") === FALSE ? '<span class="label label-secondary pull-right">'.e('Pro').'</span>': '').'</a></li>';
 
 			$menu.='<li'.($this->permission("pixels") === FALSE ? ' class="locked"': '').'><a href="'.Main::href("user/pixels").'"><span class="glyphicon glyphicon-screenshot"></span> '.e('Tracking Pixels').''.($this->permission("pixels") === FALSE ? '<span class="label label-secondary pull-right">'.e('Pro').'</span>': '').'</a></li>';	
 
+			$menu.='<li'.($this->permission("team") === FALSE ? ' class="locked"': '').'><a href="'.Main::href("user/teams").'"><span class="glyphicon glyphicon-user"></span> '.e('Teams').''.($this->permission("team") === FALSE ? '<span class="label label-secondary pull-right">'.e('Pro').'</span>': '').'</a></li>';
+
 			$menu.='<li'.($this->permission("domain") === FALSE ? ' class="locked"': '').'><a href="'.Main::href("user/domain").'"><span class="glyphicon glyphicon-globe"></span> '.e('Custom Domain').''.($this->permission("domain") === FALSE ? '<span class="label label-secondary pull-right">'.e('Pro').'</span>': '').'</a></li>';	
 
-			$menu.='<li'.($this->permission("team") === FALSE ? ' class="locked"': '').'><a href="'.Main::href("user/teams").'"><span class="glyphicon glyphicon-user"></span> '.e('Teams').''.($this->permission("team") === FALSE ? '<span class="label label-secondary pull-right">'.e('Pro').'</span>': '').'</a></li>';					
+			$menu.='<li class="re-menu-heading"><h6 class="overline-title text-primary-alt">'.e('Others').'</h6></li>';			
 
 			$public = $this->user->public ? "<span class='label label-primary pull-right'>".e("Online")."</span>"  : "<span class='label label-danger pull-right'>".e("Offline")."</span>";
 

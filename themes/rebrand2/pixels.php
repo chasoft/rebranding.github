@@ -24,7 +24,7 @@
 	        	</div>
 	        	<div class="col-md-4">
 	        		<label for="name" class="label-control"><?php echo e("Pixel Name") ?></label>
-	        		<input type="text" value="" name="name" class="form-control" placeholder="e.g. <?php echo e("Shopify Campaign") ?>" />
+	        		<input type="text" value="" name="name" class="form-control" placeholder="e.g. <?php echo e("Shopify Campaign") ?>" autofocus />
 	        	</div>
 	        	<div class="col-md-4">
 							<label for="tag" class="label-control"><?php echo e("Pixel Tag") ?></label>

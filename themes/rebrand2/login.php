@@ -30,7 +30,7 @@
         <?php endif;?>        
         <div class="form-group">
           <label for="email"><?php echo e("Email or username") ?><a href="https://help.rebranding.today" class="pull-right"><?php echo e("Need help")?>?</a></label>
-          <input type="text" class="form-control" id="email" placeholder="Enter email" name="email">
+          <input type="text" class="form-control" id="email" placeholder="Enter email" name="email" autofocus>
         </div>
         <div class="form-group">
           <label for="pass"><?php echo e("Password")?> <a href="#forgot" class="pull-right" id="forgot-password"><?php echo e("Forgot Password")?>?</a></label>

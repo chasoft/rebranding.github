@@ -15,7 +15,7 @@
 				<?php if ($url->bundle): ?>
 					<?php $bundle=$this->db->get("bundle",array("id"=>$url->bundle),array("limit"=>1)) ?>
 					&nbsp;&nbsp;&bullet;&nbsp;&nbsp;
-					<span><i class='glyphicon glyphicon-folder-open'></i> &nbsp;<?php echo $bundle->name ?> <?php echo e('Bundle')?></span>
+					<span class="text-primary"><i class='glyphicon glyphicon-folder-open'></i> &nbsp;<?php echo e('Bundle')?> <?php echo $bundle->name ?></span>
 				<?php endif ?>							
 				<?php if (!empty($url->location)): ?>
 					&nbsp;&nbsp;&bullet;&nbsp;&nbsp;

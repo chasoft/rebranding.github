@@ -17,11 +17,11 @@
       	<hr>
         <div class="form-group">
           <label><?php echo e("Your Name") ?></label>
-          <input type="text" class="form-control" name="name" value="<?php echo ($this->logged() ? $this->user->name : "") ?>">	            
+          <input type="text" class="form-control" name="name" value="<?php echo ($this->logged() ? $this->user->name : "") ?>" autofocus />	            
         </div>
         <div class="form-group">
           <label><?php echo e("Your Email") ?> <span class="pull-right">(<?php echo e("Required") ?>)</span></label>
-          <input type="email" class="form-control" name="email" value="<?php echo ($this->logged() ? $this->user->email : "") ?>" required>		            
+          <input type="email" class="form-control" name="email" value="<?php echo ($this->logged() ? $this->user->email : "") ?>" required />		            
         </div>  
         <div class="form-group">
           <label><?php echo e("Message") ?> <span class="pull-right">(<?php echo e("Required") ?>)</span></label>

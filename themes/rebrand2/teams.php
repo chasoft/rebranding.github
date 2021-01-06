@@ -12,7 +12,7 @@
 						<div class="col-md-6">
 							<div class="form-group">
 				    		<label for="email" class="label-control"><?php echo e("Email") ?></label>
-				    		<input type="email" value="" name="email" class="form-control" placeholder="johndoe@email.tld" />				
+				    		<input type="email" value="" name="email" class="form-control" placeholder="johndoe@email.tld" autofocus />				
 							</div>						
 						</div>
 						<div class="col-md-6">

@@ -1358,7 +1358,19 @@ class User extends App{
 		    
 		    ".(!$url->status ? "<p class='alert alert-info'>".e("We are currently manually approving links. As soon as the link is approved, you will be able to start using it.")."</p>": "")."
 
-	      <div class='form-group'>
+<div>
+  <!-- Nav tabs -->
+  <ul class='nav nav-tabs'>
+    <li class='active'><a href='#mlink' data-toggle='tab'>".e('Link')."</a></li>
+    <li><a href='#mtarget' data-toggle='tab'>".e('Targets')."</a></li>
+    <li><a href='#mUTM' data-toggle='tab'>".e('UTM Builder')."</a></li>
+  </ul>
+  <!-- Tab panes -->
+  <div class='tab-content'>
+    <div class='tab-pane active' id='mlink'>
+	<h4></h4>
+	
+		  <div class='form-group'>
 	        <label for='url' class='col-sm-3 control-label'>".e("Long URL")."</label>
 	        <div class='col-sm-9'>
 	          <input type='url' class='form-control' name='url' id='url' value='{$url->url}' ".(!$this->pro() ? "disabled":"").">
@@ -1445,7 +1457,7 @@ class User extends App{
 			        </div>
 			      </div>"; 			      
 	  }
-			$content.="<hr>";
+			$content.="<hr></div><div class='tab-pane' id='mtarget'><hr>";
 			if($this->permission("geo") !== FALSE){
 					$content .="
 		      <h4>".e("Geotargeting Data")." <a href='#' class='btn btn-primary btn-sm pull-right add_geo'>".e("Add a Field")."</a></h4>
@@ -1583,7 +1595,9 @@ class User extends App{
               </div>
             </div>";
 		  $content .= "</div><hr>";
-	  } 		   
+	  } 	
+
+$content .= "</div><div class='tab-pane' id='mUTM'>";
 
 		if($this->permission("parameters") !== FALSE){
 			$content.="<hr>
@@ -1624,6 +1638,13 @@ class User extends App{
 	      <li><a href='' class='last".(!$url->public?' current':'')."' data-value='0'>".e("Private")."</a></li>
 	      <li><a href='' class='first".($url->public?' current':'')."' data-value='1'>".e("Public")."</a></li>
 	    </ul>
+		
+		<hr>
+	</div>
+  </div><!--/tab-content -->
+</div><!--/navtab -->		
+		
+		
 	    <input type='hidden' name='public' id='public' value='".$url->public."' />             
 	    ".Main::csrf_token(TRUE)."
 	    <input type='submit' value='".e("Update")."' class='btn btn-primary' />
@@ -1805,11 +1826,11 @@ class User extends App{
 					<form action='".Main::href("user/splash/create")."' class='form' method='post' enctype='multipart/form-data'>
 						<div class='form-group'>
 							<label for='name'>".e('Unique name')."</label>
-							<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. ".e("My Brand")."'>
+							<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. ".e("My Brand")."' autofocus />
 						</div>						
 						<div class='form-group'>
 							<label for='product'>".e('Link to Product')."</label>
-							<input type='text' class='form-control' name='product' id='product'  placeholder='e.g. http://domain.com/'>
+							<input type='text' class='form-control' name='product' id='product'  placeholder='e.g. http://domain.com/' />
 						</div>
 						<div class='form-group'>
 							<label for='avatar'>".e('Upload Avatar')." (100x100, PNG or JPEG, MAX 300KB)</label>
@@ -1817,7 +1838,7 @@ class User extends App{
 						</div>
 						<div class='form-group'>
 							<label for='banner'>".e('Upload Banner')."</label>
-							<input type='file' class='form-control' name='banner' id='banner' placeholder='e.g. http://domain.com/banner.jpg'>
+							<input type='file' class='form-control' name='banner' id='banner' placeholder='e.g. http://domain.com/banner.jpg' />
 							<div class='help-block'>".e("The minimum width must be 980px and the height must be between 250 and 500. The format must be a PNG or a JPG. Maximum size is 500KB.")."</div>
 						</div>
 						<div class='form-group'>
@@ -2335,8 +2356,8 @@ class User extends App{
 		$content="
 				<form action='".Main::href("user/overlay/message")."' class='form' method='post' enctype='multipart/form-data'>
 					<div class='form-group'>
-						<label for='message'>".e('Name')."</label>
-						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value=''>
+						<label for='message'>".e('Name.')."</label>
+						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='' autofocus />
 					</div>				
 					<div class='form-group'>
 						<label for='message'>".e('Custom Message')." (Max: 140 chars)</label>
@@ -2598,8 +2619,8 @@ class User extends App{
 		$content="
 				<form action='".Main::href("user/overlay/contact")."' class='form validate' method='post' enctype='multipart/form-data'>
 					<div class='form-group'>
-						<label for='name'>".e('Name')."</label>
-						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='' data-required='true'>
+						<label for='name'>".e('Name.')."</label>
+						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='' data-required='true' autofocus />
 					</div>		
 					<div class='form-group'>
 						<label for='email'>".e('Send Email Address')."</label>
@@ -2861,15 +2882,15 @@ class User extends App{
 		$content="
 				<form action='".Main::href("user/overlay/poll")."' class='form validate' method='post' enctype='multipart/form-data'>
 					<div class='form-group'>
-						<label for='name'>".e('Name')."</label>
-						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='' data-required='true'>
+						<label for='name'>".e('Name.')."</label>
+						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='' data-required='true' autofocus />
 					</div>		
 					<div class='form-group'>
-						<label for='question'>".e('Question')." (max 144)</label>
+						<label for='question'>".e('Question')." ".e('(max 144)')."</label>
 						<input type='text' class='form-control' name='question' id='question'  placeholder='' data-required='true'>
 					</div>
 					<hr>
-					<h3>".e("Options")." <small>(max 10)</small> <a href='' class='addA btn btn-xs btn-default pull-right'>".e("Add Option")."</a></h3>
+					<h3>".e("Options")." <small>".e('(max 10)')."</small> <a href='' class='addA btn btn-xs btn-primary pull-right'>".e("Add Option")."</a></h3>
 					<p class='help-block'>".e("You can add up to 10 options for each poll. To add an extra option click Add Option above. To ignore a field, leave it empty.")."</p>
 					<div class='poll-options'>
 						<div class='form-group'>
@@ -3126,8 +3147,8 @@ class User extends App{
 		$content="
 				<form action='".Main::href("user/overlay/{$overlay->id}")."' class='form' method='post' enctype='multipart/form-data'>
 					<div class='form-group'>
-						<label for='message'>".e('Name')."</label>
-						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}'>
+						<label for='message'>".e('Name.')."</label>
+						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}' autofocus />
 					</div>				
 					<div class='form-group'>
 						<label for='message'>".e('Custom Message')." (Max: 140 chars)</label>
@@ -3375,8 +3396,8 @@ class User extends App{
 		$content="
 				<form action='".Main::href("user/overlay/{$overlay->id}")."' class='form validate' method='post' enctype='multipart/form-data'>
 					<div class='form-group'>
-						<label for='name'>".e('Name')."</label>
-						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}' data-required='true'>
+						<label for='name'>".e('Name.')."</label>
+						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}' data-required='true' autofocus />
 					</div>		
 					<div class='form-group'>
 						<label for='email'>".e('Send Email Address')."</label>
@@ -3399,28 +3420,28 @@ class User extends App{
 						<div class='col-md-3'>
 							<div class='form-group'>
 								<label for='name-p'>".e('Name Placeholder')."</label>
-								<input type='text' class='form-control' name='lang[name]' id='name-p' value='Name' value='{$overlay->data->lang->name}'>
+								<input type='text' class='form-control' name='lang[name]' id='name-p'  value='{$overlay->data->lang->name}' value='Name'>
 								<p class='help-block'>".e("If you want to use a different language, change these.")."</p>
 							</div>					
 						</div>
 						<div class='col-md-3'>
 							<div class='form-group'>
 								<label for='email-p'>".e('Email Placeholder')."</label>
-								<input type='text' class='form-control' name='lang[email]' id='email-p' value='Email' value='{$overlay->data->lang->email}'>
+								<input type='text' class='form-control' name='lang[email]' id='email-p'  value='{$overlay->data->lang->email}' value='Email'>
 								<p class='help-block'>".e("If you want to use a different language, change these.")."</p>
 							</div>							
 						</div>
 						<div class='col-md-3'>
 							<div class='form-group'>
 								<label for='message-p'>".e('Message Placeholder')."</label>
-								<input type='text' class='form-control' name='lang[message]' id='message-p' value='Message' value='{$overlay->data->lang->message}'>
+								<input type='text' class='form-control' name='lang[message]' id='message-p' value='{$overlay->data->lang->message}' value='Message'>
 								<p class='help-block'>".e("If you want to use a different language, change these.")."</p>
 							</div>							
 						</div>
 						<div class='col-md-3'>
 							<div class='form-group'>
 								<label for='message-p'>".e('Send Button Placeholder')."</label>
-								<input type='text' class='form-control' name='lang[button]' id='button-p' value='Send' value='{$overlay->data->lang->button}'>
+								<input type='text' class='form-control' name='lang[button]' id='button-p' value='{$overlay->data->lang->button}' value='Send'>
 								<p class='help-block'>".e("If you want to use a different language, change these.")."</p>
 							</div>							
 						</div>						
@@ -3624,15 +3645,15 @@ class User extends App{
 		$content="
 				<form action='".Main::href("user/overlay/{$overlay->id}")."' class='form validate' method='post' enctype='multipart/form-data'>
 					<div class='form-group'>
-						<label for='name'>".e('Name')."</label>
-						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}' data-required='true'>
+						<label for='name'>".e('Name.')."</label>
+						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}' data-required='true' autofocus />
 					</div>		
 					<div class='form-group'>
-						<label for='question'>".e('Question')." (max 144)</label>
+						<label for='question'>".e('Question')." ".e('(max 144)')."</label>
 						<input type='text' class='form-control' name='question' id='question'  value='{$overlay->data->question}' data-required='true'>
 					</div>
 					<hr>
-					<h3>".e("Options")." <small>(max 10)</small> <a href='' class='addA btn btn-xs btn-default pull-right'>".e("Add Option")."</a></h3>
+					<h3>".e("Options")." <small>".e('(max 10)')."</small> <a href='' class='addA btn btn-xs btn-primary pull-right'>".e("Add Option")."</a></h3>
 					<p class='help-block'>".e("You can add up to 10 options for each poll. To add an extra option click Add Option above. To ignore a field, leave it empty.")."</p>
 					<div class='poll-options'>";
 					foreach ($overlay->data->answers as $key => $answer) {

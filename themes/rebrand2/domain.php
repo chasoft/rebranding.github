@@ -11,7 +11,7 @@
 		        <div class="col-sm-4">
 				      <div class="form-group">
 				        <label for="domain" class="control-label"><?php echo e("Custom domain name") ?></label>
-			          <input type="text" class="form-control" name="domain" id="domain" value="" placeholder="e.g. http://on.domain.com">
+			          <input type="text" class="form-control" name="domain" id="domain" value="" placeholder="e.g. http://on.domain.com" autofocus />
 			          <p class="help-block"><?php echo e("You will need to setup a DNS record for your domain to work. See instructions on the right side.") ?></p>
 			        </div>		        	
 						</div>

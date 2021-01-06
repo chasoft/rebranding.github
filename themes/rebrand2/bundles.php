@@ -12,7 +12,7 @@
 				<ul class="list-group bundles">
 				<?php foreach ($bundles as $bundle): ?>
 					<li class="list-group-item">
-						<a href="#" class="ajax_call" data-class="return-ajax" data-id="<?php echo $bundle->id ?>" data-active="active" data-action="bundle_urls"><h4 class="list-group-item-heading"><?php echo $bundle->name ?></h4></a>
+						<a href="#" class="ajax_call" data-class="return-ajax" data-id="<?php echo $bundle->id ?>" data-active="active" data-action="bundle_urls"><h4 class="list-group-item-heading text-success"><?php echo $bundle->name ?></h4></a>
 						<p><strong><?php echo e("Bundle Page") ?></strong>: <?php echo $this->config["url"]."/u/{$this->user->username}/".Main::slug($bundle->name)."-{$bundle->id}"; ?> <a href="#" class="copy inline-copy" data-clipboard-text="<?php echo $this->config["url"]."/u/{$this->user->username}/".Main::slug($bundle->name)."-{$bundle->id}"; ?>"><?php echo e("Copy") ?></a></p>
 						<?php if(!empty($bundle->slug)): ?>
 							<p><strong><?php echo e("Rotator Link") ?></strong>: <?php echo Main::href("r/{$bundle->slug}") ?> <a href="#" class="copy inline-copy" data-clipboard-text="<?php echo Main::href("r/{$bundle->slug}") ?>"><?php echo e("Copy") ?></a></p>
@@ -39,6 +39,14 @@
 			</div>
 		</div>
 		<div class="main-content col-md-7">
+<!--		
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="#">Home</a></li>
+    <li class="breadcrumb-item active" aria-current="page">???</li>
+  </ol>
+</nav>
+-->
 			<div class="panel panel-default panel-body">
 				<div id="data-container">
 					<div class="btn-group btn-group-sm">

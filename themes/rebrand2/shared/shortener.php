@@ -11,7 +11,7 @@
     <div class="row" id="single">
         <div class="input-group">
           <span class="input-group-addon"><i class="glyphicon glyphicon-link"></i></span>
-          <input type="text" class="form-control main-input" name="url" value="<?php if(isset($_GET["url"])) echo Main::clean($_GET["url"]) ?>" placeholder="<?php echo e("Paste a long url") ?>" autocomplete="off" />
+          <input type="text" class="form-control main-input" name="url" value="<?php if(isset($_GET["url"])) echo Main::clean($_GET["url"]) ?>" placeholder="<?php echo e("Paste a long url") ?>" autocomplete="off" autofocus />
           <button class="btn btn-primary main-button absolute-right" id="shortenurl" type="submit"><?php echo e("Shorten") ?></button>
           <button class="btn btn-primary main-button absolute-right" id="copyurl" type="button"><?php echo e("Copy") ?></button>		  
         </div>                 
