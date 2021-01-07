@@ -2084,11 +2084,10 @@ class App{
 
 			$menu.='<li'.($this->permission("domain") === FALSE ? ' class="locked"': '').'><a href="'.Main::href("user/domain").'"><span class="glyphicon glyphicon-globe"></span> '.e('Custom Domain').''.($this->permission("domain") === FALSE ? '<span class="label label-secondary pull-right">'.e('Pro').'</span>': '').'</a></li>';	
 
-			$menu.='<li class="re-menu-heading"><h6 class="overline-title text-primary-alt">'.e('Others').'</h6></li>';			
-
 			$public = $this->user->public ? "<span class='label label-primary pull-right'>".e("Online")."</span>"  : "<span class='label label-danger pull-right'>".e("Offline")."</span>";
 
-			if($this->config["api"] && $this->permission("api")){
+			if($this->config["api"] && $this->permission("api")){				
+				$menu.='<li class="re-menu-heading"><h6 class="overline-title text-primary-alt">'.e('Others').'</h6></li>';
 				$menu.='<li><a href="'.Main::href("user/tools").'"><span class="glyphicon glyphicon-wrench"></span> '.e('Tools &amp; Integrations').'</a></li>';
 			}
 			

@@ -3210,6 +3210,7 @@ body.dark-mode .text-success:hover {
 }
 .g-gs {
     /*margin: -14px !important;*/
+	margin-bottom: 50px;
 }
 .g-gs > li, .g-gs > div {
     padding: 14px !important;

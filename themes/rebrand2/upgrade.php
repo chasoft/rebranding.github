@@ -211,7 +211,7 @@
 					<?php if ($free[0]["permission"]->team->enabled): ?>
 						<?php echo $free[0]["permission"]->team->count == "0" ? e("Unlimited") : $free[0]["permission"]->team->count ?>
 					<?php else: ?>						
-						<span class="features no"></span>
+						-
 					<?php endif ?>
 				</td>
 				<td class="tb-ftr-plan">
