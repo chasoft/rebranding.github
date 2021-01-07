@@ -7,7 +7,7 @@
   </div><!--/#user-content-->
   <div id="widgets" class="col-md-4">
   	<?php echo $this->sidebar() ?>  	
-		<?php if($this->pro() && !$this->isTeam()) : ?>
+		<!-- </php if($this->pro() && !$this->isTeam()) : /> -->
 			<div class="panel panel-default panel-body">
 				<h3><?php echo e("Your Premium Membership") ?></h3>
 				<?php $plan = $this->db->get("plans", ["id" => $this->user->planid], ["limit" => 1]) ?>
@@ -37,6 +37,6 @@
 	        <?php echo ($this->user->plan->permission->domain->enabled ? '<p><span>'.e("Used").' '.$this->count("user_domain").' '.e("out of").' '.($this->user->plan->permission->domain->count > 0 ? $this->user->plan->permission->domain->count : e("Unlimited")).'</span> '.e('Custom Domain').'</p>' : '') ?>	       	
 	       </div>
 			</div>	
-		<?php endif ?>  				
+		<!-- </php endif /> -->
   </div><!--/#widgets-->
 </div><!--/.row-->

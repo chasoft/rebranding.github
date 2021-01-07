@@ -14,454 +14,398 @@
       </div>      
     </div>    
     <div id="price_tables">
+	  <!-- MONTHLY -->
       <div class="monthly cf">
-	  
-	  
-	  
-	  
-	  <div class="container">
-		<div class="row">
-			<div class="col-md-4">
-				<div class="price-plan card card-bordered text-center">
-					<div class="card-inner">
-						<div class="price-plan-media">
-							<img src="./images/icons/plan-s1.svg" alt="">
-						</div>
-						<div class="price-plan-info">
-							<h5 class="title">Starter</h5>
-							<span>If you are a small business amn please select this plan</span>
-						</div>
-						<div class="price-plan-amount">
-							<div class="amount">$99 
-								<span>/yr</span>
+		  <div class="container plan-fix">
+			<div class="row2 g-gs">
+			
+				<?php foreach ($free as $plan): ?>
+				<div class="col-md-4">
+					<div class="price-plan card card-bordered text-center">
+						<div class="card-inner">
+							<div class="price-plan-media">
+								<img src="https://rebranding.today/themes/rebrand2/assets/images/plan-s1.svg" alt="">
 							</div>
-							<span class="bill">1 User, Billed Yearly</span>
-						</div>
-						<div class="price-plan-action">
-							<a href="#" class="btn btn-primary">Select Plan</a>
+							<div class="price-plan-info">
+								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
+								<span><?php echo e($plan["description"]) ?></span>
+							</div>
+							<div class="price-plan-amount">
+								<div class="amount"><?php echo e("Free") ?></div>
+								<span class="bill"></span>
+							</div>
+							<div class="price-plan-action">						
+								  <?php if($this->logged()): ?>
+									<?php if(!$this->pro()): ?>
+									  <a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
+									<?php else: ?>
+									  <a class="btn btn-default btn-round"><?php echo e("Free Forever") ?></a> 
+									<?php endif ?>
+								  <?php else: ?>
+									<a href="<?php echo Main::href("user/register") ?>" class="btn btn-outline-primary btn-round"><?php echo e("Get Started") ?></a> 
+								  <?php endif ?>
+							</div>
 						</div>
 					</div>
 				</div>
-				<!-- .price-item -->
-			</div>
-			<!-- .col -->
-			<div class="col-md-4">
-				<div class="price-item card card-bordered text-center">
-					<div class="card-inner">
-						<div class="price-plan-media">
-							<img src="./images/icons/plan-s2.svg" alt="">
-						</div>
-						<div class="price-plan-info">
-							<h5 class="title">Pro</h5>
-							<span>If you are a small business amn please select this plan</span>
-						</div>
-						<div class="price-plan-amount">
-							<div class="amount">$299 
-								<span>/yr</span>
-							</div>
-							<span class="bill">5 User, Billed Yearly</span>
-						</div>
-						<div class="price-plan-action">
-							<a href="#" class="btn btn-primary">Select Plan</a>
-						</div>
-					</div>
-				</div>
-				<!-- .price-item -->
-			</div>
-			<!-- .col -->
+				<?php endforeach ?>
+				
+				<?php foreach ($monthly as $plan): ?>
 				<div class="col-md-4">
 					<div class="price-item card card-bordered text-center">
 						<div class="card-inner">
 							<div class="price-plan-media">
-								<img src="./images/icons/plan-s3.svg" alt="">
+								<img src="https://rebranding.today/themes/rebrand2/assets/images/plan-s2.svg" alt="">
 							</div>
 							<div class="price-plan-info">
-								<h5 class="title">Enterprise</h5>
-								<span>If you are a small business amn please select this plan</span>
+								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
+								<span><?php echo e($plan["description"]) ?></span>
 							</div>
 							<div class="price-plan-amount">
-								<div class="amount">$599 
-									<span>/yr</span>
+								<div class="amount"><?php echo Main::currency($this->config["currency"], number_format($plan["price"], 2)) ?> 
+									<span>/<?php echo e("mo") ?></span>
 								</div>
-								<span class="bill">20 User, Billed Yearly</span>
+								<span class="bill"></span>
 							</div>
 							<div class="price-plan-action">
-								<a href="#" class="btn btn-primary">Select Plan</a>
+							  <?php if ($this->logged() && $this->pro() && $this->user->planid == $plan["id"]): ?>
+								  <?php if ($this->user->trial): ?>
+									<a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>   
+								  <?php else: ?>
+									<a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
+								  <?php endif ?>
+							  <?php else: ?>
+								<?php if($plan["trial"] && (!$this->logged() || ($this->logged() && !$this->db->get("payment", "trial_days IS NOT NULL AND userid = '{$this->user->id}'", ["limit" => 1])))): ?>
+									<a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}?trial=1") ?>" class="btn btn-primary btn-round"><?php echo $plan["trial"] ?>-<?php echo e("Day") ?> <?php echo e("Free Trial") ?></a>  
+								<?php else: ?>
+								  <a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>  
+								<?php endif ?>
+							  <?php endif ?>
+							</div>
+						</div>
+					</div>	
+					<!-- .price-item -->
+				</div>
+				<?php endforeach ?>
+
+			</div><!-- .row -->
+		  </div><!-- .container -->
+      </div><!-- end of Monthly -->
+
+	  <!-- YEARLY -->
+      <div class="yearly cf">
+	  
+		  <div class="container plan-fix">
+			<div class="row2 g-gs">
+			
+				<?php foreach ($free as $plan): ?>
+				<div class="col-md-4">
+					<div class="price-plan card card-bordered text-center">
+						<div class="card-inner">
+							<div class="price-plan-media">
+								<img src="https://rebranding.today/themes/rebrand2/assets/images/plan-s1.svg" alt="">
+							</div>
+							<div class="price-plan-info">
+								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
+								<span><?php echo e($plan["description"]) ?></span>
+							</div>
+							<div class="price-plan-amount">
+								<div class="amount"><?php echo e("Free") ?></div>
+								<span class="bill"><?php echo e("Forever") ?></span>
+							</div>
+							<div class="price-plan-action">		
+							  <?php if($this->logged()): ?>
+								<?php if(!$this->pro()): ?>
+								  <a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
+								<?php else: ?>
+								  <a class="btn btn-default btn-round"><?php echo e("Free Forever") ?></a> 
+								<?php endif ?>
+							  <?php else: ?>
+								<a href="<?php echo Main::href("user/register") ?>" class="btn btn-outline-primary btn-round"><?php echo e("Get Started") ?></a> 
+							  <?php endif ?>
 							</div>
 						</div>
 					</div>
+				</div>
+				<?php endforeach ?>
+				
+				<?php foreach ($yearly as $plan): ?>
+				<div class="col-md-4">
+					<div class="price-item card card-bordered text-center">
+						<div class="card-inner">
+							<div class="price-plan-media">
+								<img src="https://rebranding.today/themes/rebrand2/assets/images/plan-s2.svg" alt="">
+							</div>
+							<div class="price-plan-info">
+								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
+								<span><?php echo e($plan["description"]) ?></span>
+							</div>
+							<div class="price-plan-amount">
+								<div class="amount"><?php echo Main::currency($this->config["currency"],$plan["price"]) ?>
+									<span>/<?php echo e("yr") ?></span>
+								</div>
+								<span class="bill"><?php echo Main::currency($this->config["currency"], number_format($plan["price"]/12, 2)) ?>/<?php echo e("mo") ?> (<?php echo e("Save.")." {$plan["discount"]}" ?>%)</span>
+							</div>
+							<div class="price-plan-action">
+							  <?php if ($this->logged() && $this->pro() && $this->user->planid == $plan["id"]): ?>
+								  <?php if ($this->user->trial): ?>
+									<a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>   
+								  <?php else: ?>
+									<a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
+								  <?php endif ?>
+							  <?php else: ?>
+								<?php if($plan["trial"] && (!$this->logged() || ($this->logged() && !$this->db->get("payment", "trial_days IS NOT NULL AND userid = '{$this->user->id}'", ["limit" => 1])))): ?>                  
+									<a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}?trial=1") ?>" class="btn btn-primary btn-round"><?php echo $plan["trial"] ?>-<?php echo e("Day") ?> <?php echo e("Free Trial") ?></a>                      
+								<?php else: ?>
+								  <a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>  
+								<?php endif ?>
+							  <?php endif ?>
+							</div>
+						</div>
+					</div>	
 					<!-- .price-item -->
 				</div>
-				<!-- .col -->
-		</div><!-- .row -->
-	  </div><!-- .container -->
+				<?php endforeach ?>
 
+			</div><!-- .row -->
+		  </div><!-- .container -->	  
+      </div><!-- end of YEARLY -->
+    </div><!-- end of PRICE-TABLE -->
+	
+	<hr>
 	<div class="container">
-		<div class="card card-bordered">
-			<table class="table table-features">
-				<thead class="tb-ftr-head thead-light">
-					<tr class="tb-ftr-item">
-						<th class="tb-ftr-info">Features</th>
-						<th class="tb-ftr-plan">Starter</th>
-						<th class="tb-ftr-plan">Pro</th>
-						<th class="tb-ftr-plan">Enterprise</th>
-					</tr>
-					<!-- .tb-ftr-item -->
-				</thead>
-				<tbody class="tb-ftr-body">
-					<tr class="tb-ftr-item">
-						<td class="tb-ftr-info">Alias record</td>
-						<td class="tb-ftr-plan">
-							<em class="icon ni ni-check-thick"></em>
-							<span class="plan-name">Starter</span>
-						</td>
-						<td class="tb-ftr-plan">
-							<em class="icon ni ni-check-thick"></em>
-							<span class="plan-name">Pro</span>
-						</td>
-						<td class="tb-ftr-plan">
-							<em class="icon ni ni-check-thick"></em>
-							<span class="plan-name">Enterprise</span>
-						</td>
-					</tr>
-					<!-- .tb-ftr-item -->
-					<tr class="tb-ftr-item">
-						<td class="tb-ftr-info">Anycast DNS</td>
-						<td class="tb-ftr-plan">
-							<em class="icon ni ni-check-thick"></em>
-							<span class="plan-name">Starter</span>
-						</td>
-						<td class="tb-ftr-plan">
-							<em class="icon ni ni-check-thick"></em>
-							<span class="plan-name">Pro</span>
-						</td>
-						<td class="tb-ftr-plan">
-							<em class="icon ni ni-check-thick"></em>
-							<span class="plan-name">Enterprise</span>
-						</td>
-					</tr>
-					<!-- .tb-ftr-item -->
-					<tr class="tb-ftr-item">
-						<td class="tb-ftr-info">Full API access</td>
-						<td class="tb-ftr-plan">
-							<em class="icon ni ni-cross"></em>
-							<span class="plan-name">Starter</span>
-						</td>
-						<td class="tb-ftr-plan">
-							<em class="icon ni ni-check-thick"></em>
-							<span class="plan-name">Pro</span>
-						</td>
-						<td class="tb-ftr-plan">
-							<em class="icon ni ni-check-thick"></em>
-							<span class="plan-name">Enterprise</span>
-						</td>
-					</tr>
-					<!-- .tb-ftr-item -->
-					<tr class="tb-ftr-item">
-						<td class="tb-ftr-info">Multiple-layered DoS defense</td>
-						<td class="tb-ftr-plan">
-							<em class="icon ni ni-cross"></em>
-							<span class="plan-name">Starter</span>
-						</td>
-						<td class="tb-ftr-plan">
-							<em class="icon ni ni-cross"></em>
-							<span class="plan-name">Pro</span>
-						</td>
-						<td class="tb-ftr-plan">
-							<em class="icon ni ni-check-thick"></em>
-							<span class="plan-name">Enterprise</span>
-						</td>
-					</tr>
-					<!-- .tb-ftr-item -->
-				</tbody>
-			</table>
-		</div>
+	<div class="card card-bordered">
+		<table class="table table-features">
+			<thead class="tb-ftr-head thead-light">
+				<tr class="tb-ftr-item">
+					<th class="tb-ftr-info"><?php echo e("Features")?></th>
+					<th class="tb-ftr-plan"><?php echo e($free[0]["name"])?></th>
+					<th class="tb-ftr-plan"><?php echo e($monthly[0]["name"])?></th>
+					<th class="tb-ftr-plan"><?php echo e($monthly[1]["name"])?></th>
+				</tr>
+				<!-- .tb-ftr-item -->
+			</thead>
+			<tbody class="tb-ftr-body">
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Premium Features") ?></td>
+				<td class="tb-ftr-plan"><span class="features no"></span></td>
+				<td class="tb-ftr-plan"><span class="features yes"></span></td>
+				<td class="tb-ftr-plan"><span class="features yes"></span></td>
+			</tr>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("URLs allowed") ?></td>
+				<td class="tb-ftr-plan"><?php echo $free[0]["urls"]== "0" ? e("Unlimited") : $free[0]["urls"] ?></td>
+				<td class="tb-ftr-plan"><?php echo $monthly[0]["urls"]== "0" ? e("Unlimited") : $monthly[0]["urls"] ?></td>
+				<td class="tb-ftr-plan"><?php echo $monthly[1]["urls"]== "0" ? e("Unlimited") : $monthly[1]["urls"] ?></td>
+			</tr>
+			<!-- .tb-ftr-item -->
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Clicks per month") ?></td>
+				<td class="tb-ftr-plan"><?php echo $free[0]["clicks"]== "0" ? e("Unlimited") : $free[0]["clicks"] ?></td>
+				<td class="tb-ftr-plan"><?php echo $monthly[0]["clicks"]== "0" ? e("Unlimited") : $monthly[0]["clicks"] ?></td>
+				<td class="tb-ftr-plan"><?php echo $monthly[1]["clicks"]== "0" ? e("Unlimited") : $monthly[1]["clicks"] ?></td>
+			</td>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Team Member") ?></td>
+				<td class="tb-ftr-plan">
+					<?php if ($free[0]["permission"]->team->enabled): ?>
+						<?php echo $free[0]["permission"]->team->count == "0" ? e("Unlimited") : $free[0]["permission"]->team->count ?>
+					<?php else: ?>						
+						<span class="features no"></span>
+					<?php endif ?>
+				</td>
+				<td class="tb-ftr-plan">
+					<?php if ($monthly[0]["permission"]->splash->enabled): ?>
+						<?php echo $monthly[0]["permission"]->team->count == "0" ? e("Unlimited") : $monthly[0]["permission"]->team->count ?>
+					<?php else: ?>						
+						<span class="features no"></span>
+					<?php endif ?>
+				</td>
+				<td class="tb-ftr-plan">
+					<?php if ($monthly[1]["permission"]->splash->enabled): ?>
+						<?php echo $monthly[1]["permission"]->team->count == "0" ? e("Unlimited") : $monthly[1]["permission"]->team->count ?>
+					<?php else: ?>						
+						<span class="features no"></span>
+					<?php endif ?>
+				</td>
+			</td>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Custom Domains") ?></td>
+				<td class="tb-ftr-plan">
+					<?php if ($free[0]["permission"]->domain->enabled): ?>
+						<?php echo $free[0]["permission"]->domain->count == "0" ? e("Unlimited") : $free[0]["permission"]->domain->count ?>
+					<?php else: ?>						
+						<span class="features no"></span>
+					<?php endif ?>
+				</td>
+				<td class="tb-ftr-plan">
+				<?php echo $monthly[0]["permission"]->domain->count == "0" ? e("Unlimited") : $monthly[0]["permission"]->domain->count ?>
+				</td>
+				<td class="tb-ftr-plan">
+				<?php echo $monthly[1]["permission"]->domain->count == "0" ? e("Unlimited") : $monthly[1]["permission"]->domain->count ?>
+				</td>
+			</td>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Custom Splash Pages") ?></td>
+				<td class="tb-ftr-plan">
+					<?php if ($free[0]["permission"]->splash->enabled): ?>
+						<?php echo $free[0]["permission"]->splash->count == "0" ? e("Unlimited") : $free[0]["permission"]->splash->count ?>
+					<?php else: ?>						
+						<span class="features no"></span>
+					<?php endif ?>
+				</td>
+				<td class="tb-ftr-plan">
+					<?php if ($monthly[0]["permission"]->splash->enabled): ?>
+						<?php echo $monthly[0]["permission"]->splash->count == "0" ? e("Unlimited") : $monthly[0]["permission"]->splash->count ?>
+					<?php else: ?>						
+						<span class="features no"></span>
+					<?php endif ?>
+				</td>
+				<td class="tb-ftr-plan">
+					<?php if ($monthly[1]["permission"]->splash->enabled): ?>
+						<?php echo $monthly[1]["permission"]->splash->count == "0" ? e("Unlimited") : $monthly[1]["permission"]->splash->count ?>
+					<?php else: ?>						
+						<span class="features no"></span>
+					<?php endif ?>
+				</td>
+			</td>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Custom Overlay Pages") ?></td>
+				<td class="tb-ftr-plan">
+					<?php if ($free[0]["permission"]->overlay->enabled): ?>
+						<?php echo $free[0]["permission"]->overlay->count == "0" ? e("Unlimited") : $free[0]["permission"]->overlay->count ?>
+					<?php else: ?>						
+						<span class="features no"></span>
+					<?php endif ?>
+				</td>
+				<td class="tb-ftr-plan">
+					<?php if ($monthly[0]["permission"]->splash->enabled): ?>
+						<?php echo $monthly[0]["permission"]->overlay->count == "0" ? e("Unlimited") : $monthly[0]["permission"]->overlay->count ?>
+					<?php else: ?>						
+						<span class="features no"></span>
+					<?php endif ?>
+				</td>
+				<td class="tb-ftr-plan">
+					<?php if ($monthly[1]["permission"]->splash->enabled): ?>
+						<?php echo $monthly[1]["permission"]->overlay->count == "0" ? e("Unlimited") : $monthly[1]["permission"]->overlay->count ?>
+					<?php else: ?>						
+						<span class="features no"></span>
+					<?php endif ?>
+				</td>
+			</td>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Event Tracking") ?></td>
+				<td class="tb-ftr-plan">
+					<?php if ($free[0]["permission"]->pixels->enabled): ?>
+						<?php echo $free[0]["permission"]->pixels->count == "0" ? e("Unlimited") : $free[0]["permission"]->pixels->count ?>
+					<?php else: ?>						
+						<span class="features no"></span>
+					<?php endif ?>
+				</td>
+				<td class="tb-ftr-plan">
+					<?php if ($monthly[0]["permission"]->splash->enabled): ?>
+						<?php echo $monthly[0]["permission"]->pixels->count == "0" ? e("Unlimited") : $monthly[0]["permission"]->pixels->count ?>
+					<?php else: ?>						
+						<span class="features no"></span>
+					<?php endif ?>
+				</td>
+				<td class="tb-ftr-plan">
+					<?php if ($monthly[1]["permission"]->splash->enabled): ?>
+						<?php echo $monthly[1]["permission"]->pixels->count == "0" ? e("Unlimited") : $monthly[1]["permission"]->pixels->count ?>
+					<?php else: ?>						
+						<span class="features no"></span>
+					<?php endif ?>
+				</td>
+			</td>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Geotargeting") ?></td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $free[0]["permission"]->geo->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[0]["permission"]->geo->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[1]["permission"]->geo->enabled == true?"yes":"no"?>"></span>
+				</td>					
+			</td>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Device Targeting") ?></td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $free[0]["permission"]->device->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[0]["permission"]->device->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[1]["permission"]->device->enabled == true?"yes":"no"?>"></span>
+				</td>					
+			</td>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Bundles & Link Rotator") ?></td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $free[0]["permission"]->bundle->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[0]["permission"]->bundle->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[1]["permission"]->bundle->enabled == true?"yes":"no"?>"></span>
+				</td>					
+			</td>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Custom Aliases") ?></td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $free[0]["permission"]->alias->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[0]["permission"]->alias->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[1]["permission"]->alias->enabled == true?"yes":"no"?>"></span>
+				</td>					
+			</td>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Export Data") ?></td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $free[0]["permission"]->export->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[0]["permission"]->export->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[1]["permission"]->export->enabled == true?"yes":"no"?>"></span>
+				</td>					
+			</td>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Developer API") ?></td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $free[0]["permission"]->api->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[0]["permission"]->api->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[1]["permission"]->api->enabled == true?"yes":"no"?>"></span>
+				</td>					
+			</td>
+			<tr class="tb-ftr-item"><!-- URL Customization -->
+				<td class="tb-ftr-info"><?php echo e("URL Customization") ?></td>
+				<td class="tb-ftr-plan"><span class="features no"></span></td>
+				<td class="tb-ftr-plan"><span class="features yes"></span></td>
+				<td class="tb-ftr-plan"><span class="features yes"></span></td>
+			</td>
+			<tr class="tb-ftr-item"><!-- Advertisements -->
+				<td class="tb-ftr-info"><?php echo e("Advertisements") ?></td>
+				<td class="tb-ftr-plan"><span class="features yes"></span></td>
+				<td class="tb-ftr-plan"><span class="features no"></span></td>
+				<td class="tb-ftr-plan"><span class="features no"></span></td>
+			</td>
+			</tbody>
+		</table>
 	</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        <?php foreach ($free as $plan): ?>
-          <div class="price-table">
-            <div class="table-inner text-center">              
-              <h3><?php echo e($plan["name"]) ?></h3>
-              <div class="phrase"><?php echo e($plan["description"]) ?></div>
-              <span class="price"><?php echo e("Free") ?></span>
-              <ul class="feature-list">
-                <li><?php echo e("Basic Features") ?></li>
-                <li><?php echo $plan["urls"] == "0" ? e("Unlimited") : $plan["urls"] ?> <?php echo e("URLs allowed") ?></li>
-                <li><?php echo $plan["clicks"] == "0" ? e("Unlimited") : $plan["clicks"] ?> <?php echo e("Clicks per month") ?></li>
-                <?php if ($plan["permission"]->geo->enabled): ?>
-                  <li><?php echo e("Geotargeting"); ?></li>
-                <?php endif ?>
-                <?php if ($plan["permission"]->device->enabled): ?>
-                  <li><?php echo e("Device Targeting"); ?></li>
-                <?php endif ?>                
-                <?php if ($plan["permission"]->splash->enabled): ?>
-                  <li><?php echo ($plan["permission"]->splash->count == "0" ? e("Unlimited") : $plan["permission"]->splash->count)." ".e("Custom Splash Pages"); ?></li>
-                <?php endif ?>
-                <?php if ($plan["permission"]->overlay->enabled): ?>
-                  <li><?php echo ($plan["permission"]->overlay->count == "0" ? e("Unlimited") : $plan["permission"]->overlay->count)." ".e("Custom Overlay Pages"); ?></li>
-                <?php endif ?>         
-                <?php if ($plan["permission"]->pixels->enabled): ?>
-                  <li><?php echo ($plan["permission"]->pixels->count == "0" ? e("Unlimited") : $plan["permission"]->pixels->count)." ".e("Event Tracking"); ?></li>
-                <?php endif ?>    
-                <?php if ($plan["permission"]->team->enabled): ?>
-                  <li><?php echo ($plan["permission"]->team->count == "0" ? e("Unlimited") : $plan["permission"]->team->count)." ".e("Team Member"); ?></li>
-                <?php endif ?>                                
-                <?php if ($plan["permission"]->domain->enabled): ?>
-                  <li><?php echo ($plan["permission"]->domain->count == "0" ? e("Unlimited") : $plan["permission"]->domain->count)." ".e("Custom Domains"); ?></li>
-                <?php endif ?>   
-                <?php if ($plan["permission"]->bundle->enabled): ?>
-                  <li><?php echo e("Bundles & Link Rotator") ?></li>        
-                <?php endif ?>                  
-                <?php if (isset($plan["permission"]->alias->enabled) && $plan["permission"]->alias->enabled): ?>
-                  <li><?php echo e("Custom Aliases") ?></li>        
-                <?php endif ?>                   
-                <?php if ($plan["permission"]->export->enabled): ?>
-                  <li><?php echo e("Export Data") ?></li>        
-                <?php endif ?>                 
-                <?php if ($plan["permission"]->api->enabled): ?>
-                  <li><?php echo e("Developer API"); ?></li>
-                <?php endif ?>                               
-                <li><?php echo e("Limited URL Customization") ?></li>                
-                <li><?php echo e("Advertisement") ?></li>          
-              </ul>
-              <br>
-              <?php if($this->logged()): ?>
-                <?php if (!$this->pro()): ?>
-                  <a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
-                <?php endif ?>
-              <?php else: ?>
-                <a href="<?php echo Main::href("user/register") ?>" class="btn btn-outline-primary btn-round"><?php echo e("Get Started") ?></a> 
-              <?php endif ?>               
-            </div>
-          </div>          
-        <?php endforeach ?>
-        <?php foreach ($monthly as $plan): ?>
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-          <div class="price-table highlighted">
-            <div class="table-inner text-center">
-              <h3><?php echo e($plan["name"]) ?></h3>
-              <div class="phrase"><?php echo e($plan["description"]) ?></div>
-              <span class="price"><?php echo Main::currency($this->config["currency"], number_format($plan["price"], 2)) ?></strong><small>/mo</small></span>
-              <ul class="feature-list">
-                <li><?php echo e("Premium Features") ?></li>
-                <li><?php echo $plan["urls"]== "0" ? e("Unlimited") : $plan["urls"] ?> <?php echo e("URLs allowed") ?></li>
-                <li><?php echo $plan["clicks"]== "0" ? e("Unlimited") : $plan["clicks"] ?> <?php echo e("Clicks per month") ?></li>
-                <?php if ($plan["permission"]->geo->enabled): ?>
-                  <li><?php echo e("Geotargeting"); ?></li>
-                <?php endif ?>
-                <?php if ($plan["permission"]->device->enabled): ?>
-                  <li><?php echo e("Device Targeting"); ?></li>
-                <?php endif ?>                
-                <?php if ($plan["permission"]->splash->enabled): ?>
-                  <li><?php echo ($plan["permission"]->splash->count == "0" ? e("Unlimited") : $plan["permission"]->splash->count)." ".e("Custom Splash Pages"); ?></li>
-                <?php endif ?>
-                <?php if ($plan["permission"]->overlay->enabled): ?>
-                  <li><?php echo ($plan["permission"]->overlay->count == "0" ? e("Unlimited") : $plan["permission"]->overlay->count)." ".e("Custom Overlay Pages"); ?></li>
-                <?php endif ?>         
-                <?php if ($plan["permission"]->pixels->enabled): ?>
-                  <li><?php echo ($plan["permission"]->pixels->count == "0" ? e("Unlimited") : $plan["permission"]->pixels->count)." ".e("Event Tracking"); ?></li>
-                <?php endif ?>              
-                <?php if ($plan["permission"]->team->enabled): ?>
-                  <li><?php echo ($plan["permission"]->team->count == "0" ? e("Unlimited") : $plan["permission"]->team->count)." ".e("Team Member"); ?></li>
-                <?php endif ?>                       
-                <?php if ($plan["permission"]->domain->enabled): ?>
-                  <li><?php echo ($plan["permission"]->domain->count == "0" ? e("Unlimited") : $plan["permission"]->domain->count)." ".e("Custom Domains"); ?></li>
-                <?php endif ?>  
-                <?php if ($plan["permission"]->bundle->enabled): ?>
-                  <li><?php echo e("Bundles & Link Rotator") ?></li>        
-                <?php endif ?>        
-                <?php if (isset($plan["permission"]->alias->enabled) && $plan["permission"]->alias->enabled): ?>
-                  <li><?php echo e("Custom Aliases") ?></li>        
-                <?php endif ?>                            
-                <?php if ($plan["permission"]->export->enabled): ?>
-                  <li><?php echo e("Export Data") ?></li>        
-                <?php endif ?>                 
-                <?php if ($plan["permission"]->api->enabled): ?>
-                  <li><?php echo e("Developer API"); ?></li>
-                <?php endif ?>                                                  
-                <li><?php echo e("URL Customization") ?></li>                              
-                <li><?php echo e("No Advertisements") ?></li>
-                <?php if (!empty($plan["permission"]->custom)): ?>
-                  <li><?php echo e($plan["permission"]->custom); ?></li>
-                <?php endif ?>  
-              </ul>
-              <?php if ($this->logged() && $this->pro() && $this->user->planid == $plan["id"]): ?>
-                  <?php if ($this->user->trial): ?>
-                    <a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>   
-                  <?php else: ?>
-                    <a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
-                  <?php endif ?>
-              <?php else: ?>
-                <?php if($plan["trial"] && (!$this->logged() || ($this->logged() && !$this->db->get("payment", "trial_days IS NOT NULL AND userid = '{$this->user->id}'", ["limit" => 1])))): ?>
-                    <a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}?trial=1") ?>" class="btn btn-primary btn-round"><?php echo $plan["trial"] ?>-<?php echo e("Day") ?> <?php echo e("Free Trial") ?></a>  
-                <?php else: ?>
-                  <a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>  
-                <?php endif ?>
-              <?php endif ?>                            
-            </div>
-          </div>          
-        <?php endforeach ?>
-      </div>
-
-      <div class="yearly cf">
-        <?php foreach ($free as $plan): ?>
-          <div class="price-table">
-            <div class="table-inner text-center">
-              <h3><?php echo e($plan["name"]) ?></h3>
-              <div class="phrase"><?php echo e($plan["description"]) ?></div>
-              <span class="price"><?php echo e("Free") ?><small class="billed"><?php echo e("Forever") ?></small></span>
-              <ul class="feature-list">
-                <li><?php echo e("Basic Features") ?></li>
-                <li><?php echo $plan["urls"]== "0" ? e("Unlimited") : $plan["urls"] ?> <?php echo e("URLs allowed") ?></li>
-                <li><?php echo $plan["clicks"]== "0" ? e("Unlimited") : $plan["clicks"] ?> <?php echo e("Clicks per month") ?></li>
-                <?php if ($plan["permission"]->geo->enabled): ?>
-                  <li><?php echo e("Geotargeting"); ?></li>
-                <?php endif ?>
-                <?php if ($plan["permission"]->device->enabled): ?>
-                  <li><?php echo e("Device Targeting"); ?></li>
-                <?php endif ?>                
-                <?php if ($plan["permission"]->splash->enabled): ?>
-                  <li><?php echo ($plan["permission"]->splash->count == "0" ? e("Unlimited") : $plan["permission"]->splash->count)." ".e("Custom Splash Pages"); ?></li>
-                <?php endif ?>
-                <?php if ($plan["permission"]->overlay->enabled): ?>
-                  <li><?php echo ($plan["permission"]->overlay->count == "0" ? e("Unlimited") : $plan["permission"]->overlay->count)." ".e("Custom Overlay Pages"); ?></li>
-                <?php endif ?>         
-                <?php if ($plan["permission"]->pixels->enabled): ?>
-                  <li><?php echo ($plan["permission"]->pixels->count == "0" ? e("Unlimited") : $plan["permission"]->pixels->count)." ".e("Event Tracking"); ?></li>
-                <?php endif ?>                 
-                <?php if ($plan["permission"]->team->enabled): ?>
-                  <li><?php echo ($plan["permission"]->team->count == "0" ? e("Unlimited") : $plan["permission"]->team->count)." ".e("Team Member"); ?></li>
-                <?php endif ?>                    
-                <?php if ($plan["permission"]->domain->enabled): ?>
-                  <li><?php echo ($plan["permission"]->domain->count == "0" ? e("Unlimited") : $plan["permission"]->domain->count)." ".e("Custom Domains"); ?></li>
-                <?php endif ?>   
-                <?php if ($plan["permission"]->bundle->enabled): ?>
-                  <li><?php echo e("Bundles & Link Rotator") ?></li>        
-                <?php endif ?>            
-                <?php if (isset($plan["permission"]->alias->enabled) && $plan["permission"]->alias->enabled): ?>
-                  <li><?php echo e("Custom Aliases") ?></li>        
-                <?php endif ?>                       
-                <?php if ($plan["permission"]->export->enabled): ?>
-                  <li><?php echo e("Export Data") ?></li>        
-                <?php endif ?>                 
-                <?php if ($plan["permission"]->api->enabled): ?>
-                  <li><?php echo e("Developer API"); ?></li>
-                <?php endif ?>                               
-                <li><?php echo e("Limited URL Customization") ?></li>                
-                <li><?php echo e("Advertisement") ?></li>          
-              </ul>
-              <br>
-              <?php if($this->logged()): ?>
-                <?php if (!$this->pro()): ?>
-                  <a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
-                <?php endif ?>
-              <?php else: ?>
-                <a href="<?php echo Main::href("user/register") ?>" class="btn btn-outline-primary btn-round"><?php echo e("Get Started") ?></a> 
-              <?php endif ?>               
-            </div>
-          </div>          
-        <?php endforeach ?>
-        <?php foreach ($yearly as $plan): ?>
-          <div class="price-table highlighted">
-            
-            <?php if ($plan["discount"] > 1): ?>
-              <div class="corner-ribbon top-left"><?php echo e("Save.")." {$plan["discount"]}" ?>%</div>
-            <?php endif ?>
-            <div class="table-inner text-center">
-              <h3><?php echo e($plan["name"]) ?></h3>
-              <div class="phrase"><?php echo e($plan["description"]) ?></div>
-              <span class="price"><?php echo Main::currency($this->config["currency"], number_format($plan["price"]/12, 2)) ?></strong><small>/mo</small><small class="billed"><?php echo e("Billed") ?> <?php echo Main::currency($this->config["currency"],$plan["price"]) ?></small></span>          
-              <ul class="feature-list">
-                <li><?php echo e("Premium Features") ?></li>
-                <li><?php echo $plan["urls"]== "0" ? e("Unlimited") : $plan["urls"] ?> <?php echo e("URLs allowed") ?></li>
-                <li><?php echo $plan["clicks"]== "0" ? e("Unlimited") : $plan["clicks"] ?> <?php echo e("Clicks per month") ?></li>
-                <?php if ($plan["permission"]->geo->enabled): ?>
-                  <li><?php echo e("Geotargeting"); ?></li>
-                <?php endif ?>
-                <?php if ($plan["permission"]->device->enabled): ?>
-                  <li><?php echo e("Device Targeting"); ?></li>
-                <?php endif ?>                
-                <?php if ($plan["permission"]->splash->enabled): ?>
-                  <li><?php echo ($plan["permission"]->splash->count == "0" ? e("Unlimited") : $plan["permission"]->splash->count)." ".e("Custom Splash Pages"); ?></li>
-                <?php endif ?>
-                <?php if ($plan["permission"]->overlay->enabled): ?>
-                  <li><?php echo ($plan["permission"]->overlay->count == "0" ? e("Unlimited") : $plan["permission"]->overlay->count)." ".e("Custom Overlay Pages"); ?></li>
-                <?php endif ?>         
-                <?php if ($plan["permission"]->pixels->enabled): ?>
-                  <li><?php echo ($plan["permission"]->pixels->count == "0" ? e("Unlimited") : $plan["permission"]->pixels->count)." ".e("Event Tracking"); ?></li>
-                <?php endif ?>              
-                <?php if ($plan["permission"]->team->enabled): ?>
-                  <li><?php echo ($plan["permission"]->team->count == "0" ? e("Unlimited") : $plan["permission"]->team->count)." ".e("Team Member"); ?></li>
-                <?php endif ?>                       
-                <?php if ($plan["permission"]->domain->enabled): ?>
-                  <li><?php echo ($plan["permission"]->domain->count == "0" ? e("Unlimited") : $plan["permission"]->domain->count)." ".e("Custom Domains"); ?></li>
-                <?php endif ?>   
-                <?php if ($plan["permission"]->bundle->enabled): ?>
-                  <li><?php echo e("Bundles & Link Rotator") ?></li>        
-                <?php endif ?>              
-                <?php if (isset($plan["permission"]->alias->enabled) && $plan["permission"]->alias->enabled): ?>
-                  <li><?php echo e("Custom Aliases") ?></li>        
-                <?php endif ?>                     
-                <?php if ($plan["permission"]->export->enabled): ?>
-                  <li><?php echo e("Export Data") ?></li>        
-                <?php endif ?>                 
-                <?php if ($plan["permission"]->api->enabled): ?>
-                  <li><?php echo e("Developer API"); ?></li>
-                <?php endif ?>                                                  
-                <li><?php echo e("URL Customization") ?></li>                              
-                <li><?php echo e("No Advertisements") ?></li>
-                <?php if (!empty($plan["permission"]->custom)): ?>
-                  <li><?php echo e($plan["permission"]->custom); ?></li>
-                <?php endif ?>  
-              </ul>
-              <?php if ($this->logged() && $this->pro() && $this->user->planid == $plan["id"]): ?>
-                  <?php if ($this->user->trial): ?>
-                    <a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>   
-                  <?php else: ?>
-                    <a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
-                  <?php endif ?>
-              <?php else: ?>
-                <?php if($plan["trial"] && (!$this->logged() || ($this->logged() && !$this->db->get("payment", "trial_days IS NOT NULL AND userid = '{$this->user->id}'", ["limit" => 1])))): ?>                  
-                    <a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}?trial=1") ?>" class="btn btn-primary btn-round"><?php echo $plan["trial"] ?>-<?php echo e("Day") ?> <?php echo e("Free Trial") ?></a>                      
-                <?php else: ?>
-                  <a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>  
-                <?php endif ?>
-              <?php endif ?>                      
-            </div>
-          </div>          
-        <?php endforeach ?>
-      </div>
-    </div>	
-  </div>
+	</div>
+  </div><!-- end of container -->
 </section>
 
 <section id="faq">

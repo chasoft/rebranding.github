@@ -768,7 +768,7 @@ class App{
 
 			$this->db->insert("payment", $PArray);		
 
-			return Main::redirect(Main::href("user","",FALSE), ["success", e("Free trial has been activated! Your trial will expire in {$plan->trial_days} days.")]);
+			return Main::redirect(Main::href("user","",FALSE), ["success", e("Free trial has been activated! Your trial will expire in ").($plan->trial_days).e(" days.")]);
 		}
 
 		$logo = ($this->config["logo"] ? "{$this->config["url"]}/content/{$this->config["logo"]}" : "");

@@ -39,7 +39,11 @@
                     <div class="row">
                         <div class="col col-sm-3">
                             <div class="f_widget social-widget pl_70 wow fadeInLeft" data-wow-delay="0.8s" style="visibility: visible; animation-delay: 0.8s; animation-name: fadeInLeft;">
-                                <h3 class="f-title"><img alt="<?php echo $this->config["title"] ?>" style="width:100%; max-width: 215px;" src="<?php echo $this->config["url"] ?>/content/<?php echo $this->config["logo"] ?>"></h3>								
+							
+                                <h3 class="f-title light-mode-logo"><img alt="<?php echo $this->config["title"] ?>" style="width:100%; max-width: 215px;" src="<?php echo $this->config["url"] ?>/content/re-logo-dark.png"></h3>
+								
+                                <h3 class="f-title dark-mode-logo"><img alt="<?php echo $this->config["title"] ?>" style="width:100%; max-width: 215px;" src="<?php echo $this->config["url"] ?>/content/re-logo-light.png"></h3>
+								
 								<div style="margin-bottom: 20px;"><?php echo e("A Service of BizChain Labs")?>.<br><em>Email</em>: <a href='<?php echo $this->config["url"]?>/contact' title='<?php echo e("Contact")?>'>support@rebranding.today</a></div>
                                 <div class="f_social_icon">
                                     <a href="https://www.facebook.com/bizchain.vn" class="fab fa-facebook"></a>

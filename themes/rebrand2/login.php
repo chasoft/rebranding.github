@@ -2,13 +2,20 @@
 <section>
 	<div class="container">    
 		<div class="centered form">      
-      <div class="site_logo">
+      <div class="site_logo light-mode-logo">
         <?php if (!empty($this->config["logo"])): ?>
-          <a href="<?php echo $this->config["url"] ?>"><img src="<?php echo $this->config["url"] ?>/content/<?php echo $this->config["logo"] ?>" alt="<?php echo $this->config["title"] ?>"></a>
+          <a href="<?php echo $this->config["url"] ?>"><img src="<?php echo $this->config["url"] ?>/content/re-logo-dark.png" alt="<?php echo $this->config["title"] ?>"></a>
         <?php else: ?>
           <h3><a href="<?php echo $this->config["url"] ?>"><?php echo $this->config["title"] ?></a></h3>
         <?php endif ?>
       </div>
+      <div class="site_logo dark-mode-logo">
+        <?php if (!empty($this->config["logo"])): ?>
+          <a href="<?php echo $this->config["url"] ?>"><img src="<?php echo $this->config["url"] ?>/content/re-logo-light.png" alt="<?php echo $this->config["title"] ?>"></a>
+        <?php else: ?>
+          <h3><a href="<?php echo $this->config["url"] ?>"><?php echo $this->config["title"] ?></a></h3>
+        <?php endif ?>
+      </div>	  
       <?php echo Main::message() ?> 
       <form role="form" class="live_form form" id="login_form" method="post" action="<?php echo Main::href("user/login")?>"> 
           

@@ -42,7 +42,7 @@
     <?php if($this->isUser): // Show header for logged user ?>
       <?php if($this->user->trial): ?>
         <div class="header-top alert alert-warning text-center">
-          <?php echo e("Your trial expires in ") ?> <?php echo date("d", strtotime($this->user->expiration) - strtotime("now")) ?> <?php echo e("days") ?>
+          <?php echo e("Your trial expires in ") ?> <?php echo date("d", strtotime($this->user->expiration) - strtotime("tomorrow")) ?> <?php echo e("days") ?>
           <a href="<?php echo Main::href("pricing") ?>" class="btn btn-outline-warning btn-sm"><?php echo e("Upgrade now") ?></a>
         </div>
       <?php endif ?>
@@ -94,13 +94,20 @@
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                   <span class="glyphicon glyphicon-align-justify"></span>
                 </button>
-                <a class="navbar-brand" href="<?php echo $this->config["url"] ?>">
+                <a class="navbar-brand light-mode-logo" href="<?php echo $this->config["url"] ?>">
                   <?php if (!empty($this->config["logo"])): ?>
-                  <img src="<?php echo $this->config["url"] ?>/content/<?php echo $this->config["logo"] ?>" alt="<?php echo $this->config["title"] ?>">
+                  <img src="<?php echo $this->config["url"] ?>/content/re-logo-dark.png" alt="<?php echo $this->config["title"] ?>">
                   <?php else: ?>
                     <?php echo $this->config["title"] ?>
                   <?php endif ?>
                 </a>
+                <a class="navbar-brand dark-mode-logo" href="<?php echo $this->config["url"] ?>">
+                  <?php if (!empty($this->config["logo"])): ?>
+                  <img src="<?php echo $this->config["url"] ?>/content/re-logo-light.png" alt="<?php echo $this->config["title"] ?>">
+                  <?php else: ?>
+                    <?php echo $this->config["title"] ?>
+                  <?php endif ?>
+                </a>				
               </div>
               <?php echo $this->menu() ?>
             </div>

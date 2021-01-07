@@ -61,8 +61,8 @@
 			<div class="panel-heading">
 				<div class="btn-group btn-group-xs pull-right">
 					<a href="#" class="btn btn-primary chart_data active" data-value='d'><?php echo e("Daily") ?></a>			
-					<a href="#" class="btn btn-primary chart_data" data-value='<?php echo json_encode(array("m",$url->alias.$url->custom,$url->click)) ?>'><?php echo e("Monthly") ?></a>
-					<a href="#" class="btn btn-primary chart_data" data-value='<?php echo json_encode(array("y",$url->alias.$url->custom,$url->click)) ?>'><?php echo e("Yearly") ?></a>   				
+					<a href="#" class="btn btn-outline-primary chart_data" data-value='<?php echo json_encode(array("m",$url->alias.$url->custom,$url->click)) ?>'><?php echo e("Monthly") ?></a>
+					<a href="#" class="btn btn-outline-primary chart_data" data-value='<?php echo json_encode(array("y",$url->alias.$url->custom,$url->click)) ?>'><?php echo e("Yearly") ?></a>   				
 				</div>
 			</div>
 			<div class="panel-body">
