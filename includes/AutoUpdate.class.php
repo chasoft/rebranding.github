@@ -1,4 +1,5 @@
-<?php  
+<?php
+
 /**
  * ====================================================================================
  *                           GemPixel AutoUpdater (c) KBRmedia
@@ -19,7 +20,8 @@
 
 namespace kbrmedia;
 
-class AutoUpdate {
+class AutoUpdate
+{
 
 	/**
 	 * Constant
@@ -30,7 +32,7 @@ class AutoUpdate {
 	 * Private
 	 * @var null
 	 */
-	private $endpoint = NULL;	
+	private $endpoint = NULL;
 	private $purchaseKey = NULL;
 	private $error = NULL;
 
@@ -39,8 +41,9 @@ class AutoUpdate {
 	 * @author KBRmedia <https://gempixel.com>
 	 * @version 1.0
 	 */
-	
-	public function __construct($key) {		
+
+	public function __construct($key)
+	{
 		$this->purchaseKey = $key;
 	}
 	/**
@@ -49,17 +52,18 @@ class AutoUpdate {
 	 * @version 1.0
 	 * @return  [type] [description]
 	 */
-	public function install(){
+	public function install()
+	{
 		// Check to make sure everything is OK
 		$this->check();
-		
-		if($this->verify()){
+
+		if ($this->verify()) {
 			return TRUE;
 		}
 
 		$this->error = "An unexpected error occured. Please update manually.";
-		throw new \Exception($this->error);		
-		return FALSE;		
+		throw new \Exception($this->error);
+		return FALSE;
 	}
 	/**
 	 * [check description]
@@ -67,33 +71,34 @@ class AutoUpdate {
 	 * @version 1.0
 	 * @return  [type] [description]
 	 */
-	private function check(){		
+	private function check()
+	{
 		// Check cURL
-		if(!in_array('curl', get_loaded_extensions())){ 
+		if (!in_array('curl', get_loaded_extensions())) {
 			$this->error = "cURL library is not available. Please update manually.";
-			throw new \Exception($this->error);			
+			throw new \Exception($this->error);
 			return FALSE;
 		}
 
 		// Check ZipArchive
-		if(!class_exists("ZipArchive")){
+		if (!class_exists("ZipArchive")) {
 			$this->error = "ZipArchive library is not available. Please update manually.";
-			throw new \Exception($this->error);			
+			throw new \Exception($this->error);
 			return FALSE;
 		}
 
 		// Check Permission
-		if(!is_writable(ROOT)){
-			$this->error = ROOT." is not writable. Please change the permission to 775.";
-			throw new \Exception($this->error);			
+		if (!is_writable(ROOT)) {
+			$this->error = ROOT . " is not writable. Please change the permission to 775.";
+			throw new \Exception($this->error);
 			return FALSE;
 		}
 
 		// Check Key
-		if(is_null($this->purchaseKey) || empty($this->purchaseKey)){
+		if (is_null($this->purchaseKey) || empty($this->purchaseKey)) {
 			$this->error = "Purchase key is invalid. You can find your purchase key in the downloads section of codecayon.";
-			throw new \Exception($this->error);			
-			return FALSE;			
+			throw new \Exception($this->error);
+			return FALSE;
 		}
 	}
 	/**
@@ -102,7 +107,8 @@ class AutoUpdate {
 	 * @version 1.0
 	 * @return  [type] [description]
 	 */
-	public function getMessage(){
+	public function getMessage()
+	{
 		return $this->error;
 	}
 	/**
@@ -111,20 +117,21 @@ class AutoUpdate {
 	 * @version 1.0
 	 * @return  [type] [description]
 	 */
-	private function verify(){	
+	private function verify()
+	{
 
-		$this->endpoint = self::serverURL."/".self::latestVersion."/";
-		
+		$this->endpoint = self::serverURL . "/" . self::latestVersion . "/";
+
 		$response = $this->http(["data" => ["url" => \Main::url()]]);
 
 		$http = json_decode($response);
 
-		if(isset($http->status) && $http->status == "validated"){
+		if (isset($http->status) && $http->status == "validated") {
 			return $this->download($http->download);
 		}
 
 		$this->error = "An error occured: {$http->message}";
-		throw new \Exception($this->error);		
+		throw new \Exception($this->error);
 		return FALSE;
 	}
 
@@ -134,17 +141,18 @@ class AutoUpdate {
 	 * @version 1.0
 	 * @return  [type] [description]
 	 */
-	protected function download($link){
+	protected function download($link)
+	{
 		$this->endpoint = $link;
-		
+
 		$content = $this->http();
 
-		if(!file_put_contents(ROOT."/main-auto.zip", $content)){
+		if (!file_put_contents(ROOT . "/main-auto.zip", $content)) {
 			$this->error = "The file cannot be downloaded, an error occured.";
-			throw new \Exception($this->error);		
-			return FALSE;			    
+			throw new \Exception($this->error);
+			return FALSE;
 		}
-		
+
 		return $this->extract();
 	}
 
@@ -154,28 +162,28 @@ class AutoUpdate {
 	 * @version 1.0
 	 * @return  [type] [description]
 	 */
-	protected function extract(){
-   
-   	$zip = new \ZipArchive();
-    $file = $zip->open(ROOT."/main-auto.zip");
+	protected function extract()
+	{
 
-    if($file === TRUE) {
-      
-      if(!$zip->extractTo(ROOT."/")){
+		$zip = new \ZipArchive();
+		$file = $zip->open(ROOT . "/main-auto.zip");
+
+		if ($file === TRUE) {
+
+			if (!$zip->extractTo(ROOT . "/")) {
 				$this->error = "The file was downloaded but cannot be extracted due to permission.";
-				throw new \Exception($this->error);		
-				return FALSE;	
-      }
+				throw new \Exception($this->error);
+				return FALSE;
+			}
 
-      $zip->close();
-      
-    } else {
+			$zip->close();
+		} else {
 			$this->error = "The file cannot be extracted.";
-			throw new \Exception($this->error);		
-			return FALSE;	    	
-	  }
+			throw new \Exception($this->error);
+			return FALSE;
+		}
 
-	  return $this->update();
+		return $this->update();
 	}
 	/**
 	 * [update description]
@@ -183,8 +191,9 @@ class AutoUpdate {
 	 * @version 1.0
 	 * @return  [type] [description]
 	 */
-	protected function update(){
-		$this->endpoint = \Main::url()."/updater.php?run=true";
+	protected function update()
+	{
+		$this->endpoint = \Main::url() . "/updater.php?run=true";
 		$this->http();
 		return $this->clean();
 	}
@@ -195,9 +204,10 @@ class AutoUpdate {
 	 * @version 1.0
 	 * @return  [type] [description]
 	 */
-	protected function clean(){
-		if(file_exists(ROOT."/main-auto.zip")){
-			unlink(ROOT."/main-auto.zip");
+	protected function clean()
+	{
+		if (file_exists(ROOT . "/main-auto.zip")) {
+			unlink(ROOT . "/main-auto.zip");
 			return TRUE;
 		}
 	}
@@ -209,32 +219,35 @@ class AutoUpdate {
 	 * @param   array  $option [description]
 	 * @return  [type]         [description]
 	 */
-	protected function http($option = []){  
+	protected function http($option = [])
+	{
 
-	  $curl = curl_init();
-	  curl_setopt($curl, CURLOPT_URL, $this->endpoint);
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL, $this->endpoint);
 
-	  if(isset($option["data"]) && is_array($option["data"])){
-	    
-	    $fields = "";
-	    foreach($option["data"] as $key => $value) { $fields .= $key.'='.$value.'&'; }
-	    rtrim($fields, '&');       
+		if (isset($option["data"]) && is_array($option["data"])) {
 
-	    curl_setopt($curl, CURLOPT_POST, count($option["data"]));
-	    curl_setopt($curl, CURLOPT_POSTFIELDS, $fields);
-	  }
+			$fields = "";
+			foreach ($option["data"] as $key => $value) {
+				$fields .= $key . '=' . $value . '&';
+			}
+			rtrim($fields, '&');
 
-	  curl_setopt($curl, CURLOPT_HTTPHEADER, [
-	    "X-Authorization: TOKEN ".$this->purchaseKey,
-	    "X-Script: Premium URL Shortener",
-	    "X-Version: "._VERSION
-	  ]);
+			curl_setopt($curl, CURLOPT_POST, count($option["data"]));
+			curl_setopt($curl, CURLOPT_POSTFIELDS, $fields);
+		}
 
-	  curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-	  curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-	  $response = curl_exec($curl);
-	  curl_close($curl);
+		curl_setopt($curl, CURLOPT_HTTPHEADER, [
+			"X-Authorization: TOKEN " . $this->purchaseKey,
+			"X-Script: Premium URL Shortener",
+			"X-Version: " . _VERSION
+		]);
 
-	  return $response;
-	}  	
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+		$response = curl_exec($curl);
+		curl_close($curl);
+
+		return $response;
+	}
 }

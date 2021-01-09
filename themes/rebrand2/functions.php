@@ -181,7 +181,7 @@ function themegetOptions(){
 
 									<p><strong>Support</strong></p>
 									<p>For support, please open a ticket by clicking the link below. Make sure to add your purchase codes for faster response.</p>
-									<a href='https://support.gempixel.com' class='btn btn-primary btn-xs' target='_blank'>Open Support</a>
+									<a href='https://help.rebranding.today' class='btn btn-primary btn-xs' target='_blank'>Visit</a>
 								</div>							
 							</div>		     
 			     </div>
