@@ -3,7 +3,7 @@
               <footer class="main">
                 <div class="row">
                   <div class="col-md-3">
-                    <?php echo date("Y") ?> &copy; <?php echo $this->config["title"] ?>.
+                    <?php echo date("Y") ?> &copy; BizChain Vietnam Ltd.
                   </div>
                   <div class="col-md-9 text-right">                                      
                     <?php foreach ($pages as $page):?>        

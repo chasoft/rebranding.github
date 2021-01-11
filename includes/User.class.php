@@ -1842,7 +1842,7 @@ class User extends App
 		$header = e("Create your splash page");
 		$widgets = '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("Info") . '</h3>';
-		$widgets .= "<p>" . e("A custom splash page is a transitional page where you can add a banner and an avatar along with a message to represent your brand or company. You can have up to a maximum of 5 splash pages and you can choose one for each URL.") . "</p>";
+		$widgets .= "<p>" . e("A custom splash page is a transitional page where you can add a banner and an avatar along with a message to represent your brand or company.") . "</p>";
 		$widgets .= '</div>';
 		// Upload form
 		$content = "
@@ -1987,7 +1987,7 @@ class User extends App
 
 		$widgets = '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("Info") . '</h3>';
-		$widgets .= "<p>" . e("A custom splash page is a transitional page where you can add a banner and an avatar along with a message to represent your brand or company. You can have up to a maximum of 5 splash pages and you can choose one for each URL.") . "</p>";
+		$widgets .= "<p>" . e("A custom splash page is a transitional page where you can add a banner and an avatar along with a message to represent your brand or company.") . "</p>";
 		$widgets .= '</div>';
 
 		// Upload form

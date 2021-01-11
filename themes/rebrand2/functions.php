@@ -33,9 +33,9 @@ Main::hook("menu.dropdown", "customMenu");
  */
 function customMenu(){
 	if (isDark()){
-		return '<li><a href="'.Main::href("user/settings").'?darkmode=off"><span class="fa fa-moon"></span> '.e("Disable Dark Mode").'</a></li>';
+		return '<a class="list-group-item" href="'.Main::href("user/settings").'?darkmode=off"><span class="fa fa-moon"></span> '.e("Disable Dark Mode").'</a>';
 	} else {
-		return '<li><a href="'.Main::href("user/settings").'?darkmode=on"><span class="fa fa-moon"></span>'.e("Activate Dark Mode").'</a></li>';		
+		return '<a class="list-group-item" href="'.Main::href("user/settings").'?darkmode=on"><span class="fa fa-moon"></span>'.e("Activate Dark Mode").'</a>';		
 	}
 }
 /**

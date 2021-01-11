@@ -4,7 +4,7 @@
   	<?php echo $this->ads(728) ?>
 		<?php echo Main::message() ?>  			
     <div class="row">
-      <div class="col-md-3">
+      <div class="col-xs-3 col-sm-3 col-md-3">
         <div class="panel panel-default">
           <div class="panel-heading"><i class="fa fa-wrench"></i> <?php echo e("Tools &amp; Integrations") ?></div>
           <ul class="nav tabs">
@@ -20,7 +20,7 @@
           <br>
         </div>
       </div>
-      <div class="col-md-9">        
+      <div class="col-xs-9 col-sm-9 col-md-9">        
         <div id="api">
           <?php if ($this->user->admin): ?>
             <p class="alert alert-info"><strong>Hey <?php echo $this->user->name  ? $this->user->name : "Admin"?></strong> A more powerful API is available for admins where you can create accounts or get user's data. You can find more info <a href="https://gempixel.com/docs/premium-url-shortener-api-guide" class="btn btn-xs btn-primary" target="_blank">here</a></p>

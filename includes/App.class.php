@@ -1843,7 +1843,9 @@ class App
 		Main::set("body_class", "light");
 
 		if (file_exists(TEMPLATE . "/shared/404.php")) {
+			$this->header();
 			include($this->t("shared/404"));
+			$this->footer();
 		} else {
 			$content = "<section class='blue rounded wshadow'><h1>404</h1>
 								<h2>" . e("Not Found") . "</h2></section>";
@@ -2074,7 +2076,7 @@ class App
 			}
 			$menu .= '<li><a href="' . Main::href("user/login") . '">' . e("Login") . '</a></li>';
 			if ($this->config["user"] && !$this->config["private"] && !$this->config["maintenance"]) {
-				$menu .= '<li><a href="' . Main::href("user/register") . '" class="active">' . e("Get Started") . '</a></li>';
+				$menu .= '<li><a href="' . Main::href("user/register") . '" class="btn btn-outline-primary btn-round">' . e("Get Started") . '</a></li>';
 			}
 		} else {
 			if ($this->admin()) {
@@ -2093,6 +2095,7 @@ class App
 					}
 				}
 			}
+			/*
 			$menu .= "<li class='dropdown'>
 					          <a href='" . Main::href('user') . "'><img src='{$this->user->avatar}' alt=''></a>
 					          <ul>
@@ -2103,11 +2106,113 @@ class App
 						          <li><a href='" . Main::href("user/settings") . "'><span class='glyphicon glyphicon-cog'></span> " . e("Settings") . "</a></li>
 						          <li><a href='" . Main::href("user/logout") . "'><span class='glyphicon glyphicon-log-out'></span> " . e("Logout") . "</a></li>
 					          </ul>
-				          </li>";
+						  </li>";*/
+			$menu .= "<li>
+				<button class='dropdown-toggle' type='button' id='dropdownMenuButton' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false' style='border:0px; background-color:transparent;'>
+					<img src='{$this->user->avatar}' alt='' style='width:30px;' />
+				</button>
+				<div class='dropdown-menu list-group' aria-labelledby='dropdownMenuButton'>
+					<a class='list-group-item' href='" . Main::href("profile/{$this->user->username}") . "'>
+						<span class='glyphicon glyphicon-cloud" . ($this->user->public ? ' icon-green' : ' icon-red') . "'>
+						</span> " . e('Public Profile') . "
+					</a>
+					<a class='list-group-item' href='" . Main::href("user/builder") . "'><span class='glyphicon glyphicon-leaf'></span> " . e('Profile Builder') . "
+					</a>
+					" . ($this->config["pro"] && !$this->isTeam() ? "<a class='list-group-item' href='" . Main::href("user/membership") . "'><span class='glyphicon glyphicon-credit-card'></span> " . e("Membership") . "</a>" : "") . "
+					" . Main::plug("menu.dropdown") . "
+					<a class='list-group-item' href='" . Main::href("user/settings") . "'><span class='glyphicon glyphicon-cog'></span> " . e("Settings") . "</a>
+					<a class='list-group-item' href='" . Main::href("user/logout") . "'><span class='glyphicon glyphicon-log-out'></span> " . e("Logout") . "</a>
+				</div>
+			</li>";
 		}
 		$menu .= '</ul>';
 
 		$menu .= '</div>';
+		return $menu;
+	}
+	/**
+	 * All Header Menu + SideBar Menu for DropDown Menu Button!
+	 * To add a custom menu, send an array of urls with a text and href index e.g. array(array("href"=>"","text"=>""),array("href"=>"","text"=>""))
+	 * @since 5.6.7 by BizChain
+	 **/
+	protected function all_menu($option = array()) {
+		$menu = '';
+		Main::plug("menu.main");
+		if (!$this->logged()) {
+			if (!empty($option) && is_array($option)) {
+				foreach ($option as $item) {
+					if (isset($item["href"]) && isset($item["icon"]) && isset($item["text"])) {
+						$menu .= '<a class="list-group-item" href="' . Main::clean($item["href"], 3, TRUE) . '" rel="custom"><span class="' . Main::clean($item["icon"], 3, TRUE) . '"></span>' . Main::clean($item["text"], 3, TRUE) . '</a>';
+					}
+				}
+			}
+			if ($this->config["user"] && !$this->config["private"] && !$this->config["maintenance"] && $this->config["pro"]) {
+				$menu .= '<a class="list-group-item" href="' . $this->config["url"] . '/pricing"><span class="fa fa-dollar-sign"></span>' . e("Pricing") . '</a>';
+			}
+			if ($this->config["blog"]) {
+				$menu .= '<a class="list-group-item" href="' . Main::href("blog") . '"><span class="fa fa-book"></span>' . e("Blog") . '</a>';
+			}
+			$menu .= '<a class="list-group-item" href="' . Main::href("user/login") . '"><span class="fa fa-user"></span>' . e("Login") . '</a>';
+			if ($this->config["user"] && !$this->config["private"] && !$this->config["maintenance"]) {
+				$menu .= "<div class='dropdown-divider'></div>";
+				$menu .= '<a class="list-group-item" href="' . Main::href("user/register") . '" class="btn btn-outline-primary btn-round"><span class="fa fa-chevron-circle-right"></span><strong>' . e("Get Started") . '</strong></a>';
+			}
+		} else {
+			if ($this->admin()) {
+				$menu .= '<a class="list-group-item" href="' . $this->config["url"] . '/admin/" class="active">' . e("Admin") . '</a>';
+			}
+			if ($this->config["blog"]) {
+				$menu .= '<a class="list-group-item" href="' . Main::href("blog") . '">' . e("Blog") . '</a>';
+			}
+			if (!$this->pro() && $this->config["pro"]) {
+				$menu .= '<a class="list-group-item" href="' . $this->config["url"] . '/pricing" class="active">' . e("Upgrade") . '</a>';
+			}
+			if (!empty($option) && is_array($option)) {
+				foreach ($option as $item) {
+					if (isset($item["href"]) && isset($item["text"])) {
+						$menu .= '<a class="list-group-item" href="' . Main::clean($item["href"], 3, TRUE) . '" rel="custom">' . Main::clean($item["text"], 3, TRUE) . '</a>';
+					}
+				}
+			}
+			$menu .= "<div class='dropdown-divider'></div>
+					<a class='list-group-item' href='" . Main::href("profile/{$this->user->username}") . "'>
+						<span class='glyphicon glyphicon-cloud" . ($this->user->public ? ' icon-green' : ' icon-red') . "'>
+						</span> " . e('Public Profile') . "
+					</a>
+					<a class='list-group-item' href='" . Main::href("user/builder") . "'><span class='glyphicon glyphicon-leaf'></span> " . e('Profile Builder') . "
+					</a>
+					" . ($this->config["pro"] && !$this->isTeam() ? "<a class='list-group-item' href='" . Main::href("user/membership") . "'><span class='glyphicon glyphicon-credit-card'></span> " . e("Membership") . "</a>" : "") . "
+					" . Main::plug("menu.dropdown") . "
+					<a class='list-group-item' href='" . Main::href("user/settings") . "'><span class='glyphicon glyphicon-cog'></span> " . e("Settings") . "</a>";
+			
+			/* SideBar Menu*/
+			$menu .= '<hr data-content="' . e('Links') . '" class="hr-text">';
+			$menu .= '<a class="list-group-item" href="' . Main::href("user") . '" class="active"><span class="glyphicon glyphicon-home"></span> ' . e('Dashboard') . '</a>';
+			$menu .= '<a class="list-group-item" href="' . Main::href("user/archive") . '"><span class="glyphicon glyphicon-briefcase"></span> ' . e('Archived Links') . '</a>';
+			$menu .= '<a class="list-group-item" href="' . Main::href("user/expired") . '"><span class="glyphicon glyphicon-calendar"></span> ' . e('Expired Links') . '</a>';
+	
+			if ($this->permission("bundle") !== FALSE) {
+				$menu .= '<a class="list-group-item" href="' . Main::href("user/bundles") . '"><span class="glyphicon glyphicon-folder-open"></span> ' . e('Bundles') . '</a>';
+			}
+			$menu .= '<hr data-content="' . e('Advanced features') . '" class="hr-text">';
+
+			$menu .= $this->permission("splash") === FALSE ? '' : '<a class="list-group-item" href="' . Main::href("user/splash") . '"><span class="glyphicon glyphicon-transfer"></span> ' . e('Splash Pages') . '' . ($this->permission("splash") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
+			$menu .= $this->permission("overlay") === FALSE ?'' : '<a class="list-group-item" href="' . Main::href("user/overlay") . '"><span class="glyphicon glyphicon-record"></span> ' . e('Overlay Pages') . '' . ($this->permission("overlay") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
+			$menu .= $this->permission("pixels") === FALSE ? '' : '<a class="list-group-item" href="' . Main::href("user/pixels") . '"><span class="glyphicon glyphicon-screenshot"></span> ' . e('Tracking Pixels') . '' . ($this->permission("pixels") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
+			$menu .= $this->permission("domain") === FALSE ? '' : '<a class="list-group-item" href="' . Main::href("user/domain") . '"><span class="glyphicon glyphicon-globe"></span> ' . e('Custom Domain') . '' . ($this->permission("domain") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
+			$menu .= $this->permission("team") === FALSE ? '' : '<a class="list-group-item" href="' . Main::href("user/teams") . '"><span class="glyphicon glyphicon-user"></span> ' . e('Teams') . '' . ($this->permission("team") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
+	
+			$public = $this->user->public ? "<span class='label label-primary pull-right'>" . e("Online") . "</span>"  : "<span class='label label-danger pull-right'>" . e("Offline") . "</span>";
+	
+			if ($this->config["api"] && $this->permission("api")) {
+				$menu .= '<hr data-content="' . e('Others') . '" class="hr-text">';
+				$menu .= '<a class="list-group-item" href="' . Main::href("user/tools") . '"><span class="glyphicon glyphicon-wrench"></span> ' . e('Tools &amp; Integrations') . '</a>';
+			}
+
+			/* Log out - at the end of the menu */
+			$menu .= "<div class='dropdown-divider'></div>";
+			$menu .= "<a class='list-group-item' href='" . Main::href("user/logout") . "'><span class='glyphicon glyphicon-log-out'></span>" . e("Logout") . "</a>";
+		}
 		return $menu;
 	}
 	/**

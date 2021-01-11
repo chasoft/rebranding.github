@@ -1,6 +1,6 @@
 <?php defined("APP") or die() // Main User Page ?>
 <div class="row">	
-  <div id="user-content" class="col-md-8">  	
+  <div id="user-content" class="col-sx-12 col-md-8">  	
 		<?php echo Main::message() ?>  	
   	<!-- Shortener Form -->
   	<?php $this->shortener() ?>
@@ -57,7 +57,7 @@
 			</div><!-- /#data-container -->
 		</div><!-- /.main-content -->
   </div><!--/#user-content-->
-  <div id="widgets" class="col-md-4">
+  <div id="widgets" class="col-sx-12 col-sm-12 col-md-4">
   	<?php echo $this->sidebar() ?>
 		<?php echo $this->widgets('news') ?>
   	<?php echo $this->widgets('countries') ?>

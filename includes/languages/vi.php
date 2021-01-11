@@ -967,5 +967,7 @@ $lang = array(
 "An email has been sent to activate your account. Please check your spam folder if you didn't receive it."=>"Một email chứa thông tin kích hoạt tài khoản đã được gửi đi. Vui lòng kiểm tra hộp thư rác nếu bạn không nhận được.",
 "You need to scan the code below with the app. You need to backup the QR code below by saving it and save the key somewhere safe in case you lose your phone. You will not be able to login if you can't provide the code, you will need to contact us. If you disable 2FA and re-enable it, you will need to scan a new code."=>"Bạn cần quét mã bên dưới bằng ứng dụng. Bạn cần sao lưu mã QR bên dưới bằng cách lưu nó và lưu chìa khóa ở nơi an toàn phòng trường hợp mất điện thoại. Bạn sẽ không thể đăng nhập nếu bạn không thể cung cấp mã, bạn sẽ cần liên hệ với chúng tôi. Nếu bạn tắt 2FA và bật lại nó, bạn sẽ cần quét mã mới.",
 "The access code can be found on the Authenticator app. Please enter the code shown for this website. If you lost your phone or can't use the app, please contact us."=>"Bạn có thể tìm thấy mã truy cập trên ứng dụng Authenticator. Vui lòng nhập mã hiển thị cho trang web này. Nếu bạn bị mất điện thoại hoặc không thể sử dụng ứng dụng, vui lòng liên hệ với chúng tôi.",
-"Pay with Alepay"=>"Thanh toán qua Alepay"
+"Pay with Alepay"=>"Thanh toán qua Alepay",
+"Master Account"=>"Tài khoản chính",
+"A custom splash page is a transitional page where you can add a banner and an avatar along with a message to represent your brand or company."=>"Trang splash tùy chỉnh là trang chuyển tiếp nơi bạn có thể thêm biểu ngữ và hình đại diện cùng với thông điệp để đại diện cho thương hiệu hoặc công ty của bạn."
 ); ?>
