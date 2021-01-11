@@ -12,8 +12,8 @@
 	RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
 
 	## Uncomment the following line to use the multi-domain feature
-	# RewriteCond %{HTTP_HOST} ^gon\.li$ [NC]
-	# RewriteRule ^(.*)$ https://rebranding.today/$1 [R=301,L]
+	# RewriteCond %{HTTP_HOST} ^yourseconddomain\.com$ [NC]
+	# RewriteRule ^(.*)$ http://yourfirstdomain.com/$1 [R=301,L]
 
 	#Rewritebase /
 	## Admin Panel

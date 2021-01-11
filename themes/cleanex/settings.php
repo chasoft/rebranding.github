@@ -67,7 +67,6 @@
 				        <option value='direct' <?php echo ($this->user->defaulttype == "direct" || $this->user->defaulttype== "" ?" selected":"") ?>> <?php echo e('Direct') ?></option>
 				        <option value='frame' <?php echo ($this->user->defaulttype == "frame"?" selected":"") ?>> <?php echo e('Frame') ?></option>
 				        <option value='splash' <?php echo ($this->user->defaulttype == "splash"?" selected":"") ?>> <?php echo e('Splash') ?></option>
-				        <option value='overlay' <?php echo ($this->user->defaulttype == "overlay"?" selected":"") ?>> <?php echo e("Overlay") ?></option>
 							</select>		              
 		        </div>
 		      </div>			

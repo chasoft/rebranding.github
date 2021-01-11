@@ -647,7 +647,8 @@ class App
 	{
 		// Pricing
 		if (!$this->logged()) {
-			if (in_array($this->do, ["monthly", "yearly"])) $_SESSION["redirect"] = "upgrade/{$this->do}";
+			if (in_array($this->do, ["monthly", "yearly"])) $_SESSION["redirect"] = "upgrade/{$this->do}/{$this->id}";
+
 			return Main::redirect(Main::href("user/register", "", FALSE));
 		}
 
@@ -1793,7 +1794,7 @@ class App
 	protected function _DNS404($domain)
 	{
 
-		if ($domain = $this->db->get("domains", "domain = ? AND redirect != ?", ["limit" => 1], [$domain["scheme"] . "://" . $domain["host"], ""])) {
+		if (empty($_POST) && $domain = $this->db->get("domains", "domain = ? AND redirect != ?", ["limit" => 1], [$domain["scheme"] . "://" . $domain["host"], ""])) {
 			header("Location: {$domain->redirect}");
 			exit;
 		}
@@ -1842,9 +1843,7 @@ class App
 		Main::set("body_class", "light");
 
 		if (file_exists(TEMPLATE . "/shared/404.php")) {
-			$this->header();
 			include($this->t("shared/404"));
-			$this->footer();
 		} else {
 			$content = "<section class='blue rounded wshadow'><h1>404</h1>
 								<h2>" . e("Not Found") . "</h2></section>";
@@ -2019,16 +2018,18 @@ class App
 						        </optgroup>
 						      </select>';
 		}
-		if ($this->logged() && $this->pro()) {
+
+		if ($this->permission('splash') !== FALSE || $this->permission('overlay') !== FALSE) {
 			$splash = $this->db->get("splash", array("userid" => "?"), array("order" => "date"), array($this->user->id));
 			$overlay = $this->db->get("overlay", array("userid" => "?"), array("order" => "date"), array($this->user->id));
 
 			$html .= '<select name="type" class="form-control">
+							' . ($this->user->pro ? '
 										<optgroup label="' . e('Redirection') . '">
 							        <option value="direct"' . ($this->user->defaulttype == "direct" || $this->user->defaulttype == "" ? " selected" : "") . '>' . e("Direct") . '</option>
 							        <option value="frame"' . ($this->user->defaulttype == "frame" ? " selected" : "") . '>' . e("Frame") . '</option>
 							        <option value="splash"' . ($this->user->defaulttype == "splash" ? " selected" : "") . '>' . e("Splash") . '</option>
-						        </optgroup>';
+						        </optgroup>' : '<option value="system">' . e("System") . '</option>');
 			if ($splash) {
 				$html .= '<optgroup label="' . e('Custom Splash') . '">';
 				foreach ($splash as $type) {
@@ -2073,7 +2074,7 @@ class App
 			}
 			$menu .= '<li><a href="' . Main::href("user/login") . '">' . e("Login") . '</a></li>';
 			if ($this->config["user"] && !$this->config["private"] && !$this->config["maintenance"]) {
-				$menu .= '<li><a href="' . Main::href("user/register") . '" class="btn btn-outline-primary btn-round">' . e("Get Started") . '</a></li>';
+				$menu .= '<li><a href="' . Main::href("user/register") . '" class="active">' . e("Get Started") . '</a></li>';
 			}
 		} else {
 			if ($this->admin()) {
@@ -2121,6 +2122,7 @@ class App
 		$menu .= '<li><a href="' . Main::href("user") . '" class="active"><span class="glyphicon glyphicon-home"></span> ' . e('Dashboard') . '</a></li>';
 		$menu .= '<li><a href="' . Main::href("user/archive") . '"><span class="glyphicon glyphicon-briefcase"></span> ' . e('Archived Links') . '</a></li>';
 		$menu .= '<li><a href="' . Main::href("user/expired") . '"><span class="glyphicon glyphicon-calendar"></span> ' . e('Expired Links') . '</a></li>';
+
 		if ($this->permission("bundle") !== FALSE) {
 			$menu .= '<li><a href="' . Main::href("user/bundles") . '"><span class="glyphicon glyphicon-folder-open"></span> ' . e('Bundles') . '</a></li>';
 		}
@@ -2132,9 +2134,9 @@ class App
 
 		$menu .= '<li' . ($this->permission("pixels") === FALSE ? ' class="locked"' : '') . '><a href="' . Main::href("user/pixels") . '"><span class="glyphicon glyphicon-screenshot"></span> ' . e('Tracking Pixels') . '' . ($this->permission("pixels") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a></li>';
 
-		$menu .= '<li' . ($this->permission("team") === FALSE ? ' class="locked"' : '') . '><a href="' . Main::href("user/teams") . '"><span class="glyphicon glyphicon-user"></span> ' . e('Teams') . '' . ($this->permission("team") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a></li>';
-
 		$menu .= '<li' . ($this->permission("domain") === FALSE ? ' class="locked"' : '') . '><a href="' . Main::href("user/domain") . '"><span class="glyphicon glyphicon-globe"></span> ' . e('Custom Domain') . '' . ($this->permission("domain") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a></li>';
+
+		$menu .= '<li' . ($this->permission("team") === FALSE ? ' class="locked"' : '') . '><a href="' . Main::href("user/teams") . '"><span class="glyphicon glyphicon-user"></span> ' . e('Teams') . '' . ($this->permission("team") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a></li>';
 
 		$public = $this->user->public ? "<span class='label label-primary pull-right'>" . e("Online") . "</span>"  : "<span class='label label-danger pull-right'>" . e("Offline") . "</span>";
 
@@ -2161,6 +2163,7 @@ class App
 	 **/
 	protected function server()
 	{
+
 		// Make sure that the request is valid!
 		if (!isset($_POST["request"]) || !isset($_POST["token"]) || $_POST["token"] !== $this->config["public_token"]) return $this->server_die();
 
@@ -2202,6 +2205,7 @@ class App
 	 */
 	private function server_ajax_poll()
 	{
+
 		if (isset($_POST["token"])) {
 
 			$integrity = explode(".", base64_decode($_POST["integrity"]))[1];
@@ -3509,6 +3513,15 @@ class App
 			)
 		);
 
+		$connection->setConfig(
+			[
+				'log.LogEnabled' => false,
+				'log.FileName' => 'PayPal.log',
+				'log.LogLevel' => 'DEBUG',
+				'mode' => 'live'
+			]
+		);
+
 
 		$agreement = new PayPal\Api\Agreement();
 
@@ -3596,14 +3609,14 @@ class App
 			)
 		);
 
-		// $connection->setConfig(
-		//       [
-		//         'log.LogEnabled' => true,
-		//         'log.FileName' => 'PayPal.log',
-		//         'log.LogLevel' => 'DEBUG',
-		//         'mode' => 'sandbox'
-		//       ]
-		// );  
+		$connection->setConfig(
+			[
+				'log.LogEnabled' => false,
+				'log.FileName' => 'PayPal.log',
+				'log.LogLevel' => 'DEBUG',
+				'mode' => 'live'
+			]
+		);
 
 		if (isset($_GET['success']) && $_GET['success'] == 'true') {
 			$token = $_GET['token'];
