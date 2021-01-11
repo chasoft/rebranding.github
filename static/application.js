@@ -435,7 +435,7 @@ $(function() {
         url: appurl + "/server",
         data: "request=ajax_poll&"+$(this).serialize()+"&token="+token,        
         success: function (response) { 
-          $(".poll-box").html("<p>Thanks!</p>");
+          $(".poll-box").html("<p><i class='fa fa-check'></i></p>");
           $(".poll-form").remove();
           let style = $(".contact-event i").attr("style");
           setTimeout(function(){

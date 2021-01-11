@@ -8,7 +8,7 @@
         <div class="panel panel-default">
           <div class="panel-heading"><i class="fa fa-wrench"></i> <?php echo e("Tools &amp; Integrations") ?></div>
           <ul class="nav tabs">
-            <li><a href="#quick"><?php echo e("Quick Shortener") ?></a></li>
+            <li><a href="<?php echo Main::href("user/tools#quick") ?>" data-link = "true"><?php echo e("Quick Shortener") ?></a></li>
             <li><a href="<?php echo Main::href("user/tools#bk") ?>" data-link = "true"><?php echo e("Bookmarklet") ?></a></li>
             <li class="active"><a href="<?php echo Main::href("user/tools/api") ?>" data-link = "true"><?php echo e("Developer API") ?> 2.0</a></li>
             <li><a href="<?php echo Main::href("user/tools#jshort") ?>" data-link = "true"><?php echo e("Full-Page Script") ?></a></li>

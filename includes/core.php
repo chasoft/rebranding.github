@@ -20,7 +20,7 @@
  */
 
   // Defined Constants
-	define("_VERSION","5.9.6");
+	define("_VERSION","5.9.7");
 	define("APP", TRUE);
 
 	define("ROOT", dirname(dirname(__FILE__)));
@@ -155,4 +155,8 @@
 	function write($string, $default){
 		if(!empty($string)) return e($string);
 		return e($default);
+	}
+
+	function days_left($date){
+		return round((strtotime($date) - strtotime("now")) / (60*60*24), 0);
 	}

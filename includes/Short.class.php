@@ -377,7 +377,7 @@ class Short extends App{
 			":location" => $countries,
 			":devices" => $devices,
 			":date" => "NOW()",
-			":pass" => isset($array["password"]) ? Main::clean($array["password"],3,TRUE) : "",
+			":pass" => isset($array["password"]) ? Main::clean($array["password"],3) : "",
 			":meta_title" => $meta_title,
 			":meta_description" => $meta_description,
 			":userid" => isset($this->user) ? $this->user->id : "0",
@@ -393,13 +393,15 @@ class Short extends App{
 		if(isset($array["private"])) $data[":public"] = "0";
 		
 		// Custom redirect
-		if(($this->config["frame"] == "3" || (isset($this->user) && $this->user->pro)) && isset($array["type"]) && (is_numeric($array["type"]) || in_array($array["type"], array("direct","frame","splash")))) {
+		if(($this->config["frame"] == "3" || (isset($this->user) && $this->user->pro)) && isset($array["type"]) && in_array($array["type"], array("direct","frame","splash"))) {
 			$data[":type"]=Main::clean($array["type"],3,TRUE);
 		}
-		if($this->pro() && isset($array["type"]) && preg_match("~overlay-(.*)~", $array["type"])){
+		if($this->permission('splash') !== FALSE && isset($array["type"]) && is_numeric($array["type"])){
 			$data[":type"] = $array["type"];
 		}
-
+		if($this->permission('overlay') !== FALSE && isset($array["type"]) && preg_match("~overlay-(.*)~", $array["type"])){
+			$data[":type"] = $array["type"];
+		}
 		// Save to Database
 		if($this->db->insert("url",$data)){
 			
@@ -661,7 +663,7 @@ class Short extends App{
 		Main::video($url->url);
 
 		// Get User info
-		if($url->userid !=0 && $user = $this->db->get(array("count"=>"id,admin,banned,media,splash_opt,pro,expiration,overlay,fbpixel,linkedinpixel,adwordspixel,quorapixel","table"=>"user"),array("id"=>$url->userid),array("limit"=>1))){			
+		if($url->userid !=0 && $user = $this->db->get("user", ["id" => $url->userid], ["limit" => 1])){			
 			// Disable URLs of user is banned
 			if($user->banned) return $this->_404();
 			// If membership expired, switch to free
@@ -669,20 +671,23 @@ class Short extends App{
 			$url->media = $user->media;
 			$url->pro = $user->pro;
 			if($user->admin) $url->pro = 1;
-			$url->userpixels = ["facebook" => $user->fbpixel, "linkedin" => $user->linkedinpixel, "adwords" => $user->adwordspixel];
+
 		}else{
 			$url->media = $this->config["show_media"];
 			$url->pro=0;
 		}
+
 		if(!$this->config["pro"]){
 			$url->pro = 1;
 		}
+
 		$url->short= (empty($user->domain) ? $this->config["url"] : $user->domain)."/".$url->alias.$url->custom;
-		if($url->pro && preg_match("~overlay-(.*)~", $url->type) && $overlay = $this->db->get("overlay", ["id" => str_replace("overlay-", "", $url->type), "userid" => $user->id], ["limit" => 1])){
+
+		if(preg_match("~overlay-(.*)~", $url->type) && $overlay = $this->db->get("overlay", ["id" => str_replace("overlay-", "", $url->type), "userid" => $user->id], ["limit" => 1])){
 			return $this->overlay($url, $overlay);	
 		}	
 		// Custom Splash Page
-		if(is_numeric($url->type) && $url->pro && $splash = $this->db->get("splash",array("id"=>"?","userid"=>"?"),array("limit"=>1),array($url->type,$url->userid))){
+		if(is_numeric($url->type) && $splash = $this->db->get("splash",array("id"=>"?","userid"=>"?"),array("limit"=>1),array($url->type,$url->userid))){
 			return $this->custom($url, $splash);
 		}
 		
@@ -805,7 +810,7 @@ class Short extends App{
 			$this->injectPixels($url->pixels, $url->userid);
 		}
 
-		if($url->domain) $this->config["url"] = $url->domain;
+		if($url->domain && $this->config["url"] != $url->domain) $this->config["url"] = $url->domain;
 
 		if(!$this->url_framed($url->url)) return $this->direct($url);
 		
@@ -864,9 +869,8 @@ class Short extends App{
 							$overlay_data .= "<li style='color: {$data->color};'><label><input data-class='grey' type='radio' name='answer' value='{$key}'> {$el->option}</label></li>";
 						}
 			$overlay_data .="</ol>
-						".Main::csrf_token(true)."
 						<input type='hidden' name='integrity' value='".str_replace("=", "", base64_encode(Main::strrand(5).".".$overlay->id))."'>
-						<button type='submit' class='poll-btn' style='color:{$data->btncolor};background-color:{$data->btnbg} !important'>Vote</button>	
+						<button type='submit' class='poll-btn' style='color:{$data->btncolor};background-color:{$data->btnbg} !important'>".(isset($data->votetext) ? $data->votetext : e("Vote"))."</button>	
 					</form>															
 				</div></div>";		
 				Main::cdn("icheck");
@@ -1504,7 +1508,7 @@ class Short extends App{
 
 		$schemes = explode(",", $this->config["schemes"]);
 
-		$schemes = array_diff($schemes, ["http", "https", "ftp"]);
+		$schemes = array_diff($schemes, ["http", "https", "ftp", "www"]);
 
 		$preg_schemes = implode("://|", $schemes);
 
@@ -1512,15 +1516,16 @@ class Short extends App{
 			return $url;
 		}
 
-
 		if(preg_match('~('.$preg_schemes.'://)(.*)~', $url)){
 			return $url;
 		}
 
-		if(preg_match('(((http://|https://|ftp://|www.)*?)((.*)+\.)+[\w\-\d]+)', $url)) {			
-			if(!preg_match('(http://|https://)', $url)){
-				return "http://$url";
-			}	
+		
+		if(!preg_match('(http://|https://)', $url)){
+			$url = "http://$url";
+		}		
+
+		if(preg_match('((http://|https://|ftp://)((.*)+\.)+[\w\-\d]+)', $url)) {			
 			return $url;		
 		}		
 

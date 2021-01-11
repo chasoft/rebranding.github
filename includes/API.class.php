@@ -263,7 +263,7 @@ class API extends App{
 
 		if(isset($data->type)){
 
-			if($this->user->pro) {
+			if($this->user->pro || $this->user->admin) {
 				if(!in_array($data->type, ["direct", "frame", "splash"])) return $this->error("009");
 				$array["type"] = Main::clean($data->type);
 

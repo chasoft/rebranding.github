@@ -624,7 +624,8 @@ class App{
 	protected function upgrade(){
 		// Pricing
 		if(!$this->logged()) {
-			if(in_array($this->do, ["monthly", "yearly"])) $_SESSION["redirect"] = "upgrade/{$this->do}";
+			if(in_array($this->do, ["monthly", "yearly"])) $_SESSION["redirect"] = "upgrade/{$this->do}/{$this->id}";
+
 			return Main::redirect(Main::href("user/register","",FALSE));
 		}
 
@@ -1750,7 +1751,7 @@ class App{
 	 */
 	protected function _DNS404($domain){
 
-		if($domain = $this->db->get("domains", "domain = ? AND redirect != ?", ["limit" => 1], [$domain["scheme"]."://".$domain["host"],""])){
+		if(empty($_POST) && $domain = $this->db->get("domains", "domain = ? AND redirect != ?", ["limit" => 1], [$domain["scheme"]."://".$domain["host"],""])){
 			header("Location: {$domain->redirect}");
 			exit;
 		}
@@ -1967,16 +1968,18 @@ class App{
 						        </optgroup>
 						      </select>';
 				}
-				if($this->logged() && $this->pro()){
+
+				if($this->permission('splash') !== FALSE || $this->permission('overlay') !== FALSE){
 					$splash = $this->db->get("splash",array("userid"=>"?"),array("order"=>"date"),array($this->user->id));
 					$overlay = $this->db->get("overlay",array("userid"=>"?"),array("order"=>"date"),array($this->user->id));
 
 					$html .= '<select name="type" class="form-control">
+							'.($this->user->pro ? '
 										<optgroup label="'.e('Redirection').'">
 							        <option value="direct"'.($this->user->defaulttype == "direct" || $this->user->defaulttype== "" ?" selected":"").'>'.e("Direct").'</option>
 							        <option value="frame"'.($this->user->defaulttype == "frame"?" selected":"").'>'.e("Frame").'</option>
 							        <option value="splash"'.($this->user->defaulttype == "splash"?" selected":"").'>'.e("Splash").'</option>
-						        </optgroup>';
+						        </optgroup>' : '<option value="system">'.e("System").'</option>');
 					if($splash){
 						$html.='<optgroup label="'.e('Custom Splash').'">';
 						foreach ($splash as $type) {
@@ -2103,6 +2106,7 @@ class App{
 	 * @since 5.7
 	 **/
 	protected function server(){
+
 		// Make sure that the request is valid!
 		if(!isset($_POST["request"]) || !isset($_POST["token"]) || $_POST["token"]!==$this->config["public_token"]) return $this->server_die();		
 
@@ -2142,6 +2146,7 @@ class App{
 			 * @return  [type] [description]
 			 */
 			private function server_ajax_poll(){
+
 				if(isset($_POST["token"])){							
 
 					$integrity = explode(".", base64_decode($_POST["integrity"]))[1];
@@ -3384,6 +3389,15 @@ class App{
                 $this->config["ppprivate"]
             )
     );    
+
+  	$connection->setConfig(
+          [
+            'log.LogEnabled' => false,
+            'log.FileName' => 'PayPal.log',
+            'log.LogLevel' => 'DEBUG',
+            'mode' => 'live'
+          ]
+    );    
 	
 
 		$agreement = new PayPal\Api\Agreement();
@@ -3470,14 +3484,14 @@ class App{
             )
     );    
 
-    // $connection->setConfig(
-    //       [
-    //         'log.LogEnabled' => true,
-    //         'log.FileName' => 'PayPal.log',
-    //         'log.LogLevel' => 'DEBUG',
-    //         'mode' => 'sandbox'
-    //       ]
-    // );  
+    $connection->setConfig(
+          [
+            'log.LogEnabled' => false,
+            'log.FileName' => 'PayPal.log',
+            'log.LogLevel' => 'DEBUG',
+            'mode' => 'live'
+          ]
+    );  
 
 		if (isset($_GET['success']) && $_GET['success'] == 'true') {
 		  $token = $_GET['token'];

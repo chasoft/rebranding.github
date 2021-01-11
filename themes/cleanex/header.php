@@ -42,7 +42,7 @@
     <?php if($this->isUser): // Show header for logged user ?>
       <?php if($this->user->trial): ?>
         <div class="header-top text-center">
-          <?php echo e("Your trial expires in ") ?> <?php echo date("d", strtotime($this->user->expiration) - strtotime("now")) ?> <?php echo e("days") ?>
+          <?php echo e("Your trial expires in ") ?> <?php echo days_left($this->user->expiration) ?> <?php echo e("days") ?>
           <a href="<?php echo Main::href("pricing") ?>" class="btn btn-light btn-sm"><?php echo e("Upgrade now") ?></a>
         </div>
       <?php endif ?>

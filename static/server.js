@@ -281,7 +281,7 @@ function refreshLinks(){
  * @author KBRmedia <https://gempixel.com>
  * @version 1.0
  */
-var archive = (id) => {
+function archive(id) {
   var container = $('.return-ajax');
   var loading="<img class='loader' src='"+appurl+"/static/loader.gif' style='margin:5px 50%;border:0;' />";
   $.ajax({
@@ -302,7 +302,7 @@ var archive = (id) => {
     }
   });   
 }
-var addtobundle = (id, bundleid) => {
+function addtobundle(id, bundleid){
   var container = $('.return-ajax');
   var loading="<img class='loader' src='"+appurl+"/static/loader.gif' style='margin:5px 50%;border:0;' />";
   $.ajax({

@@ -663,6 +663,14 @@ class User extends App{
 				$mail["message"] = str_replace("{user.date}", date("d-m-Y"), $mail["message"]);		
 
 	      Main::send($mail);				
+
+				$json=base64_encode(json_encode(array("loggedin"=>TRUE,"key"=>$data[":auth_key"].$this->db->pdo()->lastInsertId())));
+				$_SESSION["login"] = $json;	      
+				if(isset($_SESSION["redirect"])){
+					$r = Main::clean($_SESSION["redirect"], 3, TRUE);
+					unset($_SESSION["redirect"]);
+					return Main::redirect($r ,array("success",e("You have been successfully registered.")));	
+				}
 				return Main::redirect(Main::href("user/login","",FALSE),array("success",e("You have been successfully registered.")));				
 			}
 		}
@@ -985,7 +993,7 @@ class User extends App{
 					":date"=>"NOW()"
 					);
 				if($this->db->insert("bundle",$data)){
-					return Main::redirect(Main::href("user/bundles","",FALSE),array("success",e("Bundle was successfully created. You may start adding URLs in it now.")));
+					return Main::redirect(Main::href("user","",FALSE),array("success",e("Bundle was successfully created. You may start adding URLs in it now.")));
 				}						
 			}
 			if($this->id=="edit"){
@@ -1213,7 +1221,7 @@ class User extends App{
 						":location" => $countries,
 						":devices" => $devices,
 						":parameters" => $parameters,
-						":pass" => Main::clean($_POST["pass"],3,TRUE),
+						":pass" => Main::clean($_POST["pass"],3),
 						":description"=> Main::clean($_POST["description"],3,TRUE),
 						":meta_description"=> Main::clean($_POST["meta_description"],3,TRUE),
 						":meta_title"=> Main::clean($_POST["meta_title"],3,TRUE),
@@ -1229,30 +1237,32 @@ class User extends App{
 					if($this->config["manualapproval"] && $data[":url"] !== $url->url)	{
 						$data[":status"] = "0";
 					}
-
 					//Edit URL
-					if(in_array($_POST["type"], array("direct","frame","splash")) || is_numeric($_POST["type"])){
+					if(in_array($_POST["type"], array("direct","frame","splash"))){
 						$data[":type"]=Main::clean($_POST["type"],3,TRUE);
 					}
+				}
 
-					if(preg_match("~overlay-(.*)~", $_POST["type"])){
+				if($this->permission('splash') && is_numeric($_POST["type"])){
+					$data[":type"]=Main::clean($_POST["type"],3,TRUE);
+				}
 
-						if(Main::iframePolicy($_POST["url"])) return Main::redirect(Main::href("user/edit/{$this->id}","",FALSE),array("danger",e("This URL cannot be used with this redirect method because browsers will prevent it for security reasons.")));
-						$data[":type"] = $_POST["type"];
-					}
+				if($this->permission('overlay') && preg_match("~overlay-(.*)~", $_POST["type"])){
 
-					if(preg_match("~splash-(.*)~", $_POST["type"])){
-						$data[":type"] = $_POST["type"];
-					}
+					if(Main::iframePolicy($_POST["url"])) return Main::redirect(Main::href("user/edit/{$this->id}","",FALSE),array("danger",e("This URL cannot be used with this redirect method because browsers will prevent it for security reasons.")));
+					$data[":type"] = $_POST["type"];
+				}
+
+				if($this->permission('pixels')){
 
 					$pixels = "";
 					if(isset($_POST["pixels"]) && is_array($_POST["pixels"])){
 						$data[":pixels"] = implode(",", $_POST["pixels"]);
-					}					
+					}		
+				}			
 
-					if(!empty($_POST["domain"]) && $this->db->get("domains", ["domain" => "?", "userid" => "?"], ["limit" => "1"], [$_POST["domain"], $this->user->id])){
-						$data[":domain"] = Main::clean($_POST["domain"],TRUE,3);
-					}
+				if(!empty($_POST["domain"]) && $this->permission('domain') && $this->db->get("domains", ["domain" => "?", "userid" => "?"], ["limit" => "1"], [$_POST["domain"], $this->user->id])){
+					$data[":domain"] = Main::clean($_POST["domain"],TRUE,3);
 				}
 
 				if($this->permission("alias") !== FALSE && isset($_POST["custom"]) && !empty($_POST["custom"]) && $_POST["custom"] != $url->custom){	
@@ -1404,17 +1414,17 @@ class User extends App{
 	        </div>
 	      </div>
 	      $domain_list";
-	  if($this->pro()){
+	  if($this->permission('splash') !== FALSE || $this->permission('overlay') !== FALSE){
 	  	$splash = $this->db->get("splash",array("userid"=>"?"),array("order"=>"date"),array($this->user->id));
 	  	$overlay = $this->db->get("overlay",array("userid"=>"?"),array("order"=>"date"),array($this->user->id));
 	  	$content.="<hr><div class='form-group'>
 	        <label for='description' class='col-sm-3 control-label'>".e("Redirection")."</label>
 	        <div class='col-sm-9'>
 			      <select name='type'>
-			      	<optgroup label='".e("Redirection")."'>
+			      	".($this->user->pro ? "<optgroup label='".e("Redirection")."'>
 			        <option value='direct'".($url->type=="direct" || $url->type=="" ?" selected":"").">".e('Direct')."</option>
 			        <option value='frame'".($url->type=="frame"?" selected":"").">".e('Frame')."</option>
-			        <option value='splash'".($url->type=="splash"?" selected":"").">".e('Splash')."</option>";
+			        <option value='splash'".($url->type=="splash"?" selected":"").">".e('Splash')."</option>":"<option value='system'>".e("System")."</option>");
 						if($splash){
 							$content.='<optgroup label="'.e('Custom Splash').'">';
 							foreach ($splash as $type) {
@@ -2789,7 +2799,8 @@ class User extends App{
 					"color" => (!empty($_POST["color"]) && strlen($_POST["color"]) < 8) ? Main::clean($_POST["color"],3,TRUE) : $color,
 					"btnbg" => (!empty($_POST["btnbg"]) && strlen($_POST["btnbg"]) < 8) ? Main::clean($_POST["btnbg"],3,TRUE) : $btnbg,
 					"btncolor" => (!empty($_POST["btncolor"]) && strlen($_POST["btncolor"]) < 8) ? Main::clean($_POST["btncolor"],3,TRUE) : $btncolor,
-					"position" => Main::clean($_POST["position"],3,TRUE)
+					"position" => Main::clean($_POST["position"],3,TRUE),
+					"votetext" => (!empty($_POST["votetext"]) ? Main::clean($_POST["votetext"],3,TRUE) : e("Vote"))
 				);
 
 				$array = json_encode($array);
@@ -2821,6 +2832,9 @@ class User extends App{
 						    	if($(this).val().length > 144) return false;
 									$(".poll-question").text($(this).val());
 						    });		
+						    $("#votetext").keyup(function(e){
+									$(".votetext").text($(this).val());
+						    });	
 						    $(".poll-answer").keyup(function(e){
 									$("label[for=contact-email]").text($(this).val());
 						    });			
@@ -2881,6 +2895,11 @@ class User extends App{
 					</div>													
 					<hr>
 					<div class='form-group'>
+						<label for='votetext'>".e('Button Text')."</label>
+						<input type='text' class='form-control' name='votetext' id='votetext'  placeholder='' data-required='true'>
+					</div>
+					<hr>					
+					<div class='form-group'>
 						<label for='bg'>".e('Background Color')."</label> <br>
 						<input type='text' name='bg' id='bg'>
 					</div>			
@@ -2917,7 +2936,7 @@ class User extends App{
 										<li data-id='1'>#1</li>
 										<li data-id='2'>#2</li>
 									</ol>
-									<button type='submit' class='poll-btn'>".e("Vote")."</button>																
+									<button type='submit' class='poll-btn votetext'>".e("Vote")."</button>																
 								</div>
 							</div><!-- /.custom-overlay -->";		
 	  $widgets.='<div class="panel panel-default panel-body" id="'.__FUNCTION__.'">';
@@ -3521,6 +3540,7 @@ class User extends App{
 		$btnbg = $overlay->data->btnbg;
 		$btncolor = $overlay->data->btncolor;
 		$position = $overlay->data->position;
+		$votetext = isset($overlay->data->votetext) ? $overlay->data->votetext : e('Vote');
 
 		if(isset($_POST["token"])){
 			if($this->config["demo"]){
@@ -3555,7 +3575,8 @@ class User extends App{
 				"color" => (!empty($_POST["color"]) && strlen($_POST["color"]) < 8) ? Main::clean($_POST["color"],3,TRUE) : $color,
 				"btnbg" => (!empty($_POST["btnbg"]) && strlen($_POST["btnbg"]) < 8) ? Main::clean($_POST["btnbg"],3,TRUE) : $btnbg,
 				"btncolor" => (!empty($_POST["btncolor"]) && strlen($_POST["btncolor"]) < 8) ? Main::clean($_POST["btncolor"],3,TRUE) : $btncolor,
-				"position" => Main::clean($_POST["position"],3,TRUE)
+				"position" => Main::clean($_POST["position"],3,TRUE),
+				"votetext" => (!empty($_POST["votetext"]) ? Main::clean($_POST["votetext"],3,TRUE) : e("Vote"))
 			);
 
 			$array = json_encode($array);
@@ -3584,6 +3605,9 @@ class User extends App{
 						    	if($(this).val().length > 144) return false;
 									$(".poll-question").text($(this).val());
 						    });		
+								$("#votetext").keyup(function(e){
+									$(".votetext").text($(this).val());
+						    });							    
 						    $(".poll-answer").keyup(function(e){
 									$("label[for=contact-email]").text($(this).val());
 						    });			
@@ -3651,6 +3675,11 @@ class User extends App{
 		$content.="</div>													
 					<hr>
 					<div class='form-group'>
+						<label for='votetext'>".e('Button Text')."</label>
+						<input type='text' class='form-control' name='votetext' id='votetext'  value='{$votetext}' data-required='true'>
+					</div>
+					<hr>						
+					<div class='form-group'>
 						<label for='bg'>".e('Background Color')."</label> <br>
 						<input type='text' name='bg' id='bg'>
 					</div>			
@@ -3689,7 +3718,7 @@ class User extends App{
 											$widgets.="<li data-id='{$key}' style='color: {$overlay->data->color} !important'>{$answer->option}</li>";
 										}										
 				$widgets.="</ol>
-									<button type='submit' class='poll-btn' style='color: {$overlay->data->btncolor};background-color:{$overlay->data->btnbg} !important'>Vote</button>																
+									<button type='submit' class='poll-btn votetext' style='color: {$overlay->data->btncolor};background-color:{$overlay->data->btnbg} !important'>{$votetext}</button>																
 								</div>
 							</div><!-- /.custom-overlay -->";		
 	  $widgets.='<div class="panel panel-default panel-body" id="'.__FUNCTION__.'">';
