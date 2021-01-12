@@ -81,17 +81,25 @@
 				<table class="table" style="border: 1px solid #dfe2e6;">
 					<thead class="thead-light">
 						<tr>
-							<td><img src="<?php echo $this->user->avatar ?>" alt="" style="width:30px;" class="round"/></td>
-							<td><?php echo $this->user->name ? $this->user->name : $this->user->username ?>&nbsp;&nbsp;&nbsp;<?php echo ($this->user->active ? '<span class="label label-success">' . e("Active") . '</span>' : '<span class="label label-danger">' . e("Inactive") . '</span>') ?></td>
-							<td><?php echo $this->user->email ?></td>
+							<td><?php echo e("Avatar") ?></td>
+							<td><?php echo e("Name and Status") ?></td>
+							<td><?php echo e("Email") ?></td>
+							<td><?php echo e("Permissions") ?></td>
+							<td><?php echo e("Actions") ?></td>
+						</tr> 
+					</thead>
+					<tbody>
+						<!-- Main Account -->
+						<tr>
+							<td><img src="<?php echo $this->avatar($teamleader,30) ?>" alt="" class="round"/></td>
+							<td><?php echo $teamleader->name ? $teamleader->name : $teamleader->username ?>&nbsp;&nbsp;&nbsp;<?php echo ($teamleader->active ? '<span class="label label-success">' . e("Active") . '</span>' : '<span class="label label-danger">' . e("Inactive") . '</span>') ?></td>
+							<td><?php echo $teamleader->email ?></td>
 							<td>
 								<span class='badge badge-primary'><?php echo e("Master Account") ?></span>
 							</td>
 							<td></td>
-						</tr>
-					</thead>
-
-					<tbody>
+						</tr> 				
+						<!-- Sub Accounts -->
 						<?php foreach ($team as $member) : ?>
 							<tr>
 								<td><img src="<?php echo $this->avatar($member, 30) ?>" alt="" class="round"></td>

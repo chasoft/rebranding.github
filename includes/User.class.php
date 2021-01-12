@@ -2110,7 +2110,17 @@ class User extends App
 		$header = e("Create a Custom Overlay Page");
 
 		if (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("overlay.create"))) {
-			$header .= "<a href='" . Main::href("user/overlay/create") . "' class='btn btn-primary btn-sm pull-right'>" . e("Create") . "</a>";
+			$header .= '<div class="btn-group pull-right">
+  <button type="button" class="btn btn-sm btn-primary"><a href="' . Main::href("user/overlay/create") . '">' . e("Create") . '</a></button>
+  <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <span class="sr-only">Toggle Dropdown</span>
+  </button>
+  <div class="dropdown-menu">
+    <a class="dropdown-item" href="' . Main::href("user/overlay/message") . '">' . e("Message") . '</a>
+    <a class="dropdown-item" href="' . Main::href("user/overlay/contact") . '">' . e("Contact Form") . '</a>
+    <a class="dropdown-item" href="' . Main::href("user/overlay/poll") . '">' . e("Poll") . '</a>
+  </div>
+</div>';
 		}
 
 		$widgets = '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
@@ -2967,7 +2977,7 @@ class User extends App
 					<button class='btn btn-primary'>" . e('Save overlay') . "</button>
 				</form>";
 
-		$header = e("Customize Contact Overlay");
+		$header = e("Customize Poll Overlay");
 		$before = "";
 		$widgets = "<div class='panel panel-default panel-body' id='overlay'>
 								<h3>" . e("Live Preview") . "</h3>
@@ -4636,6 +4646,7 @@ class User extends App
 		}
 
 		$team = $this->db->get("user", ["teamid" => $this->user->id], ["order" => "id"]);
+		$teamleader = $this->db->get("user", ["id" => $this->user->id], ["limit" => "1"]);
 
 		$toText = [
 			"links.create" => e("Create Links"),
