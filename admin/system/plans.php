@@ -17,6 +17,7 @@
               <th>Name</th>
               <th>Price Monthly</th>
               <th>Price Yearly</th>
+              <th>Price Lifetime</th>
               <th>Permissions</th>
               <th>Status</th>
               <th>Options</th>
@@ -32,9 +33,11 @@
                 <?php if ($plan->free): ?>
                   <td>Free</td>
                   <td>Free</td>
+                  <td>Free</td>
                 <?php else: ?>
                   <td><?php echo Main::currency($this->config["currency"]) ?> <?php echo $plan->price_monthly ?></td>
                   <td><?php echo Main::currency($this->config["currency"]) ?> <?php echo $plan->price_yearly ?></td>
+                  <td><?php echo Main::currency($this->config["currency"]) ?> <?php echo $plan->price_lifetime ?></td>
                 <?php endif ?>
                 <td>
                   <span class="label label-info"><?php echo $plan->numurls == "0" ? "Unlimited" : $plan->numurls ?> urls</span>                  

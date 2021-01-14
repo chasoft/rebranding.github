@@ -40,7 +40,7 @@
           <input type="text" class="form-control" id="email" placeholder="Enter email" name="email" autofocus>
         </div>
         <div class="form-group">
-          <label for="pass"><?php echo e("Password")?> <a href="#forgot" class="pull-right" id="forgot-password"><?php echo e("Forgot Password")?>?</a></label>
+          <label for="pass"><?php echo e("Password")?> <a href="#forgot" class="pull-right" id="forgot-password" tabindex="-1"><?php echo e("Forgot Password")?>?</a></label>
           <input type="password" class="form-control" id="pass" placeholder="Password" name="password">
         </div>
         <p><?php echo $captcha = Main::captcha() ?></p>

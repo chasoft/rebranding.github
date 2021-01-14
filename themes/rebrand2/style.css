@@ -1986,7 +1986,7 @@ section#plan .toggle-container {
 }
 section#plan .toggle-container .switch-toggles {
   position: relative;
-  width: 262px;
+  width: 360px;
   height: 50px;
   border: 1px solid rgba(38, 39, 45, 0.2);
   border-radius: 30px;
@@ -1995,9 +1995,10 @@ section#plan .toggle-container .switch-toggles {
   margin: 15px auto;
 }
 section#plan .toggle-container .switch-toggles .monthly,
-section#plan .toggle-container .switch-toggles .yearly {
+section#plan .toggle-container .switch-toggles .yearly,
+section#plan .toggle-container .switch-toggles .lifetime {
   position: relative;
-  width: 130px;
+  width: 119px;
   float: left;
   padding: 13px 10px;
   text-align: center;
@@ -2008,14 +2009,15 @@ section#plan .toggle-container .switch-toggles .yearly {
   transition: color 0.7s cubic-bezier(0.545, 0, 0.05, 1);
 }
 section#plan .toggle-container .switch-toggles .monthly.active,
-section#plan .toggle-container .switch-toggles .yearly.active {
+section#plan .toggle-container .switch-toggles .yearly.active,
+section#plan .toggle-container .switch-toggles .lifetime.active {
   color: #26272d;
   font-weight: 700;
 }
 section#plan .toggle-container .switch-toggles:after {
   position: absolute;
   content: "";
-  width: 122px;
+  width: 115px;
   height: 42px;
   background: #ffffff;
   left: 3px;
@@ -2029,7 +2031,11 @@ section#plan .toggle-container .switch-toggles:after {
   transition: all 0.7s cubic-bezier(0.545, 0, 0.05, 1);
 }
 section#plan .toggle-container .switch-toggles.active:after {
-  left: 135px;
+  left: 119px;
+  top: 3px;
+}
+section#plan .toggle-container .switch-toggles.active.active2:after {
+  left: 239px;
   top: 3px;
 }
 section#plan .corner-ribbon {
@@ -2183,7 +2189,8 @@ section#plan .price-table.highlighted .btn-blue {
   color: #ffffff;
 }*/
 section#plan #price_tables .monthly,
-section#plan #price_tables .yearly {
+section#plan #price_tables .yearly,
+section#plan #price_tables .lifetime {
   position: relative;
   width: 100%;
   opacity: 0;
@@ -2199,7 +2206,8 @@ section#plan #price_tables .yearly .price-table {
   display: none;
 }*/
 section#plan #price_tables .monthly.active,
-section#plan #price_tables .yearly.active {
+section#plan #price_tables .yearly.active,
+section#plan #price_tables .lifetime.active {
   opacity: 1;
   -webkit-transform: scale(1);
   transform: scale(1);
@@ -3124,6 +3132,70 @@ body.dark-mode
   left: calc(100% - 200px);
 }
 
+.table tbody tr:hover {
+  background: #f8f9fc;
+  box-shadow: 0 0 10px -4px rgba(54, 74, 99, 0.2);
+}
+
+.d-sm-flex {
+  display: flex!important;
+}
+
+.align-items-center {
+  align-items: center!important;
+}
+
+.flex {
+  flex: 1 1 0%!important;
+}
+.flex-column {
+  flex-direction: column!important;
+}
+
+.navbar-text-50 {
+  color: rgba(0,44,51,.5);
+}
+
+.navbar-text-100 {
+  color: #272c33;
+}
+
+body.dark-mode .navbar-text-50 {
+  color: rgba(255,255,255,.5);
+}
+
+body.dark-mode .navbar-text-100 {
+  color: #fff;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+}
+
+.rounded-circle {
+  border-radius: 50%!important;
+}
+
+.ml-8pt {
+  margin-left: .8rem!important;
+}
+.mr-8pt {
+  margin-left: .8rem!important;
+}
+button#dropdownMenuButton {
+  border-radius: 30px;
+    -moz-border-radius: 30px;
+    -webkit-border-radius: 30px;
+    box-shadow: 2.5px 4.33px 20px 0px rgba(61, 61, 62, 0.059);
+    -moz-box-shadow: 2.5px 4.33px 20px 0px rgba(61, 61, 62, 0.059);
+    -webkitbox-shadow: 2.5px 4.33px 20px 0px rgba(61, 61, 62, 0.059);
+    transition: all 0.7s cubic-bezier(0.545, 0, 0.05, 1);
+}
+
+#domains_chosen.chosen-container-single .chosen-single {background: #eef0ff;}
+input#custom {background: #eef0ff;}
+
 /*added 28/12/20 */
 
 #main-form .main-form .main-button#copyurl:hover {
@@ -3496,7 +3568,12 @@ body.dark-mode .text-success:hover {
   color: #364a63;
   background-color: #f5f6fa;
   border-color: #dbdfea;
+  vertical-align: middle;
+  font-size: small;
 }
+
+.btn.disabled, .btn[disabled]{opacity: .15;}
+
 .table thead th {
   vertical-align: bottom;
   border-bottom: 2px solid #dbdfea;
@@ -3570,11 +3647,13 @@ section#plan .plan-fix {
   overflow: hidden;
 }
 section#plan #price_tables .monthly .plan-fix,
-section#plan #price_tables .yearly .plan-fix {
+section#plan #price_tables .yearly .plan-fix,
+section#plan #price_tables .lifetime .plan-fix {
   display: none;
 }
 section#plan #price_tables .monthly.active .plan-fix,
-section#plan #price_tables .yearly.active .plan-fix {
+section#plan #price_tables .yearly.active .plan-fix,
+section#plan #price_tables .lifetime.active .plan-fix {
   display: block;
 }
 
@@ -3664,7 +3743,7 @@ section#plan #price_tables .yearly.active .plan-fix {
 }
 
 .list-group.bundles li h4 {
-  color: #eee;
+  color: #5c7093;
 }
 
 /*end of added 28-29-30/12/20 */

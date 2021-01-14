@@ -1756,15 +1756,19 @@ class Admin
       Main::save("price_monthly", $_POST["price_monthly"]);
 
       if (!$_POST["free"] && (empty($_POST["price_monthly"]) || !is_numeric($_POST["price_monthly"]))) {
-        $error .= "<p>Please enter a valid price e.g. 5.99</p>";
+        $error .= "<p>Please enter a valid monthly price e.g. 5.99</p>";
       }
       Main::save("price_monthly", $_POST["price_monthly"]);
 
       if (!$_POST["free"] && (empty($_POST["price_yearly"]) || !is_numeric($_POST["price_yearly"]))) {
-        $error .= "<p>Please enter a valid price e.g. 59.99</p>";
+        $error .= "<p>Please enter a valid yearly price e.g. 59.99</p>";
       }
       Main::save("price_yearly", $_POST["price_yearly"]);
 
+      if (!$_POST["free"] && (empty($_POST["price_lifetime"]) || !is_numeric($_POST["price_lifetime"]))) {
+        $error .= "<p>Please enter a valid lifetime price e.g. 159.99</p>";
+      }
+      Main::save("price_lifetime", $_POST["price_lifetime"]);
 
       if ($_POST["permission"]["splash"]["enabled"] && $_POST["permission"]["splash"]["count"] == "") {
         $error .= "<p>Please enter a number of splash pages allowed. For unlimited use 0.</p>";
@@ -1808,6 +1812,7 @@ class Admin
         ":numclicks" => empty($_POST["numurls"]) ? "0" : Main::clean($_POST["numclicks"], 3, TRUE),
         ":price_monthly" => $_POST["price_monthly"] ? Main::clean($_POST["price_monthly"], 3, TRUE) : "0",
         ":price_yearly" => $_POST["price_yearly"] ? Main::clean($_POST["price_yearly"], 3, TRUE) : "0",
+        ":price_lifetime" => $_POST["price_lifetime"] ? Main::clean($_POST["price_lifetime"], 3, TRUE) : "0",
         ":permission" => json_encode($_POST["permission"]),
         ":status" => Main::clean($_POST["status"], 3, TRUE),
       ];
@@ -1893,7 +1898,14 @@ class Admin
           <input type='text' class='form-control' name='price_yearly' id='price_yearly' value='" . Main::get("price_yearly") . "'>  
           <p class='help-block'>e.g. 59.99. To change your currency, you need to change it in the settings page.</p>      
         </div>
-      </div> 
+      </div>
+      <div class='form-group'>
+        <label for='price_lifetime' class='col-sm-3 control-label'>Lifetime Price (" . $this->config["currency"] . ")</label>
+        <div class='col-sm-9'>
+          <input type='text' class='form-control' name='price_lifetime' id='price_lifetime' value='" . Main::get("price_lifetime") . "'>  
+          <p class='help-block'>e.g. 159.99. To change your currency, you need to change it in the settings page.</p>      
+        </div>
+      </div>
   
       <hr>
 
@@ -2132,6 +2144,20 @@ class Admin
       exit;
     }
 
+/*     try {
+      $planYearly = \Stripe\Plan::create(array(
+        "amount" => $data[":price_lifetime"],
+        "interval" => "lifetime",
+        "nickname" => "{$data[":name"]} - Lifetime",
+        "product" => $product->id,
+        "currency" => strtolower($this->config["currency"]),
+        "id" => $data[":slug"] . "Lifetime"
+      ));
+    } catch (Exception $e) {
+      Main::redirect(Main::ahref("plans", "", FALSE), ["danger", $e->getMessage()]);
+      exit;
+    } */
+
     return $product->id;
   }
   /**
@@ -2192,6 +2218,15 @@ class Admin
       ->setCycles("1")
       ->setAmount(new PayPal\Api\Currency(array('value' => $data->price_yearly, 'currency' => $this->config["currency"])));
 
+      $paymentDefinitionA = new PayPal\Api\PaymentDefinition();
+
+      $paymentDefinitionA->setName('Regular Lifetime Payments')
+        ->setType('FIXED')
+        ->setFrequency('Year')
+        ->setFrequencyInterval("1")
+        ->setCycles("0")
+        ->setAmount(new PayPal\Api\Currency(array('value' => $data->price_lifetime, 'currency' => $this->config["currency"])));
+
     $merchantPreferences = new PayPal\Api\MerchantPreferences();
 
     $merchantPreferences->setReturnUrl(Main::href("webhook/paypal?success=true"))
@@ -2200,7 +2235,7 @@ class Admin
       ->setInitialFailAmountAction("CONTINUE")
       ->setMaxFailAttempts("0");
 
-    $plan->setPaymentDefinitions(array($paymentDefinitionM), array($paymentDefinitionY));
+    $plan->setPaymentDefinitions(array($paymentDefinitionM), array($paymentDefinitionY),array($paymentDefinitionA));
     $plan->setMerchantPreferences($merchantPreferences);
     try {
       $output = $plan->create($connection);
@@ -2329,6 +2364,10 @@ class Admin
         $error .= "<p>Please enter a valid price e.g. 59.99</p>";
       }
 
+      if (!$_POST["free"] && (empty($_POST["price_lifetime"]) || !is_numeric($_POST["price_lifetime"]))) {
+        $error .= "<p>Please enter a valid price e.g. 159.99</p>";
+      }
+
       if ($_POST["permission"]["splash"]["enabled"] && $_POST["permission"]["splash"]["count"] == "") {
         $error .= "<p>Please enter a number of splash pages allowed. For unlimited use 0.</p>";
       }
@@ -2362,6 +2401,7 @@ class Admin
         ":numclicks" => empty($_POST["numclicks"]) ? "0" : Main::clean($_POST["numclicks"], 3, TRUE),
         ":price_monthly" => $_POST["price_monthly"] ? Main::clean($_POST["price_monthly"], 3, TRUE) : "0",
         ":price_yearly" => $_POST["price_yearly"] ? Main::clean($_POST["price_yearly"], 3, TRUE) : "0",
+        ":price_lifetime" => $_POST["price_lifetime"] ? Main::clean($_POST["price_lifetime"], 3, TRUE) : "0",
         ":permission" => json_encode($_POST["permission"]),
         ":status" => Main::clean($_POST["status"], 3, TRUE),
       ];
@@ -2476,7 +2516,14 @@ class Admin
           <input type='text' class='form-control' name='price_yearly' id='price_yearly' value='{$plan->price_yearly}'>  
           <p class='help-block'>e.g. 59.99 " . (isset($this->config["pt"]) && $this->config["pt"] == "stripe" ? "Stripe does not allow to change the price of a plan instead this plan (yearly) will be deleted and a new plan will be created. Existing users will not be affected." : "") . "</p>      
         </div>
-      </div>      
+      </div>
+      <div class='form-group'>
+        <label for='price_lifetime' class='col-sm-3 control-label'>Lifetime Price (" . $this->config["currency"] . ")</label>
+        <div class='col-sm-9'>
+          <input type='text' class='form-control' name='price_lifetime' id='price_lifetime' value='{$plan->price_lifetime}'>  
+          <p class='help-block'>e.g. 159.99 " . (isset($this->config["pt"]) && $this->config["pt"] == "stripe" ? "Stripe does not allow to change the price of a plan instead this plan (lifetime) will be deleted and a new plan will be created. Existing users will not be affected." : "") . "</p>      
+        </div>
+      </div>
 
       <hr>
 
@@ -2714,6 +2761,27 @@ class Admin
         exit;
       }
     }
+
+    if ($_POST["price_lifetime"] != $plan->price_lifetime) {
+      $YPlan = \Stripe\Plan::retrieve($plan->slug . "lifetime");
+      $productid = $YPlan->product;
+      $YPlan->delete();
+
+      try {
+        $planMonthly = \Stripe\Plan::create(array(
+          "amount" => $_POST["price_lifetime"],
+          "interval" => "month",
+          "nickname" => "{$_POST["name"]} - Lifetime",
+          "product" => $productid,
+          "currency" => strtolower($this->config["currency"]),
+          "id" => $plan->slug . "lifetime"
+        ));
+      } catch (Exception $e) {
+        error_log("Stripe Error: {$e->getMessage()}");
+        Main::redirect(Main::ahref("plans/edit/{$plan->id}", "", FALSE), ["danger", $e->getMessage()]);
+        exit;
+      }
+    }
     return TRUE;
   }
   /**
@@ -2802,6 +2870,15 @@ class Admin
         "currency" => strtolower($this->config["currency"]),
         "id" => $plan->slug . "yearly"
       ));
+
+      $planLifetime = \Stripe\Plan::create(array(
+        "amount" => $plan->price_lifetime * 100,
+        "interval" => "year",
+        "nickname" => "{$plan->name} - Lifetime",
+        "product" => $product->id,
+        "currency" => strtolower($this->config["currency"]),
+        "id" => $plan->slug . "lifetime"
+      ));
     }
   }
   /**
@@ -2853,6 +2930,15 @@ class Admin
         ->setCycles("1")
         ->setAmount(new PayPal\Api\Currency(array('value' => $data->price_yearly, 'currency' => $this->config["currency"])));
 
+      $paymentDefinitionA = new PayPal\Api\PaymentDefinition();
+
+      $paymentDefinitionA->setName('Regular Lifetime Payments')
+        ->setType('REGULAR')
+        ->setFrequency('Year')
+        ->setFrequencyInterval("1")
+        ->setCycles("0")
+        ->setAmount(new PayPal\Api\Currency(array('value' => $data->price_lifetime, 'currency' => $this->config["currency"])));
+
       $merchantPreferences = new PayPal\Api\MerchantPreferences();
 
       $merchantPreferences->setReturnUrl(Main::href("webhook/paypal?success=true"))
@@ -2861,7 +2947,7 @@ class Admin
         ->setInitialFailAmountAction("CONTINUE")
         ->setMaxFailAttempts("0");
 
-      $plan->setPaymentDefinitions(array($paymentDefinitionM), array($paymentDefinitionY));
+      $plan->setPaymentDefinitions(array($paymentDefinitionM), array($paymentDefinitionY),array($paymentDefinitionA));
       $plan->setMerchantPreferences($merchantPreferences);
       try {
         $output = $plan->create($connection);

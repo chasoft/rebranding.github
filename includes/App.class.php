@@ -647,7 +647,7 @@ class App
 	{
 		// Pricing
 		if (!$this->logged()) {
-			if (in_array($this->do, ["monthly", "yearly"])) $_SESSION["redirect"] = "upgrade/{$this->do}/{$this->id}";
+			if (in_array($this->do, ["monthly", "yearly","lifetime"])) $_SESSION["redirect"] = "upgrade/{$this->do}/{$this->id}";
 
 			return Main::redirect(Main::href("user/register", "", FALSE));
 		}
@@ -668,7 +668,7 @@ class App
 			return $this->ProcessPayPal();
 		}
 
-		if ($this->do == "yearly" || $this->do == "monthly") return $this->checkout();
+		if ($this->do == "yearly" || $this->do == "monthly" || $this->do == "lifetime") return $this->checkout();
 		if ($this->do == "renew") $_SESSION["renew"] = TRUE;
 
 		return Main::redirect("pricing");
@@ -686,6 +686,7 @@ class App
 
 		$monthly = [];
 		$yearly = [];
+		$lifetime = [];
 		$free = [];
 
 		if ($this->db->rowCountAll > 3) {
@@ -729,6 +730,18 @@ class App
 					"icon" => $plan->icon,
 					"trial" => $plan->trial_days,
 					"price" => $plan->price_yearly,
+					"discount" => $discountAmount,
+					"urls" => $plan->numurls,
+					"clicks" => $plan->numclicks,
+					"permission" => json_decode($plan->permission)
+				];
+				$lifetime[] = [
+					"id" => $plan->id,
+					"name" => $plan->name,
+					"description" => $plan->description,
+					"icon" => $plan->icon,
+					"trial" => $plan->trial_days,
+					"price" => $plan->price_lifetime,
 					"discount" => $discountAmount,
 					"urls" => $plan->numurls,
 					"clicks" => $plan->numclicks,
@@ -799,13 +812,19 @@ class App
 		$logo = ($this->config["logo"] ? "{$this->config["url"]}/content/{$this->config["logo"]}" : "");
 
 		$term = e($plan->name);
-		$text = e("First month");
+		$text = e("Monthly payment");
 		$price = $plan->price_monthly;
 
 		if ($this->do == "yearly") {
 			$term = e($plan->name);
-			$text = e("First year");
+			$text = e("Annual payment");
 			$price = $plan->price_yearly;
+		}
+
+		if ($this->do == "lifetime") {
+			$term = e($plan->name);
+			$text = e("Lifetime payment");
+			$price = $plan->price_lifetime;
 		}
 
 		Main::set("title", e("Complete your subscription"));
@@ -886,7 +905,13 @@ class App
 			$period = "Yearly";
 			$t3 = "Y";
 			$srt = "52";
-		} else {
+		} elseif ($this->do == "lifetime") {
+			$fee = $plan->price_lifetime;
+			$period = "Lifetime";
+			$t3 = "LT";
+			$srt = "52";
+		}
+		else {
 			$fee = $plan->price_monthly;
 			$period = "Monthly";
 			$t3 = "M";
@@ -964,6 +989,13 @@ class App
 			$text = e("First year");
 			$price = $plan->price_yearly;
 			$planid = $plan->slug . "yearly";
+		}
+
+		if ($this->do == "lifetime") {
+			$term = e($plan->name);
+			$text = e("One time");
+			$price = $plan->price_lifetime;
+			$planid = $plan->slug . "lifetime";
 		}
 
 		if (!isset($_POST["stripeToken"])) return Main::redirect("", array("warning", e("An error ocurred, please try again. You have not been charged.")));
@@ -1172,10 +1204,11 @@ class App
 			if ($ey->paid == true && $ey->status == "succeeded") {
 
 				if ($subscription->plan == "yearly") {
-
 					$new_expiry = date("Y-m-d H:i:s", strtotime("+1 year", $e->created));
-				} else {
-
+				} elseif ($subscription->plan == "lifetime") {
+					$new_expiry = date("Y-m-d H:i:s", strtotime("+50 year", $e->created));
+				}
+				else {
 					$new_expiry = date("Y-m-d H:i:s", strtotime("+1 month", $e->created));
 				}
 
@@ -1341,6 +1374,9 @@ class App
 				if ($data->period == "Yearly") {
 					$expires = date("Y-m-d H:i:s", strtotime(date("Y-m-d H:i:s", strtotime($user->expiration)) . " + 1 year"));
 					$info["duration"] = "1 Year";
+				} elseif ($data->period == "lifetime") {
+						$expires = date("Y-m-d H:i:s", strtotime(date("Y-m-d H:i:s", strtotime($user->expiration)) . " + 50 year"));
+						$info["duration"] = "50 Year";
 				} else {
 					$expires = date("Y-m-d H:i:s", strtotime(date("Y-m-d H:i:s", strtotime($user->expiration)) . " + 1 month"));
 					$info["duration"] = "1 Month";
@@ -1349,6 +1385,9 @@ class App
 				if ($data->period == "Yearly") {
 					$expires = date("Y-m-d H:i:s", strtotime("+1 year"));
 					$info["duration"] = "1 Year";
+				} elseif ($data->period == "Lifetime") {
+					$expires = date("Y-m-d H:i:s", strtotime("+50 year"));
+					$info["duration"] = "50 Year";
 				} else {
 					$expires = date("Y-m-d H:i:s", strtotime("+1 month"));
 					$info["duration"] = "1 Month";
@@ -2058,7 +2097,7 @@ class App
 	protected function menu($option = array())
 	{
 		$menu = '<div class="navbar-collapse collapse">';
-		$menu .= '<ul class="nav navbar-nav navbar-right">';
+		$menu .= '<ul class="nav navbar-nav navbar-right nav-item">';
 		Main::plug("menu.main");
 		if (!$this->logged()) {
 			if (!empty($option) && is_array($option)) {
@@ -2107,10 +2146,16 @@ class App
 						          <li><a href='" . Main::href("user/logout") . "'><span class='glyphicon glyphicon-log-out'></span> " . e("Logout") . "</a></li>
 					          </ul>
 						  </li>";*/
-			$menu .= "<li>
-				<button class='dropdown-toggle' type='button' id='dropdownMenuButton' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false' style='border:0px; background-color:transparent;'>
-					<img src='{$this->user->avatar}' alt='' style='width:30px;' />
-				</button>
+			$displayname = ($this->user->name) ? $this->user->name : $this->user->username;
+
+			$menu .= "<li class='d-sm-flex'>
+				<button class='d-flex align-items-center dropdown-toggle' type='button' id='dropdownMenuButton' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false' style='border:0px; background-color:transparent;'>
+					<span class='flex d-flex flex-column mr-8pt text-left'>
+						<span class='navbar-text-100'>{$displayname}</span>
+						<small class='navbar-text-50'>{$this->user->email}</small>
+					</span>
+					<img src='{$this->user->avatar}' alt='' style='width:32px;' class='ml-8pt' />
+				</button>	
 				<div class='dropdown-menu list-group' aria-labelledby='dropdownMenuButton'>
 					<a class='list-group-item' href='" . Main::href("profile/{$this->user->username}") . "'>
 						<span class='glyphicon glyphicon-cloud" . ($this->user->public ? ' icon-green' : ' icon-red') . "'>

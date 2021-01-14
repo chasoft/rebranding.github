@@ -10,6 +10,7 @@
         <div class="switch-toggles">
           <div class="monthly"><?php echo e("Monthly") ?></div>
           <div class="yearly"><?php echo e("Yearly") ?></div>
+		  <div class="lifetime"><?php echo e("Lifetime") ?></div>
         </div>
       </div>      
     </div>    
@@ -170,6 +171,86 @@
 			</div><!-- .row -->
 		  </div><!-- .container -->	  
       </div><!-- end of YEARLY -->
+
+	  <!-- LIFETIME -->
+      <div class="lifetime cf">
+	  
+		  <div class="container plan-fix">
+			<div class="row2 g-gs">
+			
+				<?php foreach ($free as $plan): ?>
+				<div class="col-md-4">
+					<div class="price-plan card card-bordered text-center">
+						<div class="card-inner">
+							<div class="price-plan-media">
+								<img src="https://rebranding.today/themes/rebrand2/assets/images/plan-s1.svg" alt="">
+							</div>
+							<div class="price-plan-info">
+								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
+								<span><?php echo e($plan["description"]) ?></span>
+							</div>
+							<div class="price-plan-amount">
+								<div class="amount"><?php echo e("Free") ?></div>
+								<span class="bill"><?php echo e("Forever") ?></span>
+							</div>
+							<div class="price-plan-action">		
+							  <?php if($this->logged()): ?>
+								<?php if(!$this->pro()): ?>
+								  <a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
+								<?php else: ?>
+								  <a class="btn btn-default btn-round"><?php echo e("Free Forever") ?></a> 
+								<?php endif ?>
+							  <?php else: ?>
+								<a href="<?php echo Main::href("user/register") ?>" class="btn btn-outline-primary btn-round"><?php echo e("Get Started") ?></a> 
+							  <?php endif ?>
+							</div>
+						</div>
+					</div>
+				</div>
+				<?php endforeach ?>
+				
+				<?php foreach ($lifetime as $plan): ?>
+				<div class="col-md-4">
+					<div class="price-item card card-bordered text-center">
+						<div class="card-inner">
+							<div class="price-plan-media">
+								<img src="https://rebranding.today/themes/rebrand2/assets/images/plan-s2.svg" alt="">
+							</div>
+							<div class="price-plan-info">
+								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
+								<span><?php echo e($plan["description"]) ?></span>
+							</div>
+							<div class="price-plan-amount">
+								<div class="amount"><?php echo Main::currency($this->config["currency"],$plan["price"]) ?>
+									<span>/<?php echo e("yr") ?></span>
+								</div>
+								<span class="bill"><?php echo e("Great saving!") ?></span>
+							</div>
+							<div class="price-plan-action">
+							  <?php if ($this->logged() && $this->pro() && $this->user->planid == $plan["id"]): ?>
+								  <?php if ($this->user->trial): ?>
+									<a href="<?php echo Main::href("upgrade/lifetime/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>   
+								  <?php else: ?>
+									<a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
+								  <?php endif ?>
+							  <?php else: ?>
+								<?php if($plan["trial"] && (!$this->logged() || ($this->logged() && !$this->db->get("payment", "trial_days IS NOT NULL AND userid = '{$this->user->id}'", ["limit" => 1])))): ?>                  
+									<a href="<?php echo Main::href("upgrade/lifetime/{$plan["id"]}?trial=1") ?>" class="btn btn-primary btn-round"><?php echo $plan["trial"] ?>-<?php echo e("Day") ?> <?php echo e("Free Trial") ?></a>                      
+								<?php else: ?>
+								  <a href="<?php echo Main::href("upgrade/lifetime/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>  
+								<?php endif ?>
+							  <?php endif ?>
+							</div>
+						</div>
+					</div>	
+					<!-- .price-item -->
+				</div>
+				<?php endforeach ?>
+
+			</div><!-- .row -->
+		  </div><!-- .container -->	  
+      </div><!-- end of LIFETIME -->
+
     </div><!-- end of PRICE-TABLE -->
 	
 	<hr>

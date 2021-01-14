@@ -81,18 +81,18 @@
 				<table class="table" style="border: 1px solid #dfe2e6;">
 					<thead class="thead-light">
 						<tr>
-							<td><?php echo e("Avatar") ?></td>
-							<td><?php echo e("Name and Status") ?></td>
-							<td><?php echo e("Email") ?></td>
-							<td><?php echo e("Permissions") ?></td>
-							<td><?php echo e("Actions") ?></td>
+							<th>&nbsp;</th>
+							<th><?php echo e("Name") ?></th>
+							<th><?php echo e("Email") ?></th>
+							<th><?php echo e("Permissions") ?></th>
+							<th><?php echo e("Actions") ?></th>
 						</tr> 
 					</thead>
 					<tbody>
 						<!-- Main Account -->
 						<tr>
 							<td><img src="<?php echo $this->avatar($teamleader,30) ?>" alt="" class="round"/></td>
-							<td><?php echo $teamleader->name ? $teamleader->name : $teamleader->username ?>&nbsp;&nbsp;&nbsp;<?php echo ($teamleader->active ? '<span class="label label-success">' . e("Active") . '</span>' : '<span class="label label-danger">' . e("Inactive") . '</span>') ?></td>
+							<td><?php echo $teamleader->name ? $teamleader->name : $teamleader->username ?><br><?php echo ($teamleader->active ? '<span class="label label-success">' . e("Active") . '</span>' : '<span class="label label-danger">' . e("Inactive") . '</span>') ?></td>
 							<td><?php echo $teamleader->email ?></td>
 							<td>
 								<span class='badge badge-primary'><?php echo e("Master Account") ?></span>
@@ -103,7 +103,7 @@
 						<?php foreach ($team as $member) : ?>
 							<tr>
 								<td><img src="<?php echo $this->avatar($member, 30) ?>" alt="" class="round"></td>
-								<td><?php echo $member->name ? $member->name : $member->username ?>&nbsp;&nbsp;&nbsp;<?php echo ($member->active ? '<span class="label label-success">' . e("Active") . '</span>' : '<span class="label label-danger">' . e("Inactive") . '</span>') ?></td>
+								<td><?php echo $member->name ? $member->name : $member->username ?><br><?php echo ($member->active ? '<span class="label label-success">' . e("Active") . '</span>' : '<span class="label label-danger">' . e("Inactive") . '</span>') ?></td>
 								<td><?php echo $member->email ?></td>
 								<td>
 									<?php if ($permissions = json_decode($member->teampermission)) : ?>
@@ -116,6 +116,9 @@
 									<?php if (!$this->isTeam()) : ?>
 										<a href="<?php echo Main::href("user/teams/edit?user={$member->id}") ?>" class="btn btn-xs btn-success"><?php echo e("Edit") ?></a>
 										<a href="<?php echo Main::href("user/teams/remove" . Main::nonce("delete_team-{$member->id}") . "&user={$member->id}") ?>" class="btn btn-xs btn-danger delete"><?php echo e("Remove") ?></a>
+									<?php else : ?>
+										<a href="#" class="btn btn-xs btn-success" disabled><?php echo e("Edit") ?></a>
+										<a href="#" class="btn btn-xs btn-danger delete" disabled><?php echo e("Remove") ?></a>
 									<?php endif ?>
 								</td>
 							</tr>

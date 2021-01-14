@@ -1,4 +1,13 @@
 <?php defined("APP") or die() ?>
+<section class="dark">
+	<div class="container">
+		<ol class="breadcrumb">
+			<li><a href="<?php echo Main::href("") ?>"><?php echo e("Home") ?></a></li>
+			<li><a href="<?php echo Main::href("pricing") ?>"><?php echo e("Pricing") ?></a></li>
+			<li class="active"><?php echo e("Checkout") ?></li>
+		</ol>
+	</div>
+</section>
 <section id="checkout">
 	<div class="container">
 		<?php echo Main::message() ?>
@@ -14,16 +23,17 @@
 		</div>
 		<div class="row">
 			<div class="col-md-3">
-				<div class="panel">
-					<div class="panel-heading"><strong><?php echo $term ?></strong></div>
+				<div class="panel" style="min-width:260px;">
+					<div class="panel-heading" style="background: #7265f0;color: white;"><strong><?php echo e("Service Information") ?></strong></div>
 					<div class="panel-body">
 						<ul>
-							<li><?php echo $text ?> - <?php echo $plan->name ?> <span class="pull-right"><?php echo Main::currency($this->config["currency"], $price) ?></span></li>
+							<li><strong><?php echo $term ?></strong><br><i><?php echo e($plan->description) ?></i></li>
+							<li><?php echo $text ?> <span class="pull-right"><?php echo Main::currency($this->config["currency"], $price) ?></span></li>
 							<li class="total"><strong><?php echo e("Total") ?> <span class="pull-right"><?php echo Main::currency($this->config["currency"], $price) ?></span></strong></li>
 						</ul>
 						<?php if (isset($this->config["pt"]) && in_array($this->config["pt"], ['stripe', 'paypalapi'])) : ?>
 							<p class="info">
-								<?php echo e("Next payment will be automatically charged at the beginning of each period.") ?>
+								<?php echo e("Next payment will be automatically charged at the beginning of each period. You can cancel the service anytime you want.") ?>
 							</p>
 						<?php endif ?>
 					</div>
@@ -105,18 +115,19 @@
 										</div>
 									</div>
 								</div>
-								<br>
-								<div class="row">
+								<hr>
+								<div class="row text-center">
 									<div class="col-xs-12">
 										<!-- row for buttons -->
-										<button class="stripe-button btn btn-primary" type="submit"><?php echo e("Pay with Card") ?></button>
+										<button class="stripe-button btn btn-primary" style="margin-top:10px; margin-right:15px;" type="submit"><?php echo e("Pay with Card") ?></button>
 									<?php else : ?>
-										<div class="row">
+										<hr>
+										<div class="row text-center">
 											<div class="col-xs-12">
 												<!-- row for buttons -->
-												<button class="btn btn-primary btn-round" type="submit"><?php echo e("Pay with PayPal") ?></button>
+												<button class="btn btn-primary btn-round" style="margin-top:10px; margin-right:15px;" type="submit"><?php echo e("Pay with PayPal") ?></button>
 											<?php endif; ?>
-											<button style="margin-left:15px;" class="btn btn-secondary btn-round" type="submit" id="alepay"><?php echo e("Pay with Alepay") ?></button>
+											<button style="margin-top:10px; margin-right:15px;" class="btn btn-secondary btn-round" type="submit" id="alepay"><?php echo e("Pay with Alepay") ?></button>
 
 											</div>
 										</div> <!-- end of row for buttons -->
