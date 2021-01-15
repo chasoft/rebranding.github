@@ -2210,6 +2210,10 @@ class App
 			if ($this->config["user"] && !$this->config["private"] && !$this->config["maintenance"]) {
 				$menu .= '<li><a href="' . Main::href("user/register") . '" class="btn btn-outline-primary btn-round">' . e("Get Started") . '</a></li>';
 			}
+			$menu .= '<li class="flex d-flex flex-column align-items-center justify-content-center" style="margin: 0px;padding: 0px;margin-left: 10px;">
+			<a href="?lang=vi" style="padding: 0;margin: 0;"><img src="https://rebranding.today\themes\rebrand2\assets\images\flag-vietnamese.png" alt="VN"></a>
+			<a href="?lang=en" style="padding: 0;margin: 0;"><img src="https://rebranding.today\themes\rebrand2\assets\images\flag-english.png" alt="EN"></a>
+			</li>';
 		} else {
 			if ($this->admin()) {
 				$menu .= '<li><a href="' . $this->config["url"] . '/admin/" class="active">' . e("Admin") . '</a></li>';
@@ -2262,6 +2266,10 @@ class App
 					<a class='list-group-item' href='" . Main::href("user/logout") . "'><span class='glyphicon glyphicon-log-out'></span> " . e("Logout") . "</a>
 				</div>
 			</li>";
+			$menu .= '<li class="flex d-flex flex-column align-items-center justify-content-center" style="margin: 0px 15px 0 10px;padding: 0px;">
+			<a href="?lang=vi" style="padding: 0;margin: 0;"><img src="https://rebranding.today\themes\rebrand2\assets\images\flag-vietnamese.png" alt="VN"></a>
+			<a href="?lang=en" style="padding: 0;margin: 0;"><img src="https://rebranding.today\themes\rebrand2\assets\images\flag-english.png" alt="EN"></a>
+			</li>';
 		}
 		$menu .= '</ul>';
 
