@@ -647,7 +647,7 @@ class App
 	{
 		// Pricing
 		if (!$this->logged()) {
-			if (in_array($this->do, ["monthly", "yearly","lifetime"])) $_SESSION["redirect"] = "upgrade/{$this->do}/{$this->id}";
+			if (in_array($this->do, ["monthly", "yearly", "lifetime"])) $_SESSION["redirect"] = "upgrade/{$this->do}/{$this->id}";
 
 			return Main::redirect(Main::href("user/register", "", FALSE));
 		}
@@ -661,9 +661,16 @@ class App
 				return Main::redirect(Main::href("upgrade/{$this->do}/{$this->id}", "", FALSE), array("danger", e("Something went wrong, please try again.")));
 			}
 
+			//Process Alepay first
+			if ($this->do == "lifetime") {
+				return $this->ProcessAlepay();
+			}
+
+			//Otherwise, normal process, the fact that, I only use PayPalAPI
 			if (isset($this->config["pt"])) {
 				if ($this->config["pt"] == "stripe") return $this->ProcessStripe();
 				if ($this->config["pt"] == "paypalapi") return $this->ProcessPayPalAPI();
+				if ($this->config["pt"] == "alepay") return $this->ProcessAlepayAPI();
 			}
 			return $this->ProcessPayPal();
 		}
@@ -873,10 +880,98 @@ class App
 					});
 					</script>", "custom",  true);
 		}
-		$address = json_decode($this->user->address);
+		
+		$address = json_decode($this->user->address, TRUE);
+		if (!isset($address["address"])) $address["address"] = "";
+		if (!isset($address["city"])) $address["city"] = "";
+		if (!isset($address["mobile"])) $address["mobile"] = "";
+
 		$this->header();
 		include($this->t("checkout"));
 		$this->footer();
+	}
+	/**
+	 * Membership Payment for Alipay Gateway
+	 * @since 5.3.7 by BizChain
+	 **/
+	private function ProcessAlepay($array = array())
+	{
+		// If demo mode is on disable this feature
+		if ($this->config["demo"]) {
+			Main::redirect(Main::href("user", "", FALSE), array("danger", e("Feature disabled in demo.")));
+			return;
+		}
+		// Require Login
+		if (!$this->logged()) {
+			return Main::redirect(Main::href("user/register", "", FALSE));
+		}
+
+		$plan = $this->db->get("plans", ["id" => $this->id], ["limit" => "1"]);
+
+		// Check if already pro
+		if ($this->pro() && $this->user->planid == $this->id && !isset($_SESSION["renew"])) return Main::redirect("", array("warning", e("You are already a pro member.")));
+
+		// Determine Fee
+		if (!empty($this->do) && $this->do == "yearly") {
+			$fee = $plan->price_yearly;
+			$period = "Yearly";
+			$t3 = "Y";
+			$srt = "52";
+		} elseif ($this->do == "lifetime") {
+			$fee = $plan->price_lifetime;
+			$period = "Lifetime";
+			$t3 = "LT";
+			$srt = "52";
+		} else {
+			$fee = $plan->price_monthly;
+			$period = "Monthly";
+			$t3 = "M";
+			$srt = "52";
+		}
+		$renew = isset($_SESSION["renew"]) ? "1" : "0";
+		// Generate Paypal link
+		$options = array(
+			"cmd" => "_xclick",
+			"business" => "{$this->config["paypal_email"]}",
+			"currency_code" => "{$this->config["currency"]}",
+			"item_name" => "{$plan->name} $period Membership (Pro)",
+			"custom"  =>  json_encode(array("userid" => $this->userid, "period" => $period, "renew" => $renew, "planid" => $plan->id)),
+			"amount" => $fee,
+			"return" => Main::href("ipn/" . md5($this->config["security"] . $this->do)),
+			"notify_url" => Main::href("ipn"),
+			"cancel_return" => Main::href("ipn/cancel")
+		);
+
+		// $options = array(
+		// 		"cmd" => "_xclick-subscriptions",
+		// 		"business" => "{$this->config["paypal_email"]}",
+		//  			"currency_code" => "{$this->config["currency"]}",
+		//  			"item_name" => "{$plan->name} $period Membership (Pro)",
+		//  			"custom"  =>  json_encode(array("userid" => $this->userid,"period" => $period,"renew" => $renew, "planid" => $plan->id)),
+		//  			"srt" => $srt,
+		//  			"src" => "1",
+		//  			"a3" => $fee,
+		//  			"p3" => "1",
+		//  			"t3" => $t3,
+		//  			"amount" => $fee,
+		//  			"return" => Main::href("ipn/".md5($this->config["security"].$this->do)),
+		//  			"notify_url" => Main::href("ipn"),
+		//  			"cancel_return" => Main::href("ipn/cancel")
+		// );
+
+		// Build Query
+		// $options=array_replace($default,$array);		
+		if (empty($options["business"])) Main::redirect("", array("danger", "PayPal is not set up correctly. Please contact the administrator."));
+		// Get URL
+		if ($this->sandbox) {
+			$paypal_url = "https://www.sandbox.paypal.com/cgi-bin/webscr?";
+		} else {
+			$paypal_url = "https://www.paypal.com/cgi-bin/webscr?";
+		}
+		$q = http_build_query($options);
+		$paypal_url = $paypal_url . $q;
+		header("Location: $paypal_url");
+		exit;
 	}
 	/**
 	 * Membership Payment
@@ -910,8 +1005,7 @@ class App
 			$period = "Lifetime";
 			$t3 = "LT";
 			$srt = "52";
-		}
-		else {
+		} else {
 			$fee = $plan->price_monthly;
 			$period = "Monthly";
 			$t3 = "M";
@@ -1207,8 +1301,7 @@ class App
 					$new_expiry = date("Y-m-d H:i:s", strtotime("+1 year", $e->created));
 				} elseif ($subscription->plan == "lifetime") {
 					$new_expiry = date("Y-m-d H:i:s", strtotime("+50 year", $e->created));
-				}
-				else {
+				} else {
 					$new_expiry = date("Y-m-d H:i:s", strtotime("+1 month", $e->created));
 				}
 
@@ -1375,8 +1468,8 @@ class App
 					$expires = date("Y-m-d H:i:s", strtotime(date("Y-m-d H:i:s", strtotime($user->expiration)) . " + 1 year"));
 					$info["duration"] = "1 Year";
 				} elseif ($data->period == "lifetime") {
-						$expires = date("Y-m-d H:i:s", strtotime(date("Y-m-d H:i:s", strtotime($user->expiration)) . " + 50 year"));
-						$info["duration"] = "50 Year";
+					$expires = date("Y-m-d H:i:s", strtotime(date("Y-m-d H:i:s", strtotime($user->expiration)) . " + 50 year"));
+					$info["duration"] = "50 Year";
 				} else {
 					$expires = date("Y-m-d H:i:s", strtotime(date("Y-m-d H:i:s", strtotime($user->expiration)) . " + 1 month"));
 					$info["duration"] = "1 Month";
@@ -2180,7 +2273,8 @@ class App
 	 * To add a custom menu, send an array of urls with a text and href index e.g. array(array("href"=>"","text"=>""),array("href"=>"","text"=>""))
 	 * @since 5.6.7 by BizChain
 	 **/
-	protected function all_menu($option = array()) {
+	protected function all_menu($option = array())
+	{
 		$menu = '';
 		Main::plug("menu.main");
 		if (!$this->logged()) {
@@ -2229,26 +2323,26 @@ class App
 					" . ($this->config["pro"] && !$this->isTeam() ? "<a class='list-group-item' href='" . Main::href("user/membership") . "'><span class='glyphicon glyphicon-credit-card'></span> " . e("Membership") . "</a>" : "") . "
 					" . Main::plug("menu.dropdown") . "
 					<a class='list-group-item' href='" . Main::href("user/settings") . "'><span class='glyphicon glyphicon-cog'></span> " . e("Settings") . "</a>";
-			
+
 			/* SideBar Menu*/
 			$menu .= '<hr data-content="' . e('Links') . '" class="hr-text">';
 			$menu .= '<a class="list-group-item" href="' . Main::href("user") . '" class="active"><span class="glyphicon glyphicon-home"></span> ' . e('Dashboard') . '</a>';
 			$menu .= '<a class="list-group-item" href="' . Main::href("user/archive") . '"><span class="glyphicon glyphicon-briefcase"></span> ' . e('Archived Links') . '</a>';
 			$menu .= '<a class="list-group-item" href="' . Main::href("user/expired") . '"><span class="glyphicon glyphicon-calendar"></span> ' . e('Expired Links') . '</a>';
-	
+
 			if ($this->permission("bundle") !== FALSE) {
 				$menu .= '<a class="list-group-item" href="' . Main::href("user/bundles") . '"><span class="glyphicon glyphicon-folder-open"></span> ' . e('Bundles') . '</a>';
 			}
 			$menu .= '<hr data-content="' . e('Advanced features') . '" class="hr-text">';
 
 			$menu .= $this->permission("splash") === FALSE ? '' : '<a class="list-group-item" href="' . Main::href("user/splash") . '"><span class="glyphicon glyphicon-transfer"></span> ' . e('Splash Pages') . '' . ($this->permission("splash") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
-			$menu .= $this->permission("overlay") === FALSE ?'' : '<a class="list-group-item" href="' . Main::href("user/overlay") . '"><span class="glyphicon glyphicon-record"></span> ' . e('Overlay Pages') . '' . ($this->permission("overlay") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
+			$menu .= $this->permission("overlay") === FALSE ? '' : '<a class="list-group-item" href="' . Main::href("user/overlay") . '"><span class="glyphicon glyphicon-record"></span> ' . e('Overlay Pages') . '' . ($this->permission("overlay") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
 			$menu .= $this->permission("pixels") === FALSE ? '' : '<a class="list-group-item" href="' . Main::href("user/pixels") . '"><span class="glyphicon glyphicon-screenshot"></span> ' . e('Tracking Pixels') . '' . ($this->permission("pixels") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
 			$menu .= $this->permission("domain") === FALSE ? '' : '<a class="list-group-item" href="' . Main::href("user/domain") . '"><span class="glyphicon glyphicon-globe"></span> ' . e('Custom Domain') . '' . ($this->permission("domain") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
 			$menu .= $this->permission("team") === FALSE ? '' : '<a class="list-group-item" href="' . Main::href("user/teams") . '"><span class="glyphicon glyphicon-user"></span> ' . e('Teams') . '' . ($this->permission("team") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
-	
+
 			$public = $this->user->public ? "<span class='label label-primary pull-right'>" . e("Online") . "</span>"  : "<span class='label label-danger pull-right'>" . e("Offline") . "</span>";
-	
+
 			if ($this->config["api"] && $this->permission("api")) {
 				$menu .= '<hr data-content="' . e('Others') . '" class="hr-text">';
 				$menu .= '<a class="list-group-item" href="' . Main::href("user/tools") . '"><span class="glyphicon glyphicon-wrench"></span> ' . e('Tools &amp; Integrations') . '</a>';
@@ -3052,7 +3146,7 @@ class App
 		} else {
 			$html .= '<h3>' . e("Export URLs") . '</h3>';
 			$html .= '<p>' . e("You can export your URLs along with a summary of the stats as CSV. Simply click the following button to create it.") . '</p>';
-			$html .= "<a class='btn btn-primary' href='" . Main::href("user/export") . Main::nonce("export_url") . "' rel='nofollow' title='" . e("Export URLs") . "'>" . e("Export URLs") . "</a>";
+			$html .= "<p class='d-flex justify-content-end'><a class='btn btn-primary' href='" . Main::href("user/export") . Main::nonce("export_url") . "' rel='nofollow' title='" . e("Export URLs") . "'>" . e("Export URLs") . "</a></p>";
 		}
 		$html .= '</div>';
 		return $html;
@@ -3824,5 +3918,15 @@ class App
 		} else {
 			return Main::redirect("user", array("warning", e("Your payment has been canceled.")));
 		}
+	}
+
+	/**
+	 * [ProcessAlepayAPI description]
+	 * @author BizChain Labs
+	 * @version 1.0
+	 */
+	private function ProcessAlepayAPI()
+	{
+		// TODO: Tiến hành thanh toán qua Alepay!
 	}
 }

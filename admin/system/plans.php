@@ -4,7 +4,7 @@
     Membership Plans (<?php echo $count ?>)
     <div class="pull-right">
       <a href="<?php echo Main::ahref("plans/add") ?>" class="btn btn-primary btn-xs">Add Plan</a>
-      <?php if (isset($this->config["pt"]) && in_array($this->config["pt"], ["paypalapi","stripe"])): ?>
+      <?php if (isset($this->config["pt"]) && in_array($this->config["pt"], ["paypalapi","stripe","alepay"])): ?>
         <a href="<?php echo Main::ahref("plans/sync") ?>" class="btn btn-primary btn-xs delete" title="Sync Plans" data-content="Sync plans with the current payment provider. Use this only when you change the payment provider. There is no need to sync plans otherwise.">Sync Plans</a> 
       <?php endif ?>
     </div>

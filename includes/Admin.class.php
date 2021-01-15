@@ -1817,7 +1817,7 @@ class Admin
         ":status" => Main::clean($_POST["status"], 3, TRUE),
       ];
 
-      if ($_POST["free"] == "0" && isset($this->config["pt"]) && in_array($this->config["pt"], ["stripe", "paypalapi"])) {
+      if ($_POST["free"] == "0" && isset($this->config["pt"]) && in_array($this->config["pt"], ["stripe", "paypalapi","alepay"])) {
         if (isset($this->config["stsk"]) && !empty($this->config["stsk"])) {
           if (!$data[":stripeid"] = $this->createPlan($data)) {
             return Main::redirect(Main::ahref("plans", "", FALSE), array("danger", "An error occured with payment processor. The plan was not created. Try again."));
@@ -2097,6 +2097,7 @@ class Admin
     if (!$this->isExtended()) return FALSE;
 
     if ($this->config["pt"] == "paypalapi") return $this->createPlanPayPal($data);
+    if ($this->config["pt"] == "alepay") return $this->createPlanAlepay($data);
 
     include(STRIPE);
 
@@ -2160,6 +2161,20 @@ class Admin
 
     return $product->id;
   }
+
+/**
+   * [createPlanAlepay description]
+   * @author GemPixel <https://gempixel.com>
+   * @version 1.0
+   * @param   [type] $data [description]
+   * @return  [type]       [description]
+   */
+  protected function createPlanAlepay($request)
+  {
+    //TODO: { // }
+    return false;
+  }
+
   /**
    * [createPlanPayPal description]
    * @author GemPixel <https://gempixel.com>
@@ -2408,6 +2423,8 @@ class Admin
 
       if ($_POST["free"] == "0" && isset($this->config["pt"]) && in_array($this->config["pt"], ["stripe", "paypalapi"])) {
 
+        // TODO: Xem lại logic khi nào thì không cho update của tác giả
+      
         if ($this->config["pt"] == "paypalapi") {
           if ($_POST["price_monthly"] != $plan->price_monthly || $_POST["price_yearly"] != $plan->price_yearly) {
             return Main::redirect(Main::ahref("plans/edit/{$plan->id}", "", FALSE), array("danger", "You cannot change the price of an existing plan with paypal. You need to set this plan as inactive and create a new plan."));
@@ -2521,7 +2538,7 @@ class Admin
         <label for='price_lifetime' class='col-sm-3 control-label'>Lifetime Price (" . $this->config["currency"] . ")</label>
         <div class='col-sm-9'>
           <input type='text' class='form-control' name='price_lifetime' id='price_lifetime' value='{$plan->price_lifetime}'>  
-          <p class='help-block'>e.g. 159.99 " . (isset($this->config["pt"]) && $this->config["pt"] == "stripe" ? "Stripe does not allow to change the price of a plan instead this plan (lifetime) will be deleted and a new plan will be created. Existing users will not be affected." : "") . "</p>      
+          <p class='help-block'>e.g. 159.99 " . (isset($this->config["pt"]) && $this->config["pt"] == "alepay" ? "Alepay does not allow to change the price of a plan instead this plan (lifetime) will be deleted and a new plan will be created. Existing users will not be affected." : "") . "</p>      
         </div>
       </div>
 
@@ -2713,6 +2730,7 @@ class Admin
     if (!$this->isExtended()) return FALSE;
 
     if ($this->config["pt"] == "paypalapi") return true;
+    if ($this->config["pt"] == "alepay") return true;
 
     include(STRIPE);
 

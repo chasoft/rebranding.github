@@ -62,7 +62,7 @@
 	<div class="custom-profile_branding">
     <a href="<?php echo $this->config["url"] ?>">
       <?php if (!empty($this->config["logo"])): ?>
-      <img src="<?php echo $this->config["url"] ?>/content/<?php echo $this->config["logo"] ?>" alt="<?php echo $this->config["title"] ?>">
+      <img class="logo-shadow" src="<?php echo $this->config["url"] ?>/content/<?php echo $this->config["logo"] ?>" alt="<?php echo $this->config["title"] ?>">
       <?php else: ?>
         <?php echo $this->config["title"] ?>
       <?php endif ?>

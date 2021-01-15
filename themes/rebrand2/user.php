@@ -31,7 +31,8 @@
 				</div><!--/.row-->
 			</div><!-- /.toolbox -->			
 			<div id="data-container">
-				<div class="btn-group btn-group-sm">
+			<div class="d-flex">
+				<div class="pl-2plus btn-group btn-group-sm">
 					<a href="#" class="btn btn-default tooltip" data-content="<?php echo e("Select all") ?>" id="selectall"><i class="fa fa-check-square"></i></a>
 					<?php if (!isset($archive)): ?>
 						<a href="#" class="btn btn-default tooltip" data-content="<?php echo e("Archive all") ?>" id="archiveall"><i class="fa fa-briefcase"></i></a>
@@ -41,6 +42,8 @@
 					<?php endif ?>
 					<a href="#" class="btn btn-default tooltip" data-content="<?php echo e("Delete all") ?>"id="deleteall"><i class="fa fa-trash"></i></a>
 				</div>
+				<div class="ml-auto"><?php echo $pagination ?></div>
+			</div>
 				<form action="<?php echo Main::href("user/delete") ?>" method="post" id="delete-all-urls">				
 					<div class="return-ajax"></div><!-- /.return-ajax -->
 					<div class="url-container">

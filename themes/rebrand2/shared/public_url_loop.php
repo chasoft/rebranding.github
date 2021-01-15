@@ -1,4 +1,4 @@
-<?php defined("APP") or die() // This file is looped in each instances to show the URL. Please don't edit this fiel if you don't know what you are doing! ?>
+<?php defined("APP") or die() // This file is looped in each instances to show the URL. Please don't edit this file if you don't know what you are doing! ?>
 <div class="url-list fix" id="url-container-<?php echo $url->id ?>" data-id="<?php echo $url->id ?>">
 	<div class="row">
 		<div class="col-sm-10 url-info">
@@ -15,7 +15,12 @@
 		</div>
 		<div class="col-sm-2 url-stats">
 			<strong><?php echo $url->click ?></strong>
-			<a href="<?php echo ($url->domain ? $url->domain : $this->config["url"]) ?>/<?php echo $url->alias.$url->custom ?>+" target="_blank" class="btn btn-primary btn-xs"><?php echo e("Clicks") ?></a>
+
+			<?php if ($this->logged()) :?>
+				<a href="<?php echo ($url->domain ? $url->domain : $this->config["url"]) ?>/<?php echo $url->alias.$url->custom ?>+" target="_blank" class="btn btn-primary btn-xs"><?php echo e("Clicks") ?></a>
+			<?php else: ?>
+				<p class="btn btn-primary btn-xs"><?php echo e("Clicks") ?></p>
+			<?php endif ?>
 		</div>
 	</div>
 </div><!-- /.url-list -->

@@ -1,9 +1,9 @@
 <?php
 
-//Thông tin cấu hình
-define('URL_DEMO', (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . '/alepay-installment/');
-define('URL_CALLBACK', URL_DEMO . '/result.php'); // URL đón nhận kết quả 
-//Alepay cung cấp 
+defined("APP") or die();
+
+//define('URL_DEMO', (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . '/user/');
+define('URL_CALLBACK', "{$this->config["url"]}/user/membership"); // Trả kết quả về trang membership!
 
 $config = array(
     "apiKey" => "0COVspcyOZRNrsMsbHTdt8zesP9m0y", //Là key dùng để xác định tài khoản nào đang được sử dụng.
@@ -12,4 +12,5 @@ $config = array(
     "callbackUrl" => URL_CALLBACK,
     "env" => "test",
 );
+
 ?>

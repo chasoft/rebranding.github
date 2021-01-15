@@ -639,7 +639,7 @@ class Main
     for ($x = $current_range[0]; $x <= $current_range[1]; ++$x)
       $pages[] = ($x == $current ? '<li class="active"><a href="#">' . $x . '</a></li>' : '<li><a href="' . sprintf($format, $x) . '"">' . $x . '</a></li>');
     if ($page_count > 1)
-      return '<ul class="pagination">' . $first_page . $previous_page . implode(' ', $pages) . $next_page . $last_page . '</ul>';
+      return '<ul class="pagination d-flex justify-content-end">' . $first_page . $previous_page . implode(' ', $pages) . $next_page . $last_page . '</ul>';
   }
   /**
    * [nextpagination description]
@@ -657,7 +657,7 @@ class Main
     $previous_page = $current > 1 ? '<li><a href="' . sprintf($format, ($current - 1)) . '">' . Main::e("Previous") . '</a></li> ' : null;
     $next_page = !$stop ? ' <li><a href="' . sprintf($format, ($current + 1)) . '">' . Main::e("Next") . '</a></li> ' : null;
 
-    return '<ul class="pagination">' . $previous_page . $next_page . '</ul>';
+    return '<ul class="pagination d-flex pagination">' . $previous_page . $next_page . '</ul>';
   }
   /**  
    * Generates the path to the thumbnail based on mod-rewrite settings

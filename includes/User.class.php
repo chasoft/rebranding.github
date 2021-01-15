@@ -4054,7 +4054,7 @@ class User extends App
 
 				$this->db->update("user", ["secret2fa" => $secret], ["id" => $this->user->id]);
 
-				return Main::redirect(Main::href("user/settings", "", FALSE), array("success", e("2FA has been activated on your account. Please make sure to backup the secret key or the QR code.")));
+				return Main::redirect(Main::href("user/settings", "", FALSE), array("success", e("2FA has been activated on your account. Please come back Security Tab to setup your Authenticator App! Please make sure to backup the secret key or the QR code.")));
 			}
 
 			if ($_GET["2FA"] == "off") {
@@ -4086,12 +4086,20 @@ class User extends App
 				}
 			}
 
+			//Clean & Combine Address info - Added by BizChain
+			$address = [
+				"address" => Main::clean($_POST["address"], 3, TRUE),
+				"city" => Main::clean($_POST["city"], 3, TRUE),
+				"mobile" => Main::clean($_POST["mobile"], 3, TRUE)
+			];
+
 			// Prepare and clean data
 			$data = array(
 				":email" => Main::clean($_POST["email"], 3, TRUE),
 				":name" => Main::clean($_POST["name"], 3, TRUE),
 				":media" => in_array($_POST["media"], array("0", "1")) ? Main::clean($_POST["media"], 3, TRUE) : 0,
-				":public" => in_array($_POST["public"], array("0", "1")) ? Main::clean($_POST["public"], 3, TRUE) : 0
+				":public" => in_array($_POST["public"], array("0", "1")) ? Main::clean($_POST["public"], 3, TRUE) : 0,
+				":address" => json_encode($address, JSON_UNESCAPED_UNICODE)
 			);
 
 			// Validate username
@@ -4142,6 +4150,14 @@ class User extends App
 
 		Main::hook("sidebar", ["User", "sidebar2FA"]);
 
+		// Address - added by BizChain
+		// Address is array of ["address"],["city"],["mobile"]
+
+		$address = json_decode($this->user->address, TRUE);
+		if (!isset($address["address"])) $address["address"] = "";
+		if (!isset($address["city"])) $address["city"] = "";
+		if (!isset($address["mobile"])) $address["mobile"] = "";
+
 		// Filter ID
 		$this->filter($this->id);
 		// Meta information
@@ -4163,12 +4179,12 @@ class User extends App
 	{
 		global $app;
 
-		echo '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
-		echo '<h3>' . e("Two-Factor Authentication (2FA)") . '</h3>';
+		//echo '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
+		echo '<h4>' . e("Two-Factor Authentication (2FA)") . '</h4>';
 		echo '<p>' . e("2FA is an enhanced level security for your account. Each time you login, an extra step where you will need to enter a unique code will be required to gain access to your account. To enable 2FA, please click the button below and download the <strong>Google Authenticator</strong> app from Apple Store or Play Store.") . '</p>';
 		if (!empty($app->user->secret2fa)) {
 
-			echo '<h3>' . e("Important") . '</h3><p>' . e("You need to scan the code below with the app. You need to backup the QR code below by saving it and save the key somewhere safe in case you lose your phone. You will not be able to login if you can't provide the code, you will need to contact us. If you disable 2FA and re-enable it, you will need to scan a new code.") . '</p>';
+			echo '<h4>' . e("Important") . '</h4><p>' . e("You need to scan the code below with the app. You need to backup the QR code below by saving it and save the key somewhere safe in case you lose your phone. You will not be able to login if you can't provide the code, you will need to contact us. If you disable 2FA and re-enable it, you will need to scan a new code.") . '</p>';
 
 			include(ROOT . "/includes/library/2FA.load.php");
 
@@ -4177,11 +4193,11 @@ class User extends App
 			$file = \Sonata\GoogleAuthenticator\GoogleQrUrl::generate($app->user->email, $app->user->secret2fa, $title[0]);
 			echo '<p><img src="data:image/jpeg;base64,' . $file . '" width="150"></p>';
 			echo '<p><strong>' . e("Secret Key") . '</strong>: ' . $app->user->secret2fa . '</p>';
-			echo '<p><a href="' . Main::nonce("OFF2FA{$app->user->id}") . '&2FA=off" class="btn btn-danger">' . e("Disable 2FA") . '</a></p>';
+			echo '<p class="d-flex justify-content-end"><a href="' . Main::nonce("OFF2FA{$app->user->id}") . '&2FA=off" class="btn btn-danger">' . e("Disable 2FA") . '</a></p>';
 		} else {
-			echo '<p><a href="' . Main::nonce("ON2FA{$app->user->id}") . '&2FA=on" class="btn btn-primary">' . e("Activate 2FA") . '</a></p>';
+			echo '<p class="d-flex justify-content-end"><a href="' . Main::nonce("ON2FA{$app->user->id}") . '&2FA=on" class="btn btn-primary">' . e("Activate 2FA") . '</a></p>';
 		}
-		echo '</div>';
+		//echo '</div>';
 	}
 
 	/**

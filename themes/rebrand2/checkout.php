@@ -31,11 +31,15 @@
 							<li><?php echo $text ?> <span class="pull-right"><?php echo Main::currency($this->config["currency"], $price) ?></span></li>
 							<li class="total"><strong><?php echo e("Total") ?> <span class="pull-right"><?php echo Main::currency($this->config["currency"], $price) ?></span></strong></li>
 						</ul>
-						<?php if (isset($this->config["pt"]) && in_array($this->config["pt"], ['stripe', 'paypalapi'])) : ?>
+						<?php if(($this->do) == "lifetime"): ?>
 							<p class="info">
-								<?php echo e("Next payment will be automatically charged at the beginning of each period. You can cancel the service anytime you want.") ?>
+								<?php echo e("Great! Your decision is great! Just process payment only once and use for lifetime.") ?>
+							</p>							
+						<?php elseif (isset($this->config["pt"]) && in_array($this->config["pt"], ['stripe', 'paypalapi'])) : ?>
+							<p class="info">
+								<?php echo e("Next payment will be automatically charged at the beginning of each period. You can cancel the service anytime you want."); ?>
 							</p>
-						<?php endif ?>
+						<?php endif; ?>
 					</div>
 				</div>
 			</div>
@@ -50,19 +54,19 @@
 							</div>
 							<div class="form-group">
 								<label for="address"><?php echo e("Address") ?></label>
-								<input type="text" class="form-control" id="address" name="address" value="<?php echo (isset($address->address) ? $address->address : "") ?>" required>
+								<input type="text" class="form-control" id="address" name="address" value="<?php echo (isset($address["address"]) ? $address["address"] : "") ?>" required>
 							</div>
 							<div class="row">
 								<div class="col-xs-6">
 									<div class="form-group">
 										<label for="city"><?php echo e("Email") ?></label>
-										<input type="text" class="form-control" id="email" name="email" placeholder="e.g. mail@yourdomain.com" value="<?php echo (isset($address->email) ? $address->email : "") ?>" required="">
+										<input type="text" class="form-control" id="email" name="email" placeholder="e.g. mail@yourdomain.com" value="<?php echo $this->user->email; ?>" required="">
 									</div>
 								</div>
 								<div class="col-xs-6">
 									<div class="form-group">
 										<label for="city"><?php echo e("Mobile") ?></label>
-										<input type="text" class="form-control" id="mobile" name="mobile" placeholder="e.g. 0984554895" value="" required="">
+										<input type="text" class="form-control" id="mobile" name="mobile" placeholder="e.g. 0984554895" value="<?php echo (isset($address["mobile"]) ? $address["mobile"] : "") ?>" required="">
 									</div>
 								</div>
 							</div>
@@ -70,13 +74,13 @@
 								<div class="col-md-3 col-xs-6">
 									<div class="form-group">
 										<label for="city"><?php echo e("City") ?></label>
-										<input type="text" class="form-control" id="city" name="city" placeholder="e.g. Hồ Chí Minh" value="<?php echo (isset($address->city) ? $address->city : "") ?>" required>
+										<input type="text" class="form-control" id="city" name="city" placeholder="e.g. Hồ Chí Minh" value="<?php echo (isset($address["city"]) ? $address["city"] : "") ?>" required>
 									</div>
 								</div>
 								<div class="col-md-3 col-xs-6">
 									<div class="form-group">
 										<label for="state"><?php echo e("State/Province") ?></label>
-										<input type="text" class="form-control" id="state" name="state" placeholder="e.g. HCM" value="<?php echo (isset($address->state) ? $address->state : "") ?>" required>
+										<input type="text" class="form-control" id="state" name="state" placeholder="e.g. HCM" value="<?php echo (isset($address->state) ? $address->state : "NA") ?>" required>
 									</div>
 								</div>
 								<div class="col-md-3 col-xs-6">

@@ -102,7 +102,7 @@
 			<h3><?php echo e("Activate Dark Mode") ?></h3>
 			<p><?php echo e("Enable dark mode if you would like more contrast. This only applies to the dashboard.") ?></p>
 			<?php if (isDark()): ?>
-				<p><a href="?darkmode=off" class="btn btn-primary"><?php echo e("Disable Dark Mode") ?></a></p>
+				<p class="d-flex justify-content-end"><a href="?darkmode=off" class="btn btn-primary"><?php echo e("Disable Dark Mode") ?></a></p>
 			<?php else: ?>
 				<p><a href="?darkmode=on" class="btn btn-primary"><?php echo e("Activate Dark Mode") ?></a></p>				
 			<?php endif ?>

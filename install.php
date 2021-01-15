@@ -406,6 +406,7 @@ $query[] = "CREATE TABLE IF NOT EXISTS `".trim($_POST["prefix"])."plans` (
   `trial_days` int(11) DEFAULT NULL,
   `price_monthly` float NOT NULL DEFAULT '0',
   `price_yearly` float NOT NULL DEFAULT '0',
+  `price_lifetime` float NOT NULL DEFAULT '0',		--added by BizChain
   `free` int(1) NOT NULL DEFAULT '0',
   `numclicks` int(9) DEFAULT NULL,
   `numurls` int(9) DEFAULT NULL,
