@@ -167,7 +167,7 @@ class Database{
 			}else{
 				return $result->fetchAll();
 			}
-			return $data;
+			//return $data;
 		}		
 	return FALSE;				
 	}
@@ -403,7 +403,7 @@ class Database{
 			}else{
 				return $result->fetchAll();
 			}
-			return $data;	
+			//return $data;	
 		}
 		++$this->num_queries;
 		return array();

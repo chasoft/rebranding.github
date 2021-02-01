@@ -364,7 +364,7 @@ class User extends App
 					":email" => Main::clean($FBuser->getEmail(), 3, TRUE),
 					":username" => "",
 					":password" => Main::encode(Main::strrand(12)),
-					":date" => "NOW()",
+					":date" => date("Y-m-d H:i:s"), //"NOW()",
 					":auth" => "facebook",
 					":auth_id" => $FBuser->getId() ? Main::clean($FBuser->getId(), 3, TRUE) : "",
 					":api" => Main::strrand(12),
@@ -435,7 +435,7 @@ class User extends App
 					":email" => "",
 					":username" => "",
 					":password" => Main::encode(Main::strrand(12)),
-					":date" => "NOW()",
+					":date" => date("Y-m-d H:i:s"), //"NOW()",
 					":auth" => "twitter",
 					":auth_id" => isset($tw["user_id"]) ? Main::clean($tw["user_id"], 3, TRUE) : "",
 					":api" => Main::strrand(12),
@@ -527,7 +527,7 @@ class User extends App
 						":email" => Main::clean($go->email, 3, TRUE),
 						":username" => isset($go->name) ? Main::slug($go->name) . rand(1, 100) : "",
 						":password" => Main::encode(Main::strrand(12)),
-						":date" => "NOW()",
+						":date" => date("Y-m-d H:i:s"), //"NOW()",
 						":auth" => "google",
 						":api" => Main::strrand(12),
 						":auth_key" => $auth_key
@@ -611,7 +611,7 @@ class User extends App
 				":password" => Main::encode($_POST["password"]),
 				":auth_key" => $auth_key,
 				":api" => $unique,
-				":date" => "NOW()"
+				":date" => date("Y-m-d H:i:s"), //"NOW()"
 			);
 			// Validate Name
 			if (!empty($_POST["username"])) {
@@ -678,10 +678,15 @@ class User extends App
 					unset($_SESSION["redirect"]);
 					return Main::redirect($r, array("success", e("You have been successfully registered.")));
 				}
-				return Main::redirect(Main::href("user/login", "", FALSE), array("success", e("You have been successfully registered.")));
+
+				if ($this->config["user_activate"])
+					return Main::redirect(Main::href("user/login", "", FALSE), array("success", e("You have been successfully registered.")));
+				else
+					return Main::redirect(Main::href("user", "", FALSE), array("success", e("You have been successfully registered and logged in. Please do not forget to check our documentation at ") . "<a href='https://help.rebranding.today'>help.rebranding.today</a>"));
 			}
 		}
 		// Set Meta titles
+		Main::cdn("jqueryvalidation");
 		Main::set("body_class", "dark");
 		Main::set("title", e("Register and manage your urls."));
 		Main::set("description", "Register an account and gain control over your urls. Manage them, edit them or remove them without hassle.");
@@ -1004,7 +1009,7 @@ class User extends App
 					":slug" => $slug,
 					":access" => in_array(Main::clean($_POST["access"], 3, TRUE), array("public", "private")) ? Main::clean($_POST["access"], 3, TRUE) : "private",
 					":userid" => $this->user->id,
-					":date" => "NOW()"
+					":date" => date("Y-m-d H:i:s"), //"NOW()"
 				);
 				if ($this->db->insert("bundle", $data)) {
 					return Main::redirect(Main::href("user", "", FALSE), array("success", e("Bundle was successfully created. You may start adding URLs in it now.")));
@@ -1027,7 +1032,7 @@ class User extends App
 				$slug = "";
 				if (!empty($_POST["slug"])) {
 					$slug = Main::slug($_POST["slug"]);
-					if ($bundle = $this->db->get("bundle", ["id" => "?"], ["limit" => "1"], [$_POST["id"]])) {
+					if ($bundle = $this->db->get("bundle", ["id" => "?"], ["limit" => 1], [$_POST["id"]])) {
 						if ($_POST["slug"] != $bundle->slug && $this->db->get("bundle", ["slug" => $slug], ["limit" => 1])) {
 							return Main::redirect(Main::href("user/bundles", "", FALSE), array("danger", e("This slug is currently not available.")));
 						}
@@ -1277,7 +1282,7 @@ class User extends App
 				}
 			}
 
-			if (!empty($_POST["domain"]) && $this->permission('domain') && $this->db->get("domains", ["domain" => "?", "userid" => "?"], ["limit" => "1"], [$_POST["domain"], $this->user->id])) {
+			if (!empty($_POST["domain"]) && $this->permission('domain') && $this->db->get("domains", ["domain" => "?", "userid" => "?"], ["limit" => 1], [$_POST["domain"], $this->user->id])) {
 				$data[":domain"] = Main::clean($_POST["domain"], TRUE, 3);
 			}
 
@@ -1447,7 +1452,7 @@ class User extends App
 			      	" . ($this->user->pro ? "<optgroup label='" . e("Redirection") . "'>
 			        <option value='direct'" . ($url->type == "direct" || $url->type == "" ? " selected" : "") . ">" . e('Direct') . "</option>
 			        <option value='frame'" . ($url->type == "frame" ? " selected" : "") . ">" . e('Frame') . "</option>
-			        <option value='splash'" . ($url->type == "splash" ? " selected" : "") . ">" . e('Splash') . "</option>" : "<option value='system'>" . e("System") . "</option>");
+			        <option value='splash'" . ($url->type == "splash" ? " selected" : "") . ">" . e('Splash') . "</option>" : "<option value='system'>" . e("Default") . "</option>");
 			if ($splash) {
 				$content .= '<optgroup label="' . e('Custom Splash') . '">';
 				foreach ($splash as $type) {
@@ -1713,19 +1718,32 @@ class User extends App
 		$splashs = $this->db->get("splash", array("userid" => "?"), array("order" => "date"), array($this->user->id));
 		Main::set("title", e("Create a Custom Splash Page"));
 		Main::set("description", "Customize the splash page to attract more customers to your product or site.");
-
 		$before = "";
 		if ($splashs) {
-			$content = '<ul class="list-group bundles">';
+			$content = '<ul class="list-group bundles rich-list">';
 			foreach ($splashs as $splash) {
-				$content .= '<li class="list-group-item">';
-				$content .= "<h4>{$splash->name}</h4>";
-				$content .= "<p class='list-group-item-text'>
-														" . (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("splash.edit")) ? "<a href='" . Main::href("user/splash/{$splash->id}") . "'>" . e("Edit") . "</a>&nbsp;&nbsp;&bullet;&nbsp;&nbsp; " : "") . "
-														" . (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("splash.delete")) ? "<a href='" . Main::href("user/delete/{$splash->id}") . Main::nonce("delete_splash-{$splash->id}") . "' class='delete'>" . e("Delete") . "</a>&nbsp;&nbsp;&bullet;&nbsp;&nbsp; " : "") . "
-														" . Main::timeago($splash->date) . "
-											    </p>";
-				$content .= '</li>';
+				$data = json_decode($splash->data);
+				$data->banner = Main::href("content/{$data->banner}");
+				$data->avatar = Main::href("content/{$data->avatar}");
+				$content .=
+					"<li class='list-group-item rich-list-item'>
+					<div class='custom-splash panel panel-default'>
+						<div class='banner'><a href='{$data->product}' rel='nofollow' target='_blank'><img src='{$data->banner}'></a></div><!-- /.banner -->
+						<div class='custom-message flex d-flex'>
+							<div class='l-avatar d-flex align-items-center justify-content-center'><img src='{$data->avatar}'></div><!-- /.avatar -->
+								<div class='l-message'>
+								<h5>{$data->title}</h5>
+								{$data->message}
+								<p><a href='{$data->product}' rel='nofollow' target='_blank' class='btn btn-primary btn-xs'>" . e('View site') . "</a></p>
+							</div><!-- /.messsage -->
+						<div class='l-countdown ml-auto'><span>5</span>seconds</div><!-- /.c-countdown -->
+						</div><!-- /.custom-message -->
+					</div>
+					<p class='list-group-item-text d-flex justify-content-end'> <span class='mr-auto' style='font-weight: 700;font-size: 16px;'>{$splash->name}</span>" . (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("splash.edit")) ? "<a class='btn btn-xs btn-outline-primary mr-2' href='" . Main::href("user/splash/{$splash->id}") . "'>" . e("Edit") . "</a>" : "") . '
+						' . (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("splash.delete")) ? "<a class='btn btn-xs btn-outline-primary mr-2' href='" . Main::href("user/delete/{$splash->id}") . Main::nonce("delete_splash-{$splash->id}") . "' class='delete'>" . e("Delete") . "</a>" : "") . '
+						' . Main::timeago($splash->date) . '
+						</p>
+					</li>';
 			}
 			$content .= '</ul>';
 		} else {
@@ -1737,7 +1755,7 @@ class User extends App
 		if (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("splash.create"))) {
 			$header .= "<a href='" . Main::href("user/splash/create") . "' class='btn btn-primary btn-sm pull-right'>" . e("Create") . "</a>";
 		}
-		$widgets = '<div class="panel panel-default panel-body">';
+		$widgets = '<div class="panel panel-default panel-body text-justify">';
 		$widgets .= '<h3>' . e("Info") . '</h3>';
 		$count = $this->permission("splash");
 
@@ -1748,7 +1766,7 @@ class User extends App
 			if ($this->pro() && $count > 0) {
 				$p = $this->db->count("splash", "userid='{$this->user->id}'") / $count * 100;
 				$widgets .= '<br><div class="progress side-stats">
-									  <div class="progress-bar' . ($p >= 80 ? ' progress-bar-danger' : '') . '" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: ' . $p . '%;">
+									  <div class="progress-bar' . ($p >= 80 ? ' progress-bar-danger' : '') . '" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: ' . (($p < 10) ? '30' : $p) . '%;">' . e("Used") . ' ' . $p . '%
 									  </div>
 									</div>';
 			}
@@ -1822,61 +1840,79 @@ class User extends App
 				"message" => Main::truncate($_POST["message"], 140),
 				"banner" => $unique . "_banner." . $ext[$_FILES["banner"]["type"]],
 				"avatar" => $unique . "_avatar." . $ext[$_FILES["avatar"]["type"]],
-				"product" => $_POST["product"]
+				"product" => $_POST["product"],
+				"timer" => $_POST["timer"],
+				"btn_text" => $_POST["btn_text"],
 			);
 			$array = json_encode($array);
 			$data = array(
 				":userid" => $this->user->id,
 				":name" => Main::clean($_POST["name"], 3, TRUE),
 				":data" => $array,
-				":date" => "NOW()"
+				":date" => date("Y-m-d H:i:s"), //"NOW()"
 			);
 			if ($this->db->insert("splash", $data)) {
 				return Main::redirect(Main::href("user/splash", "", FALSE), array("success", e("Splash page has been created.")));
 			}
 			return Main::redirect(Main::href("user/splash", "", FALSE), array("danger", e("Security token expired. Please try again.")));
 		}
+		Main::cdn("jqueryvalidation");
 		Main::set("title", e("Create a Custom Splash Page"));
 		Main::set("description", "Customize the splash page to attract more customers to your product or site.");
 		$before = "";
 		$header = e("Create your splash page");
 		$widgets = '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("Info") . '</h3>';
-		$widgets .= "<p>" . e("A custom splash page is a transitional page where you can add a banner and an avatar along with a message to represent your brand or company.") . "</p>";
+		$widgets .= "<p class='text-justify'>" . e("A custom splash page is a transitional page where you can add a banner and an avatar along with a message to represent your brand or company.") . "</p>";
 		$widgets .= '</div>';
-		// Upload form
+		// Upload form		
 		$content = "
-					<form action='" . Main::href("user/splash/create") . "' class='form' method='post' enctype='multipart/form-data'>
+					<form action='" . Main::href("user/splash/create") . "' class='form' method='post' enctype='multipart/form-data' id='splashform' name='splashform' >
 						<div class='form-group'>
 							<label for='name'>" . e('Unique name') . "</label>
-							<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. " . e("My Brand") . "' autofocus />
+							<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. " . e("My Brand") . "' required autofocus />
 						</div>						
 						<div class='form-group'>
 							<label for='product'>" . e('Link to Product') . "</label>
-							<input type='text' class='form-control' name='product' id='product'  placeholder='e.g. http://domain.com/' />
+							<input type='text' class='form-control' name='product' id='product'  placeholder='e.g. http://domain.com/' required  />
 						</div>
-						<div class='form-group'>
-							<label for='avatar'>" . e('Upload Avatar') . " (100x100, PNG or JPEG, MAX 300KB)</label>
-							<input type='file' class='form-control' name='avatar' id='avatar'  placeholder='e.g. http://domain.com/avatar.jpg'>
-						</div>
-						<div class='form-group'>
-							<label for='banner'>" . e('Upload Banner') . "</label>
-							<input type='file' class='form-control' name='banner' id='banner' placeholder='e.g. http://domain.com/banner.jpg' />
-							<div class='help-block'>" . e("The minimum width must be 980px and the height must be between 250 and 500. The format must be a PNG or a JPG. Maximum size is 500KB.") . "</div>
+						<div class='form-group row'>
+							<div class='col-sm-6'>
+								<label for='avatar'>" . e('Upload Avatar') . "</label>
+								<input type='file' class='form-control' name='avatar' id='avatar' placeholder='e.g. http://domain.com/avatar.jpg' required >
+								<div class='help-block'>" . e('Size') . ": 100x100, PNG or JPEG, MAX 300KB</div>
+							</div>
+							<div class='col-sm-6'>
+								<label for='banner'>" . e('Upload Banner') . "</label>
+								<input type='file' class='form-control' name='banner' id='banner' placeholder='e.g. http://domain.com/banner.jpg' required  />
+								<div class='help-block'>" . e("The minimum width must be 980px and the height must be between 250 and 500. The format must be a PNG or a JPG. Maximum size is 500KB.") . "</div>
+							</div>
 						</div>
 						<div class='form-group'>
 							<label for='title'>" . e('Custom Title') . "</label>
-							<input type='text' class='form-control' name='title' id='title' placeholder='e.g. " . e("Get a $10 discount") . "'>
+							<input type='text' class='form-control' name='title' id='title' placeholder='e.g. " . e("Get a $10 discount") . "' maxlength='50' required >
 						</div>
 						<div class='form-group'>
 							<label for='message'>" . e('Custom Message') . " (Max: 140 chars)</label>
-							<textarea name='message' id='message' cols='30' rows='5' class='form-control' placeholder='e.g. " . e("Get a $10 discount with any purchase more than $50") . "'></textarea>
+							<textarea name='message' id='message' cols='30' rows='5' class='form-control' placeholder='e.g. " . e("Get a $10 discount with any purchase more than $50") . "' maxlength='140' required></textarea>
+						</div>
+						<div class='form-group row'>
+							<div class='col-sm-6'>
+								<label for='timer'>" . e('Redirect Timer') . "</label>
+								<input type='number' class='form-control' name='timer' id='timer' min='3' max='300' value='" . (($this->config['timer']) ? $this->config['timer'] : '10') . "' required >
+								<div class='help-block'>" . e("Users will be automatically redirected once the timer reaches zero. The time should be in seconds.") . "</div>
+							</div>
+							<div class='col-sm-6'>
+								<label for='btn_text'>" . e('Button Text') . "</label>
+								<input type='text' class='form-control' name='btn_text' id='btn_text' value='" . e('View site') . "' maxlength='20' required >
+							</div>
 						</div>
 						" . Main::csrf_token(TRUE) . "	
 						<button class='btn btn-primary'>" . e('Create Splash Page') . "</button>
-					</form><!-- /.form -->";
+					</form><!-- /.form --><script>$('#splashform').validate({rules:{product:{url:!0}}});</script>";
 
 		$this->isUser = TRUE;
+		Main::cdn("jqueryvalidation");
 		$this->header();
 		include($this->t("shared/user_template"));
 		$this->footer();
@@ -1920,7 +1956,9 @@ class User extends App
 				"message" => Main::truncate($_POST["message"], 140),
 				"product" => $_POST["product"],
 				"avatar" => $data->avatar,
-				"banner" => $data->banner
+				"banner" => $data->banner,
+				"timer" => $_POST["timer"],
+				"btn_text" => $_POST["btn_text"],
 			);
 			$avatar = $banner = 0;
 			// Valid avatar
@@ -1966,6 +2004,7 @@ class User extends App
 			}
 			return Main::redirect(Main::href("user/splash/{$this->id}", "", FALSE), array("danger", e("Security token expired. Please try again.")));
 		}
+		Main::cdn("jqueryvalidation");
 		Main::set("title", e("Edit Custom Splash Page"));
 
 		$header = e("Edit splash page");
@@ -1974,53 +2013,67 @@ class User extends App
 
 		$before = "<div class='custom-splash panel panel-default' id='splash'>
 									<div class='banner'><a href='{$data->product}' rel='nofollow' target='_blank'><img src='{$data->banner}'></a></div><!-- /.banner -->
-									<div class='custom-message'>
-										<div class='c-avatar'><img src='{$data->avatar}'></div><!-- /.avatar -->
+									<div class='flex d-flex custom-message'>
+										<div class='c-avatar d-flex align-items-center justify-content-center'><img src='{$data->avatar}'></div><!-- /.avatar -->
 										<div class='c-message'>
 											<h2>{$data->title}</h2>
 											{$data->message}
-											<p><a href='{$data->product}' rel='nofollow' target='_blank' class='btn btn-primary btn-xs'>" . e('View site') . "</a></p>
+											<p><a href='{$data->product}' rel='nofollow' target='_blank' class='btn btn-primary btn-xs'>" . $data->btn_text . "</a></p>
 										</div><!-- /.messsage -->
-										<div class='c-countdown'><span>5</span>seconds</div><!-- /.c-countdown -->
+										<div class='c-countdown ml-auto'><span>5</span>seconds</div><!-- /.c-countdown -->
 									</div><!-- /.custom-message -->
 								</div><!-- /.custom-splash -->";
 
 		$widgets = '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("Info") . '</h3>';
-		$widgets .= "<p>" . e("A custom splash page is a transitional page where you can add a banner and an avatar along with a message to represent your brand or company.") . "</p>";
+		$widgets .= "<p class='text-justify'>" . e("A custom splash page is a transitional page where you can add a banner and an avatar along with a message to represent your brand or company.") . "</p>";
 		$widgets .= '</div>';
 
 		// Upload form
 		$content = "
-					<form action='" . Main::href("user/splash/{$this->id}") . "' class='form' method='post' enctype='multipart/form-data'>
+					<form action='" . Main::href("user/splash/{$this->id}") . "' class='form' method='post' enctype='multipart/form-data' id='splashform' name='splashform' >
 						<div class='form-group'>
 							<label for='name'>" . e('Unique name') . "</label>
-							<input type='text' class='form-control' name='name' id='name' value='{$splash->name}'>
+							<input type='text' class='form-control' name='name' id='name' value='{$splash->name}' required autofocus >
 						</div>						
 						<div class='form-group'>
 							<label for='product'>" . e('Link to Product') . "</label>
-							<input type='text' class='form-control' name='product' id='product'  value='{$data->product}' placeholder='e.g. http://domain.com/'>
+							<input type='text' class='form-control' name='product' id='product' value='{$data->product}' placeholder='e.g. http://domain.com/' required >
 						</div>
-						<div class='form-group'>
-							<label for='avatar'>" . e('Upload Avatar') . " (100x100, PNG or JPEG, MAX 300KB)</label>
-							<input type='file' class='form-control' name='avatar' id='avatar'  placeholder='e.g. http://domain.com/avatar.jpg'>
-						</div>
-						<div class='form-group'>
-							<label for='banner'>" . e('Upload Banner') . "</label>
-							<input type='file' class='form-control' name='banner' id='banner' placeholder='e.g. http://domain.com/banner.jpg'>
-							<div class='help-block'>" . e("The minimum width must be 980px and the height must be between 250 and 500. The format must be a PNG or a JPG. Maximum size is 500KB.") . "</div>							
+						<div class='form-group row'>
+							<div class='col-sm-6'>
+								<label for='avatar'>" . e('Upload Avatar') . "</label>
+								<input type='file' class='form-control' name='avatar' id='avatar'  placeholder='e.g. http://domain.com/avatar.jpg' required >
+								<div class='help-block'>" . e('Size') . ": 100x100, PNG or JPEG, MAX 300KB</div>
+							</div>
+							<div class='col-sm-6'>
+								<label for='banner'>" . e('Upload Banner') . "</label>
+								<input type='file' class='form-control' name='banner' id='banner' placeholder='e.g. http://domain.com/banner.jpg' required >
+								<div class='help-block'>" . e("The minimum width must be 980px and the height must be between 250 and 500. The format must be a PNG or a JPG. Maximum size is 500KB.") . "</div>
+							</div>
 						</div>
 						<div class='form-group'>
 							<label for='title'>" . e('Custom Title') . "</label>
-							<input type='text' class='form-control' name='title' id='title' value='{$data->title}'>
+							<input type='text' class='form-control' name='title' id='title' value='{$data->title}' maxlength='50' required >
 						</div>
 						<div class='form-group'>
 							<label for='message'>" . e('Custom Message') . " (Max: 140 chars)</label>
-							<textarea name='message' id='message' cols='30' rows='5' class='form-control'>{$data->message}</textarea>
+							<textarea name='message' id='message' cols='30' rows='5' class='form-control' maxlength='140' required >{$data->message}</textarea>
+						</div>
+						<div class='form-group row'>
+							<div class='col-sm-6'>
+								<label for='timer'>" . e('Redirect Timer') . "</label>
+								<input type='number' class='form-control' name='timer' id='timer' min='3' max='300' value='" . $data->timer . "' required >
+								<div class='help-block'>" . e("Users will be automatically redirected once the timer reaches zero. The time should be in seconds.") . "</div>
+							</div>
+							<div class='col-sm-6'>
+								<label for='btn_text'>" . e('Button Text') . "</label>
+								<input type='text' class='form-control' name='btn_text' id='btn_text' value='" . $data->btn_text . "' maxlength='20' required >
+							</div>
 						</div>
 						" . Main::csrf_token(TRUE) . "	
 						<button class='btn btn-primary'>" . e('Update Splash Page') . "</button>
-					</form><!-- /.form -->";
+					</form><!-- /.form --><script>$('#splashform').validate({rules:{product:{url:!0}}});</script>";
 
 		$this->isUser = TRUE;
 		$this->header();
@@ -2110,7 +2163,7 @@ class User extends App
 		$header = e("Create a Custom Overlay Page");
 
 		if (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("overlay.create"))) {
-			$header .= '<div class="btn-group pull-right">
+			$header .= '<div class="btn-group pull-right flex d-flex">
   <button type="button" class="btn btn-sm btn-primary"><a href="' . Main::href("user/overlay/create") . '">' . e("Create") . '</a></button>
   <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
     <span class="sr-only">Toggle Dropdown</span>
@@ -2123,7 +2176,7 @@ class User extends App
 </div>';
 		}
 
-		$widgets = '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
+		$widgets = '<div class="panel panel-default panel-body text-justify" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("Info") . '</h3>';
 		$count = $this->permission("overlay");
 
@@ -2134,7 +2187,7 @@ class User extends App
 			if ($this->pro() && $count > 0) {
 				$p = $this->db->count("overlay", "userid='{$this->user->id}'") / $count * 100;
 				$widgets .= '<br><div class="progress side-stats">
-									  <div class="progress-bar' . ($p >= 80 ? ' progress-bar-danger' : '') . '" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: ' . $p . '%;">
+									  <div class="progress-bar' . ($p >= 80 ? ' progress-bar-danger' : '') . '" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: ' . (($p < 10) ? '30' : $p) . '%;"> ' . e("Used") . ' ' . $p . '%
 									  </div>
 									</div>';
 			}
@@ -2294,7 +2347,7 @@ class User extends App
 				":name" => Main::clean($_POST["name"], 3, TRUE),
 				":data" => $array,
 				":type" => "message",
-				":date" => "NOW()"
+				":date" => date("Y-m-d H:i:s"), //"NOW()"
 			);
 
 			if ($this->db->insert("overlay", $data)) {
@@ -2306,6 +2359,7 @@ class User extends App
 
 
 		Main::cdn("spectrum");
+		Main::cdn("jqueryvalidation");
 
 		Main::add('<script type="text/javascript">
 							  $("input[name=logo]").change(function(e){
@@ -2392,24 +2446,24 @@ class User extends App
 		Main::set("description", "Customize message overlay to attract more customers to your product or site.");
 
 		$content = "
-				<form action='" . Main::href("user/overlay/message") . "' class='form' method='post' enctype='multipart/form-data'>
+				<form action='" . Main::href("user/overlay/message") . "' class='form' method='post' enctype='multipart/form-data' id='overlayform' name='overlayform' >
 					<div class='form-group'>
 						<label for='message'>" . e('Name.') . "</label>
-						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='' autofocus />
-					</div>				
+						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='' required autofocus />
+					</div>
 					<div class='form-group'>
 						<label for='message'>" . e('Custom Message') . " (Max: 140 chars)</label>
-						<textarea name='message' id='message' cols='30' rows='5' class='form-control' placeholder='e.g. " . e("Get a $10 discount with any purchase more than $50") . "'>$message</textarea>
-					</div>				
+						<textarea name='message' id='message' cols='30' rows='5' class='form-control' placeholder='e.g. " . e("Get a $10 discount with any purchase more than $50") . " maxlength='140' required>$message</textarea>
+					</div>
 					<div class='form-group'>
 						<label for='label'>" . e('Overlay label') . " (" . e("leave empty to disable") . ")</label>
 						<input type='text' class='form-control' name='label' id='label'  placeholder='e.g. Promo' value='$label'>
-					</div>				
+					</div>
 					<div class='form-group'>
 						<label for='label'>" . e('Avatar') . "</label>
 						<input type='file' class='form-control' name='logo'>
 						<p class='help-block'>" . e("Avatar should be square with a maximum size of 100x100. To remove the image, click on the upload field and then cancel it.") . "</p>
-					</div>											
+					</div>
 					<div class='form-group'>
 						<label for='link'>" . e('Button Link') . " (" . e("leave empty to disable") . ")</label>
 						<input type='text' class='form-control' name='link' id='link'  placeholder='e.g. http://domain.com/' value='$link'>
@@ -2422,27 +2476,27 @@ class User extends App
 					<div class='form-group'>
 						<label for='bg'>" . e('Overlay Background Color') . "</label> <br>
 						<input type='input' name='bg' id='bg'>
-					</div>			
+					</div>
 					<div class='form-group'>
 						<label for='color'>" . e('Overlay Text Color') . "</label><br>
 						<input type='input' name='color' id='color'>
-					</div>	
+					</div>
 					<div class='form-group'>
 						<label for='btnbg'>" . e('Button Background Color') . "</label><br>
 						<input type='input' name='btnbg' id='btnbg'>
-					</div>		
+					</div>
 					<div class='form-group'>
 						<label for='btncolor'>" . e('Button Text Color') . "</label><br>
 						<input type='input' name='btncolor' id='btncolor'>
-					</div>		
+					</div>
 					<div class='form-group'>
 						<label for='labelbg'>" . e('Label Background Color') . "</label><br>
 						<input type='input' name='labelbg' id='labelbg'>
-					</div>		
+					</div>
 					<div class='form-group'>
 						<label for='labelcolor'>" . e('Label Text Color') . "</label><br>
 						<input type='input' name='labelcolor' id='labelcolor'>
-					</div>						
+					</div>
 					<div class='form-group'>
 						<label for='position'>" . e('Overlay Position') . "</label>
 						<select name='position' id='position' class='form-control'>
@@ -2451,10 +2505,10 @@ class User extends App
 							<option value='bl' " . ($position == "bl" ? "selected" : "") . ">" . e("Bottom Left") . "</option>
 							<option value='br' " . ($position == "br" ? "selected" : "") . ">" . e("Bottom Right") . "</option>							
 						</select>
-					</div>																								
+					</div>
 					" . Main::csrf_token(TRUE) . "	
 					<button class='btn btn-primary'>" . e('Save overlay') . "</button>
-				</form><!-- /.form -->";
+				</form><!-- /.form --><script>$('#overlayform').validate({rules:{link:{url:!0}}});</script>";
 
 		$header = e("Customize Message Overlay");
 		$before = "";
@@ -2561,7 +2615,7 @@ class User extends App
 				":name" => Main::clean($_POST["name"], 3, TRUE),
 				":data" => $array,
 				":type" => "contact",
-				":date" => "NOW()"
+				":date" => date("Y-m-d H:i:s"), //"NOW()"
 			);
 
 			if ($this->db->insert("overlay", $data)) {
@@ -2573,6 +2627,7 @@ class User extends App
 
 
 		Main::cdn("spectrum");
+		Main::cdn("jqueryvalidation");
 
 		Main::add('<script type="text/javascript">							
 					  		function bgColor(element, color, e) {
@@ -2656,18 +2711,18 @@ class User extends App
 		Main::set("description", "Customize contact overlay to attract more customers to your product or site.");
 
 		$content = "
-				<form action='" . Main::href("user/overlay/contact") . "' class='form validate' method='post' enctype='multipart/form-data'>
+				<form action='" . Main::href("user/overlay/contact") . "' class='form validate' method='post' enctype='multipart/form-data' id='overlaycontactform' name='overlaycontactform' >
 					<div class='form-group'>
 						<label for='name'>" . e('Name.') . "</label>
-						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='' data-required='true' autofocus />
+						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='' required autofocus />
 					</div>		
 					<div class='form-group'>
 						<label for='email'>" . e('Send Email Address') . "</label>
-						<input type='email' class='form-control' name='email' id='email'  placeholder='" . e("Emails from the form will be sent to this address") . "' data-required='true'>
+						<input type='email' class='form-control' name='email' id='email'  placeholder='" . e("Emails from the form will be sent to this address") . "' required >
 					</div>		
 					<div class='form-group'>
 						<label for='subject'>" . e('Email Subject') . "</label>
-						<input type='text' class='form-control' name='subject' id='subject'  placeholder='" . e("Something you would know where it comes from.") . "' data-required='true'>
+						<input type='text' class='form-control' name='subject' id='subject'  placeholder='" . e("Something you would know where it comes from.") . "' required >
 					</div>	
 					<div class='form-group'>
 						<label for='label'>" . e('Form Label') . " " . e("(leave empty to disable)") . "</label>
@@ -2747,8 +2802,10 @@ class User extends App
 						<p class='help-block'>" . e("If you want to receive a notification directly to your app, add the url to your app's handler and as soon as there is a submission, we will send a notification to this url as well as an email to the address provided above. For more information, please check on the right.") . "</p>
 					</div>																													
 					" . Main::csrf_token(TRUE) . "	
-					<button class='btn btn-primary'>" . e('Save overlay') . "</button>
-				</form><!-- /.form -->";
+					<button class='btn btn-primary'>" . e('Save overlay') .
+			"</button>
+				</form><!-- /.form -->
+				<script>jQuery.validator.addMethod('validate_email',function(a,e){return!!/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(a)},'Please enter a valid Email.'),$('#overlaycontactform').validate({rules:{webhook:{url:!0},email:{validate_email:!0}}});</script>";
 
 		$header = e("Customize Contact Overlay");
 		$before = "";
@@ -2860,7 +2917,7 @@ class User extends App
 				":name" => Main::clean($_POST["name"], 3, TRUE),
 				":data" => $array,
 				":type" => "poll",
-				":date" => "NOW()"
+				":date" => date("Y-m-d H:i:s"), //"NOW()"
 			);
 			if ($this->db->insert("overlay", $data)) {
 				return Main::redirect("user/overlay", array("success", e("Overlay has been saved.")));
@@ -2869,6 +2926,7 @@ class User extends App
 		}
 
 		Main::cdn("spectrum");
+		Main::cdn("jqueryvalidation");
 
 		Main::add('<script type="text/javascript">
 					  		function bgColor(element, color, e) {
@@ -2924,30 +2982,30 @@ class User extends App
 		Main::set("description", "Customize poll overlay to attract more customers to your product or site.");
 
 		$content = "
-				<form action='" . Main::href("user/overlay/poll") . "' class='form validate' method='post' enctype='multipart/form-data'>
+				<form action='" . Main::href("user/overlay/poll") . "' class='form validate' method='post' enctype='multipart/form-data' id='overlaypollform' name='overlaypollform' >
 					<div class='form-group'>
 						<label for='name'>" . e('Name.') . "</label>
-						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='' data-required='true' autofocus />
+						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='' required autofocus />
 					</div>		
 					<div class='form-group'>
 						<label for='question'>" . e('Question') . " " . e('(max 144)') . "</label>
-						<input type='text' class='form-control' name='question' id='question'  placeholder='' data-required='true'>
+						<input type='text' class='form-control' name='question' id='question' maxlength='144' placeholder='' required>
 					</div>
 					<hr>
 					<h3>" . e("Options") . " <small>" . e('(max 10)') . "</small> <a href='' class='addA btn btn-xs btn-primary pull-right'>" . e("Add Option") . "</a></h3>
 					<p class='help-block'>" . e("You can add up to 10 options for each poll. To add an extra option click Add Option above. To ignore a field, leave it empty.") . "</p>
 					<div class='poll-options'>
 						<div class='form-group'>
-							<input type='text' class='form-control' name='answer[]' id='answer[]'  placeholder='#1' data-id='1'>
+							<input type='text' class='form-control' name='answer[]' id='answer[]'  placeholder='#1' data-id='1' required >
 						</div>	
 						<div class='form-group'>
-							<input type='text' class='form-control' name='answer[]' id='answer[]'  placeholder='#2' data-id='2'>
+							<input type='text' class='form-control' name='answer[]' id='answer[]'  placeholder='#2' data-id='2' required >
 						</div>						
 					</div>													
 					<hr>
 					<div class='form-group'>
 						<label for='votetext'>" . e('Button Text') . "</label>
-						<input type='text' class='form-control' name='votetext' id='votetext'  placeholder='' data-required='true'>
+						<input type='text' class='form-control' name='votetext' id='votetext'  placeholder='' value='" . e("Vote") . "' required >
 					</div>
 					<hr>					
 					<div class='form-group'>
@@ -2975,7 +3033,9 @@ class User extends App
 					</div>																													
 					" . Main::csrf_token(TRUE) . "	
 					<button class='btn btn-primary'>" . e('Save overlay') . "</button>
-				</form>";
+				</form>
+				<script>$('#overlaypollform').validate();</script>
+				";
 
 		$header = e("Customize Poll Overlay");
 		$before = "";
@@ -3015,7 +3075,7 @@ class User extends App
 
 		if ($this->permission("overlay") === FALSE) return Main::redirect("upgrade", array("warning", e("Please choose a premium package to unlock this feature.")));
 
-		if (!$overlay = $this->db->get("overlay", ["id" => $this->id, "userid" => $this->user->id], ["limit" => "1"])) {
+		if (!$overlay = $this->db->get("overlay", ["id" => $this->id, "userid" => $this->user->id], ["limit" => 1])) {
 			return Main::redirect("overlay", array("danger", e("Overlay page does not exist.")));
 		}
 
@@ -3114,6 +3174,7 @@ class User extends App
 		}
 
 		Main::cdn("spectrum");
+		Main::cdn("jqueryvalidation");
 
 		Main::add('<script type="text/javascript">
 						  	$("input[name=logo]").change(function(e){
@@ -3196,14 +3257,14 @@ class User extends App
 		Main::set("description", "Customize message overlay to attract more customers to your product or site.");
 
 		$content = "
-				<form action='" . Main::href("user/overlay/{$overlay->id}") . "' class='form' method='post' enctype='multipart/form-data'>
+				<form action='" . Main::href("user/overlay/{$overlay->id}") . "' class='form' method='post' enctype='multipart/form-data' id='overlayform' name='overlayform' >
 					<div class='form-group'>
 						<label for='message'>" . e('Name.') . "</label>
-						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}' autofocus />
+						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}' required autofocus />
 					</div>				
 					<div class='form-group'>
 						<label for='message'>" . e('Custom Message') . " (Max: 140 chars)</label>
-						<textarea name='message' id='message' cols='30' rows='5' class='form-control'>$message</textarea>
+						<textarea name='message' id='message' cols='30' rows='5' class='form-control' maxlength='140' required>$message</textarea>
 					</div>				
 					<div class='form-group'>
 						<label for='label'>" . e('Overlay label') . " </label>
@@ -3257,7 +3318,7 @@ class User extends App
 					</div>																								
 					" . Main::csrf_token(TRUE) . "	
 					<button class='btn btn-primary'>" . e('Save overlay') . "</button>
-				</form><!-- /.form -->";
+				</form><!-- /.form --><script>$('#overlayform').validate({rules:{link:{url:!0}}});</script>";
 
 		$header = e("Customize your overlay page");
 		$before = "";
@@ -3363,6 +3424,7 @@ class User extends App
 		}
 
 		Main::cdn("spectrum");
+		Main::cdn("jqueryvalidation");
 
 		Main::add('<script type="text/javascript">							
 					  		function bgColor(element, color, e) {
@@ -3446,18 +3508,18 @@ class User extends App
 		Main::set("description", "Customize contact overlay to attract more customers to your product or site.");
 
 		$content = "
-				<form action='" . Main::href("user/overlay/{$overlay->id}") . "' class='form validate' method='post' enctype='multipart/form-data'>
+				<form action='" . Main::href("user/overlay/{$overlay->id}") . "' class='form validate' method='post' enctype='multipart/form-data' id='overlaycontactform' name='overlaycontactform'>
 					<div class='form-group'>
 						<label for='name'>" . e('Name.') . "</label>
-						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}' data-required='true' autofocus />
+						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}' required autofocus />
 					</div>		
 					<div class='form-group'>
 						<label for='email'>" . e('Send Email Address') . "</label>
-						<input type='email' class='form-control' name='email' id='email'  placeholder='" . e("Emails from the form will be sent to this address") . "' data-required='true' value='{$overlay->data->email}'>
+						<input type='email' class='form-control' name='email' id='email'  placeholder='" . e("Emails from the form will be sent to this address") . "' required value='{$overlay->data->email}'>
 					</div>		
 					<div class='form-group'>
 						<label for='subject'>" . e('Email Subject') . "</label>
-						<input type='text' class='form-control' name='subject' id='subject'  placeholder='" . e("Something you would know where it comes from.") . "' data-required='true' value='{$overlay->data->subject}'>
+						<input type='text' class='form-control' name='subject' id='subject'  placeholder='" . e("Something you would know where it comes from.") . "' required value='{$overlay->data->subject}'>
 					</div>	
 					<div class='form-group'>
 						<label for='label'>" . e('Form Label') . " " . e("(leave empty to disable)") . "</label>
@@ -3538,7 +3600,8 @@ class User extends App
 					</div>																													
 					" . Main::csrf_token(TRUE) . "	
 					<button class='btn btn-primary'>" . e('Save overlay') . "</button>
-				</form><!-- /.form -->";
+				</form><!-- /.form -->
+				<script>jQuery.validator.addMethod('validate_email',function(a,e){return!!/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(a)},'Please enter a valid Email.'),$('#overlaycontactform').validate({rules:{webhook:{url:!0},email:{validate_email:!0}}});</script>";
 
 		$header = e("Customize Contact Overlay");
 		$before = "";
@@ -3646,6 +3709,7 @@ class User extends App
 		}
 
 		Main::cdn("spectrum");
+		Main::cdn("jqueryvalidation");
 
 		Main::add('<script type="text/javascript">
 					  		function bgColor(element, color, e) {
@@ -3701,14 +3765,14 @@ class User extends App
 		Main::set("description", "Customize poll overlay to attract more customers to your product or site.");
 
 		$content = "
-				<form action='" . Main::href("user/overlay/{$overlay->id}") . "' class='form validate' method='post' enctype='multipart/form-data'>
+				<form action='" . Main::href("user/overlay/{$overlay->id}") . "' class='form validate' method='post' enctype='multipart/form-data' id='overlaypollform' name='overlaypollform' >
 					<div class='form-group'>
 						<label for='name'>" . e('Name.') . "</label>
-						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}' data-required='true' autofocus />
+						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}' required autofocus />
 					</div>		
 					<div class='form-group'>
 						<label for='question'>" . e('Question') . " " . e('(max 144)') . "</label>
-						<input type='text' class='form-control' name='question' id='question'  value='{$overlay->data->question}' data-required='true'>
+						<input type='text' class='form-control' name='question' id='question' maxlength='144' value='{$overlay->data->question}' required>
 					</div>
 					<hr>
 					<h3>" . e("Options") . " <small>" . e('(max 10)') . "</small> <a href='' class='addA btn btn-xs btn-primary pull-right'>" . e("Add Option") . "</a></h3>
@@ -3719,7 +3783,7 @@ class User extends App
 			$content .= "<div class='form-group'>
 							<div class='row'>
 								<div class='col-md-6'>
-									<input type='text' class='form-control' name='answer[]' id='answer[]'  placeholder='Your option {$key}' value='{$answer->option}' data-id='{$key}'>
+									<input type='text' class='form-control' name='answer[]' id='answer[]'  placeholder='Your option {$key}' value='{$answer->option}' data-id='{$key}' required>
 								</div>
 								<div class='col-md-6'>
 									<strong style='display:block;padding-top:10px;'>{$answer->votes} " . e("Votes") . "</strong>
@@ -3731,7 +3795,7 @@ class User extends App
 					<hr>
 					<div class='form-group'>
 						<label for='votetext'>" . e('Button Text') . "</label>
-						<input type='text' class='form-control' name='votetext' id='votetext'  value='{$votetext}' data-required='true'>
+						<input type='text' class='form-control' name='votetext' id='votetext' value='{$votetext}' required>
 					</div>
 					<hr>						
 					<div class='form-group'>
@@ -3759,7 +3823,9 @@ class User extends App
 					</div>																													
 					" . Main::csrf_token(TRUE) . "	
 					<button class='btn btn-primary'>" . e('Save overlay') . "</button>
-				</form>";
+				</form>
+				<script>$('#overlaypollform').validate();</script>
+				";
 
 		$header = e("Customize Poll Overlay");
 		$before = "";
@@ -3819,7 +3885,6 @@ class User extends App
 	 */
 	protected function tools()
 	{
-
 		if (!$this->config["api"]) {
 			return Main::href("");
 		}
@@ -3874,13 +3939,23 @@ class User extends App
 
 				if ($user_id = $slack->process()) {
 					$this->db->update("user", ["slackid" => $user_id], ["id" => $this->user->id]);
-					return Main::redirect("user/tools#slack", ["success", "The application has been install on your slack account. You can now use the command to shorten links directly from your conversations."]);
+					return Main::redirect("user/tools#slack", ["success", e("The application has been install on your slack account. You can now use the command to shorten links directly from your conversations. Command: /short")]);
 				}
 
 				if (empty($this->user->slackid)) {
 					return $slack->redirect();
 				}
 			}
+		}
+
+		//Slack Disconnects
+		if ($this->id == "disconnect") {
+			if (!Main::validate_nonce("slack")) {
+				return Main::redirect(Main::href("user/tools#slack", "", FALSE), array("danger", e("Something went wrong, please try again.")));
+			}
+
+			$this->db->update("user", ["slackid" => null], ["id" => $this->user->id]);
+			return Main::redirect(Main::href("user/tools#slack", "", FALSE), array("success", e("You've just disconnect your slack successfully.")));
 		}
 
 		// Meta regenrate_api
@@ -3899,9 +3974,11 @@ class User extends App
 	 */
 	protected function cancel()
 	{
-		if (!$this->pro()) return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("Something went wrong, please try again.")));
-		if ($this->admin()) return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("Wow there. You are an admin. You can't cancel your membership.")));
-		if ($this->config["pt"] != "stripe") return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("Something went wrong, please try again.")));
+		if (!$this->pro()) return Main::redirect(Main::href("user/membership", "", FALSE), array("danger", e("Something went wrong, please try again.")));
+		if ($this->admin()) return Main::redirect(Main::href("user/membership", "", FALSE), array("danger", e("Wow there. You are an admin. You can't cancel your membership.")));
+		if (days_left($this->user->expiration) > 720) Main::redirect(Main::href("user/membership", "", FALSE), array("danger", e("Your are using Lifetime plan. There is no more payment to be processed. There is nothing to be canceled.")));
+
+		//if ($this->config["pt"] != "stripe") return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("Something went wrong, please try again.")));
 
 		if (isset($_POST["token"])) {
 			if (!Main::validate_csrf_token($_POST["token"])) {
@@ -3914,71 +3991,76 @@ class User extends App
 				return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("Your password is incorrect.")));
 			}
 
-			include(STRIPE);
-			\Stripe\Stripe::setApiKey($this->config["stsk"]);
+			// include(STRIPE);
+			// \Stripe\Stripe::setApiKey($this->config["stsk"]);
 
-			if ($this->sandbox) \Stripe\Stripe::setVerifySslCerts(false);
+			// if ($this->sandbox) \Stripe\Stripe::setVerifySslCerts(false);
 
-			try {
+			// try {
 
-				$Sub = \Stripe\Subscription::retrieve($subscription->tid);
-			} catch (Exception $e) {
+			// $Sub = \Stripe\Subscription::retrieve($subscription->tid);
+			// } catch (Exception $e) {
 
-				return Main::redirect("user/settings", array("danger", e("An error has occured, please contact us.")));
-			}
+			// 	return Main::redirect("user/settings", array("danger", e("An error has occured, please contact us.")));
+			// }
 
-			if ($Sub->plan->interval == "yearly") {
-				$Inv = \Stripe\Invoice::all(["subscription" => $subscription->tid]);
-				$Charge = $Inv->data[0]->charge;
-				$Amount = $Inv->data[0]->total / 100;
+			// if ($Sub->plan->interval == "yearly") {
+			// $Inv = \Stripe\Invoice::all(["subscription" => $subscription->tid]);
+			// $Charge = $Inv->data[0]->charge;
+			// $Amount = $Inv->data[0]->total / 100;
 
-				$start = $Sub->current_period_start;
-				$end = $Sub->current_period_end;
+			// $start = $Sub->current_period_start;
+			// $end = $Sub->current_period_end;
 
-				$yStart = date('Y', $start);
-				$yEnd = date('Y', $end);
+			// $yStart = date('Y', $start);
+			// $yEnd = date('Y', $end);
 
-				$mStart = date('m', $start);
-				$mEnd = date('m', $end);
+			// $mStart = date('m', $start);
+			// $mEnd = date('m', $end);
 
-				$diff = (($yEnd - $yStart) * 12) + ($mEnd - $mStart);
+			// $diff = (($yEnd - $yStart) * 12) + ($mEnd - $mStart);
 
-				$refund = round(($diff - 1) * $Amount / 12, 2);
+			// $refund = round(($diff - 1) * $Amount / 12, 2);
 
-				$re = \Stripe\Refund::create(array(
-					"charge" => $Charge,
-					"amount" => $refund * 100
-				));
+			// $re = \Stripe\Refund::create(array(
+			// 	"charge" => $Charge,
+			// 	"amount" => $refund * 100
+			// ));
 
-				$data[":expiry"] = date("Y-m-d H:i:s", strtotime("now"));
-				$data[":status"] = "Canceled";
-				$data[":reason"] = Main::clean($_POST["reason"], 3, TRUE);
-				// Cancel Sub
-				$this->db->update("subscription", [], ["id" => $subscription->id], $data);
+			// $data[":expiry"] = date("Y-m-d H:i:s", strtotime("now"));
+			// $data[":status"] = "Canceled";
+			// $data[":reason"] = Main::clean($_POST["reason"], 3, TRUE);
+			// // Cancel Sub
+			// $this->db->update("subscription", [], ["id" => $subscription->id], $data);
 
-				$PArray = [
-					":date"  => "NOW()",
-					":tid"  => "r_{$subscription->uniqueid}",
-					":amount"  =>  $refund,
-					":status"  =>  "Refunded",
-					":userid"  =>  $this->user->id,
-					":expiry" =>  NULL,
-					":data" =>  NULL
-				];
-				$this->db->insert("payment", $PArray);
-				// Downgrade user
-				$this->db->update("user", ["expiration" => $data[":expiry"], "pro" => "0", "planid" => NULL], ["id" => $user->id]);
-				$Sub->cancel();
-			} else {
+			// $PArray = [
+			// 	":date"  => date("d-m-Y H:i:s"),//"NOW()",
+			// 	":tid"  => "r_{$subscription->uniqueid}",
+			// 	":amount"  =>  $refund,
+			// 	":status"  =>  "Refunded",
+			// 	":userid"  =>  $this->user->id,
+			// 	":expiry" =>  NULL,
+			// 	":data" =>  NULL
+			// ];
+			// $this->db->insert("payment", $PArray);
+			// Downgrade user
+			// $this->db->update("user", ["expiration" => $data[":expiry"], "pro" => "0", "planid" => NULL], ["id" => $user->id]);
+			// $Sub->cancel();
+			// } else {
 
-				$data[":reason"] = Main::clean($_POST["reason"], 3, TRUE);
-				$this->db->update("subscription", [], ["id" => $subscription->id], $data);
-				$Sub->cancel_at_period_end = true;
-				$Sub->save();
-			}
-			return Main::redirect("user/settings", array("success", e("Your subscription will be canceled at the end of the billing cycle.")));
+			// $data[":reason"] = Main::clean($_POST["reason"], 3, TRUE);
+			// $this->db->update("subscription", [], ["id" => $subscription->id], $data);
+			// $Sub->cancel_at_period_end = true;
+			// $Sub->save();
+			// }
+
+			$data[":status"] = "Canceled";
+			$data[":reason"] = Main::clean($_POST["reason"], 3, TRUE);
+			$this->db->update("subscription", [], ["id" => $subscription->id], $data);
+
+			return Main::redirect("user/membership", array("success", e("Your subscription will be canceled at the end of the billing cycle.")));
 		}
-		return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("Something went wrong, please try again.")));
+		return Main::redirect(Main::href("user/membership", "", FALSE), array("danger", e("Something went wrong, please try again.")));
 	}
 	/**
 	 * Terminate Account
@@ -3993,12 +4075,12 @@ class User extends App
 
 		if (isset($_POST["token"])) {
 			if (!Main::validate_csrf_token($_POST["token"])) {
-				return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("Something went wrong, please try again.")));
+				return Main::redirect(Main::href("user/settings#msecurity", "", FALSE), array("danger", e("Something went wrong, please try again.")));
 			}
 			$user = $this->db->get("user", ["id" => $this->user->id], ["limit" => 1]);
 
 			if (!Main::validate_pass($_POST["password"], $user->password)) {
-				return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("Your password is incorrect.")));
+				return Main::redirect(Main::href("user/settings#msecurity", "", FALSE), array("danger", e("Your password is incorrect.")));
 			}
 
 
@@ -4012,7 +4094,7 @@ class User extends App
 			$this->logout(FALSE);
 			return Main::redirect(Main::href("user/login", "", FALSE), array("success", e("Your account has been successfully terminated.")));
 		}
-		return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("Something went wrong, please try again.")));
+		return Main::redirect(Main::href("user/settings#msecurity", "", FALSE), array("danger", e("Something went wrong, please try again.")));
 	}
 	/**
 	 * Membership page
@@ -4045,7 +4127,7 @@ class User extends App
 
 			if ($_GET["2FA"] == "on") {
 				if (!Main::validate_nonce("ON2FA{$this->user->id}")) {
-					return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("Something went wrong, please try again.")));
+					return Main::redirect(Main::href("user/settings#msecurity", "", FALSE), array("danger", e("Something went wrong, please try again.")));
 				}
 				include(ROOT . "/includes/library/2FA.load.php");
 
@@ -4054,17 +4136,17 @@ class User extends App
 
 				$this->db->update("user", ["secret2fa" => $secret], ["id" => $this->user->id]);
 
-				return Main::redirect(Main::href("user/settings", "", FALSE), array("success", e("2FA has been activated on your account. Please come back Security Tab to setup your Authenticator App! Please make sure to backup the secret key or the QR code.")));
+				return Main::redirect(Main::href("user/settings#msecurity", "", FALSE), array("success", e("2FA has been activated on your account. Please come back Security Tab to setup your Authenticator App! Please make sure to backup the secret key or the QR code.")));
 			}
 
 			if ($_GET["2FA"] == "off") {
 				if (!Main::validate_nonce("OFF2FA{$this->user->id}")) {
-					return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("Something went wrong, please try again.")));
+					return Main::redirect(Main::href("user/settings#msecurity", "", FALSE), array("danger", e("Something went wrong, please try again.")));
 				}
 
 				$this->db->update("user", ["secret2fa" => ""], ["id" => $this->user->id]);
 
-				return Main::redirect(Main::href("user/settings", "", FALSE), array("success", e("2FA has been disabled on your account.")));
+				return Main::redirect(Main::href("user/settings#msecurity", "", FALSE), array("success", e("2FA has been disabled on your account.")));
 			}
 		}
 
@@ -4090,7 +4172,8 @@ class User extends App
 			$address = [
 				"address" => Main::clean($_POST["address"], 3, TRUE),
 				"city" => Main::clean($_POST["city"], 3, TRUE),
-				"mobile" => Main::clean($_POST["mobile"], 3, TRUE)
+				"mobile" => Main::clean($_POST["mobile"], 3, TRUE),
+				"timezone" => Main::clean($_POST["timezone"], 3, TRUE)
 			];
 
 			// Prepare and clean data
@@ -4112,8 +4195,8 @@ class User extends App
 			}
 			// Check if password is changed
 			if (!empty($_POST["password"])) {
-				if (strlen($_POST["password"]) < 5) return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("Password must contain at least 5 characters.")));
-				if (empty($_POST["cpassword"]) || $_POST["password"] !== $_POST["cpassword"]) return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("Passwords don't match.")));
+				if (strlen($_POST["password"]) < 5) return Main::redirect(Main::href("user/settings#msecurity", "", FALSE), array("danger", e("Password must contain at least 5 characters.")));
+				if (empty($_POST["cpassword"]) || $_POST["password"] !== $_POST["cpassword"]) return Main::redirect(Main::href("user/settings#msecurity", "", FALSE), array("danger", e("Passwords don't match.")));
 				//Update Password
 				$data[":password"] = Main::encode($_POST["password"]);
 			}
@@ -4152,15 +4235,20 @@ class User extends App
 
 		// Address - added by BizChain
 		// Address is array of ["address"],["city"],["mobile"]
-
 		$address = json_decode($this->user->address, TRUE);
 		if (!isset($address["address"])) $address["address"] = "";
 		if (!isset($address["city"])) $address["city"] = "";
 		if (!isset($address["mobile"])) $address["mobile"] = "";
+		if (!isset($address["timezone"])) $address["timezone"] = $this->user_timezone;
+
+		/* Thêm chức năng TimeZone by BizChain
+		 */
+		include(ROOT . "/includes/library/timezone.php");
 
 		// Filter ID
 		$this->filter($this->id);
 		// Meta information
+		Main::cdn("jqueryvalidation");
 		Main::set("title", e("Account Settings"));
 		Main::set("description", "Edit your account's information.");
 		// Get Template		
@@ -4180,11 +4268,11 @@ class User extends App
 		global $app;
 
 		//echo '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
-		echo '<h4>' . e("Two-Factor Authentication (2FA)") . '</h4>';
-		echo '<p>' . e("2FA is an enhanced level security for your account. Each time you login, an extra step where you will need to enter a unique code will be required to gain access to your account. To enable 2FA, please click the button below and download the <strong>Google Authenticator</strong> app from Apple Store or Play Store.") . '</p>';
+		echo '<h4>' . e("Two-Factor Authentication (2FA) - Experiment") . '</h4>';
+		echo '<p class="text-justify">' . e("2FA is an enhanced level security for your account. Each time you login, an extra step where you will need to enter a unique code will be required to gain access to your account. To enable 2FA, please click the button below and download the <strong>Google Authenticator</strong> app from Apple Store or Play Store.") . '</p>';
 		if (!empty($app->user->secret2fa)) {
 
-			echo '<h4>' . e("Important") . '</h4><p>' . e("You need to scan the code below with the app. You need to backup the QR code below by saving it and save the key somewhere safe in case you lose your phone. You will not be able to login if you can't provide the code, you will need to contact us. If you disable 2FA and re-enable it, you will need to scan a new code.") . '</p>';
+			echo '<h4>' . e("Important") . '</h4><p class="text-justify">' . e("You need to scan the code below with the app. You need to backup the QR code below by saving it and save the key somewhere safe in case you lose your phone. You will not be able to login if you can't provide the code, you will need to contact us. If you disable 2FA and re-enable it, you will need to scan a new code.") . '</p>';
 
 			include(ROOT . "/includes/library/2FA.load.php");
 
@@ -4208,9 +4296,10 @@ class User extends App
 	{
 		if (!$this->config["pro"]) return FALSE;
 
-		if (isset($this->config["pt"]) && $this->config["pt"] == "stripe" && $subscription = $this->db->get("subscription", array("userid" => "?"), array("order" => "date"), array($this->userid))) {
+		//if (isset($this->config["pt"]) && $this->config["pt"] == "stripe" && $subscription = $this->db->get("subscription", array("userid" => "?"), array("order" => "date"), array($this->userid))) {
+		if (isset($this->config["pt"]) && $subscription = $this->db->get("subscription", array("userid" => "?"), array("order" => "date"), array($this->userid))) {
 			$html = '<div class="main-content panel panel-default panel-body">';
-			$html .= "<h3>" . e("Subscription History") . "</h3>";
+			$html .= "<h3>" . e("Subscription History") . " </h3>";
 			$html .= '<div class="table-responsive">';
 			$html .= '<table class="table table-striped">
 						        <thead>
@@ -4224,12 +4313,13 @@ class User extends App
 						        </thead>
 						        <tbody>';
 			foreach ($subscription as $payment) {
+
 				$html .= '<tr data-id="' . $payment->id . '">
 					              <td>' . $payment->uniqueid . '</td>
-					              <td>' . Main::currency($this->config["currency"], $payment->amount) . '</td>
-					              <td>' . date("d F, Y", strtotime($payment->date)) . '</td>
-					              <td>' . date("d F, Y", strtotime($payment->expiry)) . '</td>
-					              <td>' . ($payment->status == "Compeleted" ? e("Active") : $payment->status) . '</td>
+					              <td class="text-right">' . number_format($payment->amount, 0) . '</td>
+					              <td>' . date("d M, Y", strtotime($payment->date)) . '</td>
+					              <td>' . date("d M, Y", strtotime($payment->expiry)) . '</td>
+					              <td>' . e(ucfirst($payment->status)) . '</td>
 					            </tr>';
 			}
 			$html .= '</tbody>
@@ -4239,10 +4329,10 @@ class User extends App
 			echo $html;
 		}
 
-		$payments = $this->db->get("payment", array("userid" => "?"), array("order" => "date"), array($this->userid));
+		$payments = $this->db->get("payment", array("userid" => "?"), array("order" => "date", "asc" => 0), array($this->userid));
 
 		$html = '<div class="main-content panel panel-default panel-body">';
-		$html .= "<h3>" . e("Latest Transactions") . "</h3>";
+		$html .= "<h3>" . e("Latest Transactions") . (($this->user->pro && (!$this->user->trial)) ? ("<a href='" . Main::href("pricing", TRUE) . "' class='btn btn-secondary btn-sm pull-right'>" . e("Pricing") . "</a>") : "") . "</h3>";
 		$html .= '<div class="table-responsive">';
 		$html .= '<table class="table table-striped">
 					        <thead>
@@ -4257,10 +4347,10 @@ class User extends App
 		foreach ($payments as $payment) {
 			$html .= '<tr data-id="' . $payment->id . '">
 				              <td>' . ($payment->status == "Refunded" ? "<span class='label label-success'>" . e("Refunded") . "</span> " : "") . $payment->tid . '</td>
-				              <td>' . ($payment->status == "Refunded" ? "-" : "") . ($payment->trial_days ? e('Free Trial') : Main::currency($this->config["currency"], $payment->amount)) . '</td>
-				              <td>' . date("d F, Y", strtotime($payment->date)) . '</td>
-				              <td>' . ($payment->status == "Refunded" ? "" : date("d F, Y", strtotime($payment->expiry))) . '</td>
-				            </tr>';
+				              <td class="text-right">' . ($payment->status == "Refunded" ? "-" : "") . (($payment->trial_days) ? e('Free Trial') : number_format($payment->amount, 0)) . '</td>
+				              <td>' . date("d M, Y", strtotime($payment->date)) . '</td>
+				              <td>' . ($payment->status == "Refunded" ? "" : date("d M, Y", strtotime($payment->expiry))) . '</td>
+							</tr>';
 		}
 		$html .= '</tbody>
 					      </table>';
@@ -4423,6 +4513,7 @@ class User extends App
 
 
 		// Meta information
+		Main::cdn("jqueryvalidation");
 		Main::set("title", e("Tracking Pixels"));
 		// Get Template		
 		$this->isUser = TRUE;
@@ -4582,7 +4673,7 @@ class User extends App
 
 			$domain = Main::clean($_POST["domain"], 3, TRUE);
 
-			if ($this->db->get("domains", ["domain" => "?"], ["limit" => "1"], [$domain])) return Main::redirect(Main::href("user/domain", "", FALSE), array("danger", e("This domain name already exists.")));
+			if ($this->db->get("domains", ["domain" => "?"], ["limit" => 1], [$domain])) return Main::redirect(Main::href("user/domain", "", FALSE), array("danger", e("This domain name already exists.")));
 
 			$data = [
 				":userid" => $this->user->id,
@@ -4603,7 +4694,7 @@ class User extends App
 
 		$host = parse_url($this->config["url"]);
 
-		$widgets = '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
+		$widgets = '<div class="panel panel-default panel-body text-justify" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("How to setup custom domain") . '</h3>';
 		$widgets .= '<p>' . e("If you have a custom domain name that you want to use with our service, you can associate it to your account very easily. Once added, we will add the domain to your account and set it as the default domain name for your URLs. DNS changes could take up to 36 hours.") . '</p>';
 
@@ -4614,6 +4705,7 @@ class User extends App
 
 		$domains = $this->db->get("domains", ["userid" => $this->user->id]);
 
+		Main::cdn("jqueryvalidation");
 		Main::set("title", $header);
 		$this->isUser = TRUE;
 		$this->header();
@@ -4662,7 +4754,7 @@ class User extends App
 		}
 
 		$team = $this->db->get("user", ["teamid" => $this->user->id], ["order" => "id"]);
-		$teamleader = $this->db->get("user", ["id" => $this->user->id], ["limit" => "1"]);
+		$teamleader = $this->db->get("user", ["id" => $this->user->id], ["limit" => 1]);
 
 		$toText = [
 			"links.create" => e("Create Links"),
@@ -4686,6 +4778,7 @@ class User extends App
 			"export.create" => e("Export Data"),
 		];
 
+		Main::cdn("jqueryvalidation");
 		Main::set("title", e("Teams"));
 
 		$this->isUser = TRUE;
@@ -4723,11 +4816,11 @@ class User extends App
 
 			if (empty($email) || !Main::email($email)) return Main::redirect(Main::href("user/teams", "", FALSE), array("danger", e("This is not a valid domain email address")));
 
-			if ($this->db->get("user", ["email" => $email], ["limit" => "1"])) {
+			if ($this->db->get("user", ["email" => $email], ["limit" => 1])) {
 				return Main::redirect(Main::href("user/teams", "", FALSE), array("danger", e("This user has already an account. Please use another email.")));
 			}
 
-			if ($this->db->get("user", ["email" => $email, "teamid" => $this->user->id], ["limit" => "1"])) {
+			if ($this->db->get("user", ["email" => $email, "teamid" => $this->user->id], ["limit" => 1])) {
 				return Main::redirect(Main::href("user/teams", "", FALSE), array("danger", e("This email address has been invited.")));
 			}
 
@@ -4794,7 +4887,7 @@ class User extends App
 	 */
 	protected function teams_edit()
 	{
-		if (!$team = $this->db->get("user", ["teamid" => "?", "id" => "?"], ["limit" => "1"], [$this->user->id, Main::clean($_GET["user"])])) {
+		if (!$team = $this->db->get("user", ["teamid" => "?", "id" => "?"], ["limit" => 1], [$this->user->id, Main::clean($_GET["user"])])) {
 			return $this->_404();
 		}
 

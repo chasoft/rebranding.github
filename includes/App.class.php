@@ -21,6 +21,10 @@
 class App
 {
 	/**
+	 * Default timezone for user! -- added by BizChain
+	 **/
+	public $user_timezone = '(GMT+07:00) Hanoi';
+	/**
 	 * Maximum number of splash pages allowed
 	 * @since 4.0
 	 **/
@@ -49,7 +53,7 @@ class App
 	 * @since 5.9
 	 **/
 	protected $page = 1, $db, $config = array(), $action = "", $do = "", $id = "", $http = "http", $sandbox = false;
-	protected $actions = ["user", "page", "contact", "server", "pricing", "upgrade", "analytic", "profile", "ipn", "q", "jShortener", "webhook", "api", "scriptjs", "r", "blog", "report", "u"];
+	protected $actions = ["user", "page", "contact", "server", "pricing", "upgrade", "analytic", "profile", "ipn", "q", "jShortener", "webhook", "api", "scriptjs", "r", "blog", "report", "u", "processing", "testing"];
 	/**
 	 * User Variables
 	 * @since 4.0
@@ -106,6 +110,7 @@ class App
 			require(ROOT . "/includes/Short.class.php");
 			$short = new Short($this->db, $this->config);
 			$short->analyze($this->action, $this->do);
+
 			return;
 		} else {
 			$this->checkDNS();
@@ -131,9 +136,8 @@ class App
 				$this->user->avatar = $this->avatar($user);
 				$this->user->avatarpath = $user->avatar;
 
-				//if người dùng hiện tại có Note teamid thì nó sẽ có tất cả thuộc tính của User đã tạo nó!
 				if ($this->user->teamid) {
-					if ($user = $this->db->get("user", ["id" => $this->user->teamid], ["limit" => "1"])) {
+					if ($user = $this->db->get("user", ["id" => $this->user->teamid], ["limit" => 1])) {
 						$this->userid = $this->user->id;
 						$this->user->id = $user->id;
 						$this->user->pro = "1";
@@ -147,8 +151,18 @@ class App
 					}
 				}
 
+				//Set the default timezone				
+				$address = json_decode($this->user->address, TRUE);
+				include (ROOT."/includes/library/timezone.php");
+				if (ISSET($address["timezone"]) && ISSET($timezonelist[$address["timezone"]]))
+					date_default_timezone_set($timezonelist[$address["timezone"]]);
+				else
+					date_default_timezone_set('Asia/Bangkok');
+
+				$plan = $this->db->get("plans", ["id" => $user->planid], ["limit" => 1]);
+
 				if ($this->config["pro"] && !$user->pro && !$user->admin) {
-					if (is_null($user->planid) || !$this->db->get("plans", ["id" => $user->planid], ["limit" => 1])) {
+					if (is_null($user->planid) || !$plan) {
 						if ($plan = $this->db->get("plans", ["free" => "1"], ["order" => "id", "limit" => 1])) {
 							$this->db->update("user", ["planid" => $plan->id, "trial" => "0"], ["id" => $user->id]);
 						} else {
@@ -157,8 +171,7 @@ class App
 					}
 				}
 
-
-				if (!is_null($user->planid) && $plan = $this->db->get("plans", ["id" => $user->planid], ["limit" => "1"])) {
+				if (!is_null($user->planid) && $plan) {
 					$this->user->plan = $plan;
 					$this->user->plan->permission = json_decode($this->user->plan->permission);
 					// Correction to 5.6
@@ -235,13 +248,25 @@ class App
 					]));
 				}
 
-
 				if ($this->isexpired() || ($this->user->trial && strtotime('now') > strtotime($this->user->expiration))) {
 					$this->db->update("user", array("pro" => 0, "planid" => 0, "trial" => 0), array("id" => $user->id));
 					$this->user->pro = 0;
 					$this->user->planid = 0;
 					$this->user->trial = 0;
 				}
+
+				// $subscription = $this->db->get("subscription", ["userid" => $user->id], ["limit" => "1", "order" => "date"]);
+				// if (($subscription->status == 'active') && $this->isexpired()) {
+
+
+				// }
+				
+
+				// var_dump($user);
+				// var_dump($subscription);
+
+				// return;
+
 
 				// Unset sensitive information
 				unset($this->user->password);
@@ -339,7 +364,7 @@ class App
 		if (!$this->config["pro"]) return FALSE;
 
 		// Check expiration date
-		if ($this->pro() && strtotime($this->user->expiration) < time()) return TRUE;
+		if ($this->pro() && strtotime("+{$grace} days", strtotime($this->user->expiration)) < time()) return TRUE;
 		return FALSE;
 	}
 	/**
@@ -441,6 +466,7 @@ class App
 		}
 
 		$this->isHome = TRUE;
+		Main::cdn("typedjs");
 		$this->header();
 		include(TEMPLATE . "/index.php");
 		$this->footer();
@@ -589,10 +615,10 @@ class App
 
 			if ($this->requireUpgrade() && $this->do != "logout") return Main::redirect(Main::href("pricing", "", FALSE));
 
-			$action = array("edit", "delete", "archive", "expired", "bundles", "splash", "settings", "logout", "verify", "search", "server", "export", "overlay", "pixels", "tools", "cancel", "terminate", "membership", "domain", "teams", "builder");
+			$action = array("edit", "delete", "archive", "expired", "bundles", "splash", "settings", "logout", "verify", "search", "server", "export", "overlay", "pixels", "tools", "cancel", "terminate", "membership", "domain", "teams", "builder", "processing", "testing");
 		} else {
 
-			$action = array("login", "register", "forgot", "activate", "invite");
+			$action = array("login", "register", "forgot", "activate", "invite", "testing");
 		}
 
 		// Run actions
@@ -661,18 +687,11 @@ class App
 				return Main::redirect(Main::href("upgrade/{$this->do}/{$this->id}", "", FALSE), array("danger", e("Something went wrong, please try again.")));
 			}
 
-			//Process Alepay first
-			if ($this->do == "lifetime") {
-				return $this->ProcessAlepay();
-			}
-
-			//Otherwise, normal process, the fact that, I only use PayPalAPI
-			if (isset($this->config["pt"])) {
-				if ($this->config["pt"] == "stripe") return $this->ProcessStripe();
-				if ($this->config["pt"] == "paypalapi") return $this->ProcessPayPalAPI();
-				if ($this->config["pt"] == "alepay") return $this->ProcessAlepayAPI();
-			}
-			return $this->ProcessPayPal();
+			/* With Lifetime option, have 1 more payment method "Paypal", else, use Alepay */
+			if ($this->do == "lifetime")
+				if (isset($_POST["btn_paypal"])) return $this->ProcessPayPal();
+				else $this->ProcessAlepayAPI();
+			else return $this->ProcessAlepayAPI();
 		}
 
 		if ($this->do == "yearly" || $this->do == "monthly" || $this->do == "lifetime") return $this->checkout();
@@ -690,6 +709,14 @@ class App
 		if (!$this->config["pro"]) return $this->_404();
 
 		$plans = $this->db->get("plans", ["status" => "1"], ["order" => "price_monthly", "asc" => TRUE]);
+
+		if ($this->logged()) {	// Nếu có đăng nhập thì kiểm tra tình hình Subscription (Dùng trong Template)
+			$subscription = $this->db->get("subscription", ["userid" => $this->user->id], ["limit" => "1", "order" => "date"]);
+			if (!$subscription){
+				$subscription = new stdClass;
+				$subscription->plan = "";
+			}
+		}
 
 		$monthly = [];
 		$yearly = [];
@@ -737,7 +764,7 @@ class App
 					"icon" => $plan->icon,
 					"trial" => $plan->trial_days,
 					"price" => $plan->price_yearly,
-					"discount" => $discountAmount,
+					"discount" => $discountMax,
 					"urls" => $plan->numurls,
 					"clicks" => $plan->numclicks,
 					"permission" => json_decode($plan->permission)
@@ -749,7 +776,7 @@ class App
 					"icon" => $plan->icon,
 					"trial" => $plan->trial_days,
 					"price" => $plan->price_lifetime,
-					"discount" => $discountAmount,
+					//"discount" => $discountAmount,
 					"urls" => $plan->numurls,
 					"clicks" => $plan->numclicks,
 					"permission" => json_decode($plan->permission)
@@ -772,19 +799,19 @@ class App
 	{
 		// Require Login
 		if (!$this->logged()) {
-			$_SESSION["redirect"] = "upgrade";
+			$_SESSION["redirect"] = "upgrade";	
 			return Main::redirect(Main::href("user/register", "", FALSE));
 		}
 
-		if (!$plan = $this->db->get("plans", ["id" => ":id"], ["limit" => "1"], [":id" => $this->id])) {
+		if (!$plan = $this->db->get("plans", ["id" => ":id"], ["limit" => 1], [":id" => $this->id])) {
 			return Main::redirect(Main::href("pricing", "", FALSE));
 		}
 
-		if ($this->pro() && $this->user->planid && !$this->user->trial) {
-			if ($this->user->planid == $plan->id) {
-				return Main::redirect(Main::href("user/membership", "", FALSE));
-			}
-		}
+		// if ($this->pro() && $this->user->planid && !$this->user->trial) {
+		// 	if ($this->user->planid == $plan->id) {
+		// 		return Main::redirect(Main::href("user/membership", "", FALSE));
+		// 	}
+		// }
 
 		if (isset($_GET["trial"]) && $plan->trial_days) {
 
@@ -801,7 +828,7 @@ class App
 			], ["id" => $this->user->id]);
 
 			$PArray = [
-				":date"  => "NOW()",
+				":date"  => date("d-m-Y H:i:s"),//"NOW()",
 				":tid"  => Main::strrand(16),
 				":amount"  =>  "0.00",
 				":trial_days" => $plan->trial_days,
@@ -813,74 +840,158 @@ class App
 
 			$this->db->insert("payment", $PArray);
 
-			return Main::redirect(Main::href("user", "", FALSE), ["success", e("Free trial has been activated! Your trial will expire in ") . ($plan->trial_days) . e(" days.")]);
+			return Main::redirect(Main::href("user", "", FALSE), ["success", e("Free trial has been activated! Your trial will expire in ") . ($plan->trial_days) . e(" days!.")]);
 		}
 
-		$logo = ($this->config["logo"] ? "{$this->config["url"]}/content/{$this->config["logo"]}" : "");
+		// Query tất cả thông tin tài khoản hiện tại
+		$currentPlan = $this->db->get("plans", ["id" => $this->user->planid], ["limit" => "1"]);
+		$currentSub = $this->db->get("subscription", ["userid" => $this->user->id, "planid" => $this->user->planid], ["limit" => 1, "order" => 'id', "asc" => FALSE]); //Có thể có, có thể không, nên check xem có tồn tại ko trước khi dùng!!!
+		$lastpayment = $this->db->get("payment", ["userid" => $this->user->id], ["limit" => "1", "order" => 'id', "asc" => FALSE]);
+		
+		$paid_amt = 0;
+		$total_days = 0;
+		$used_days = 0;
+		$remaining_amt = 0;
 
-		$term = e($plan->name);
-		$text = e("Monthly payment");
-		$price = $plan->price_monthly;
-
-		if ($this->do == "yearly") {
-			$term = e($plan->name);
-			$text = e("Annual payment");
-			$price = $plan->price_yearly;
+		if (!$this->isExpired() && (days_left($lastpayment->expiry) > 0)) {
+			$paid_amt = $lastpayment->amount;
+			$total_days = round((strtotime($lastpayment->expiry) - strtotime($lastpayment->date)) / (60 * 60 * 24), 0);
+			$used_days = round((strtotime("now") - strtotime($lastpayment->date)) / (60 * 60 * 24), 0);
+			$remaining_amt = round(($total_days - $used_days) / $total_days * $paid_amt,0);
+			if ($remaining_amt < 0) $remaining_amt = 0;
 		}
 
-		if ($this->do == "lifetime") {
-			$term = e($plan->name);
-			$text = e("Lifetime payment");
-			$price = $plan->price_lifetime;
+		if (days_left($lastpayment->expiry) > 1000) { // Gói hiện tại là LifeTime - Trick:: > 1000 ngày là gần 3 năm! LifeTime = 50 năm!
+
+			//Khi là Lifetime thì tiền khả dụng không bị trừ!
+			$remaining_amt = $lastpayment->amount;
+
+			//Nâng cầp từ Lifetime -> Lifetime
+			if ($this->do == "lifetime") {
+
+				if ($remaining_amt < $plan->price_lifetime) {  //Chỉ nâng cấp từ LifeTime gói nhỏ -> gói lớn
+
+					$price = $plan->price_lifetime;					
+					$request_amt = $price - $remaining_amt;
+					$new_expired_date = date("d-m-Y", strtotime("+50 year"));
+
+				} else return Main::redirect(Main::href("pricing", "", FALSE), array("warning", e("Can not downgrade higher lifetime plan to lower lifetime package!")));
+
+			} else {
+
+				//Upgrade from Lifetime to Subscription!
+				if ($currentPlan->id == $plan->id) {
+
+					return Main::redirect(Main::href("pricing", "", FALSE), array("warning", e("You are using lifetime for selected plan.")));
+
+				} else {
+					/*Chuyển gói LifeTime sang Subscription khác!
+						Nếu thiếu tiền thì thanh toán phần còn thiếu. => Chu kỳ = 1
+						Nếu dư thì thanh toán thêm cho tròn {N} kỳ! => Chu kỳ = ceil(...)
+					*/
+
+					$x = 1;
+
+					if ($this->do == "monthly") {
+
+						$price = $plan->price_monthly;
+
+						if ($price > $remaining_amt) {
+							$request_amt = $price - $remaining_amt;
+						}
+						else //($price <= $remaining_amt) 
+						{
+							$request_amt = fmod($remaining_amt, $price);
+							$x = ceil($remaining_amt / $price);
+						}
+
+						$new_expired_date = date("d-m-Y", strtotime("+{$x} month"));
+						
+					} elseif ($this->do == "yearly") {
+
+						$price = $plan->price_yearly;
+
+						if ($price > $remaining_amt)
+							$request_amt = $price - $remaining_amt;
+						else // ($price <= $remaining_amt) 
+						{
+							$request_amt = fmod($remaining_amt, $price);
+							$x = ceil($remaining_amt / $price);
+						}
+
+						$new_expired_date = date("d-m-Y", strtotime("+{$x} year"));
+						
+					} else return Main::redirect(Main::href("pricing", "", FALSE), array("danger", e("An error has occured, please contact us.")));
+				}
+			} 
+		} //end of upgrade from LifeTime
+
+		//Upgrade from Trial or Subscription to Subscription or LifeTime
+		else {
+
+			$x = 1;
+
+			if ($this->do == "monthly") {
+
+				$price = $plan->price_monthly;
+				
+				if ($price > $remaining_amt) {
+					$request_amt = $price - $remaining_amt;
+				}
+				else // ($price <= $remaining_amt) 
+				{
+					$request_amt = fmod($remaining_amt, $price);
+					$x = ceil($remaining_amt / $price);
+				}
+				
+				$new_expired_date = date("d-m-Y", strtotime("+{$x} month", strtotime("now")));
+			
+			} elseif ($this->do == "yearly") {
+
+				$price = $plan->price_yearly;
+
+				if ($price > $remaining_amt) {
+					$request_amt = $price - $remaining_amt;
+				}
+				else // ($price <= $remaining_amt)
+				{
+					$request_amt = fmod($remaining_amt, $price);
+					$x = ceil($remaining_amt / $price);
+				}
+				$new_expired_date = date("d-m-Y", strtotime("+{$x} year", strtotime("now")));
+
+			} elseif ($this->do == "lifetime") {
+
+				$price = $plan->price_lifetime;
+				
+				if ($price > $remaining_amt) {
+					$request_amt = $price - $remaining_amt;
+				}
+				else // ($price <= $remaining_amt)
+				{
+					$request_amt = fmod($remaining_amt, $price);
+					$x = ceil($remaining_amt / $price);
+				}
+
+				$new_expired_date = date("d-m-Y", strtotime("+50 year"));				
+			}
 		}
+
+		/* Mã hóa toàn bộ thông tin để sử dụng ở bước tiếp theo mà không cần phải Xử lý lại	*/
+		$mdata = [
+			"uFid" => 0,	//uFid	= upgradeFrom ID	= PlanID hiện tại của User
+			//"uTid" => 0,	//uTid	= upgradeFrom ID	= PlanID user muốn nâng cấp ==> Cái này chính là $this->id
+			"pp" => $price,		//pp 	= package Price		= Giá tiền của gói hiện tại
+			"ra" => $request_amt,	//ra	= request amount	= Số tiền phải thanh toán thực tế | ra sẽ khác pp khi nâng cấp/chuyển gói dịch vụ vì phải cấn trừ tiền.
+			"c" => $this->config['currency'],	//c	= Currency
+			"d" => $plan->description,	//Mô tả gói dịch vụ được chọn để nâng cấp!
+			"e" => $new_expired_date,	//Ngày hết hạn mới
+			"s" => ($currentSub && ($currentSub->status == 'active')) ? $currentSub->id : false
+		];
+		$encryptdata = safe_b64encode(json_encode($mdata));
 
 		Main::set("title", e("Complete your subscription"));
-		if (isset($this->config["pt"]) && $this->config["pt"] == "stripe") {
-			Main::add("<script type='text/javascript'>
-					var stripe = Stripe('{$this->config["stpk"]}');
 
-					var elements = stripe.elements();
-					var style = {
-					  base: {
-					    color: '#32325d',
-					    fontFamily: '\"Helvetica Neue\", Helvetica, sans-serif',
-					    fontSmoothing: 'antialiased',
-					    fontSize: '16px',
-					    '::placeholder': {
-					      color: '#aab7c4'
-					    }
-					  },
-					  invalid: {
-					    color: '#fa755a',
-					    iconColor: '#fa755a'
-					  }
-					};
-					var card = elements.create('card', {hidePostalCode: true, style: style});
-					card.mount('#card-element');			
-					elements.getElement('card').on('change', function(event) {
-					  var displayError = document.getElementById('card-errors');
-					  if (event.error) {
-					    displayError.textContent = event.error.message;
-					  } else {
-					    displayError.textContent = '';
-					  }
-					});			
-
-					$('.stripe-button').click(function(e){
-						e.preventDefault();
-						stripe.createToken(card).then(function(result) {
-						    if (result.error) {
-						      var errorElement = document.getElementById('card-errors');
-						      errorElement.textContent = result.error.message;						      
-						    } else {
-						      $('#stripeToken').attr('name', 'stripeToken').val(result.token.id);
-						      $('#payment-form').submit();
-						    }
-						  });
-					});
-					</script>", "custom",  true);
-		}
-		
 		$address = json_decode($this->user->address, TRUE);
 		if (!isset($address["address"])) $address["address"] = "";
 		if (!isset($address["city"])) $address["city"] = "";
@@ -906,7 +1017,7 @@ class App
 			return Main::redirect(Main::href("user/register", "", FALSE));
 		}
 
-		$plan = $this->db->get("plans", ["id" => $this->id], ["limit" => "1"]);
+		$plan = $this->db->get("plans", ["id" => $this->id], ["limit" => 1]);
 
 		// Check if already pro
 		if ($this->pro() && $this->user->planid == $this->id && !isset($_SESSION["renew"])) return Main::redirect("", array("warning", e("You are already a pro member.")));
@@ -989,7 +1100,7 @@ class App
 			return Main::redirect(Main::href("user/register", "", FALSE));
 		}
 
-		$plan = $this->db->get("plans", ["id" => $this->id], ["limit" => "1"]);
+		$plan = $this->db->get("plans", ["id" => $this->id], ["limit" => 1]);
 
 		// Check if already pro
 		if ($this->pro() && $this->user->planid == $this->id && !isset($_SESSION["renew"])) return Main::redirect("", array("warning", e("You are already a pro member.")));
@@ -1061,183 +1172,183 @@ class App
 	 * @author KBRmedia <http://gempixel.com>
 	 * @version 5.5.1
 	 */
-	private function ProcessStripe()
-	{
+	// private function ProcessStripe()
+	// {
 
-		if (!$plan = $this->db->get("plans", ["id" => ":id"], ["limit" => "1"], [":id" => $this->id])) {
-			return Main::redirect(Main::href("pricing", "", FALSE));
-		}
+	// 	if (!$plan = $this->db->get("plans", ["id" => ":id"], ["limit" => 1], [":id" => $this->id])) {
+	// 		return Main::redirect(Main::href("pricing", "", FALSE));
+	// 	}
 
-		include(STRIPE);
-		\Stripe\Stripe::setApiKey($this->config["stsk"]);
+	// 	include(STRIPE);
+	// 	\Stripe\Stripe::setApiKey($this->config["stsk"]);
 
-		if ($this->sandbox) \Stripe\Stripe::setVerifySslCerts(false);
+	// 	if ($this->sandbox) \Stripe\Stripe::setVerifySslCerts(false);
 
-		$term = e($plan->name);
-		$text = e("First month");
-		$price = $plan->price_monthly;
-		$planid = $plan->slug . "monthly";
+	// 	$term = e($plan->name);
+	// 	$text = e("First month");
+	// 	$price = $plan->price_monthly;
+	// 	$planid = $plan->slug . "monthly";
 
-		if ($this->do == "yearly") {
-			$term = e($plan->name);
-			$text = e("First year");
-			$price = $plan->price_yearly;
-			$planid = $plan->slug . "yearly";
-		}
+	// 	if ($this->do == "yearly") {
+	// 		$term = e($plan->name);
+	// 		$text = e("First year");
+	// 		$price = $plan->price_yearly;
+	// 		$planid = $plan->slug . "yearly";
+	// 	}
 
-		if ($this->do == "lifetime") {
-			$term = e($plan->name);
-			$text = e("One time");
-			$price = $plan->price_lifetime;
-			$planid = $plan->slug . "lifetime";
-		}
+	// 	if ($this->do == "lifetime") {
+	// 		$term = e($plan->name);
+	// 		$text = e("One time");
+	// 		$price = $plan->price_lifetime;
+	// 		$planid = $plan->slug . "lifetime";
+	// 	}
 
-		if (!isset($_POST["stripeToken"])) return Main::redirect("", array("warning", e("An error ocurred, please try again. You have not been charged.")));
+	// 	if (!isset($_POST["stripeToken"])) return Main::redirect("", array("warning", e("An error ocurred, please try again. You have not been charged.")));
 
-		$token  = $_POST['stripeToken'];
+	// 	$token  = $_POST['stripeToken'];
 
-		$customerID = $this->user->customerid;
+	// 	$customerID = $this->user->customerid;
 
-		if (!$this->user->customerid) {
-			try {
-				$customer = \Stripe\Customer::create(array(
-					"email" => $this->user->email,
-					"description" => "$term - $text for {$this->user->email}",
-					"name" => Main::clean($_POST["name"], 3),
-					"address" => [
-						"line1" => Main::clean($_POST["address"], true),
-						"city" => Main::clean($_POST["city"], true),
-						"country" => Main::clean(strtolower(Main::ccode($_POST["country"], true)), true),
-						"postal_code" => Main::clean($_POST["zip"], true),
-						"state" => Main::clean($_POST["state"], true)
-					],
-					"source" => $token
-				));
-			} catch (Exception $e) {
-				error_log($e->getMessage());
-			}
-			if (!isset($customer->id)) return Main::redirect("", array("warning", e("An error ocurred, please try again. You have not been charged.")));
-			$customerID = $customer->id;
-			$this->db->update("user", ["customerid" => $customerID], ["id" => $this->user->id]);
-		}
+	// 	if (!$this->user->customerid) {
+	// 		try {
+	// 			$customer = \Stripe\Customer::create(array(
+	// 				"email" => $this->user->email,
+	// 				"description" => "$term - $text for {$this->user->email}",
+	// 				"name" => Main::clean($_POST["name"], 3),
+	// 				"address" => [
+	// 					"line1" => Main::clean($_POST["address"], true),
+	// 					"city" => Main::clean($_POST["city"], true),
+	// 					"country" => Main::clean(strtolower(Main::ccode($_POST["country"], true)), true),
+	// 					"postal_code" => Main::clean($_POST["zip"], true),
+	// 					"state" => Main::clean($_POST["state"], true)
+	// 				],
+	// 				"source" => $token
+	// 			));
+	// 		} catch (Exception $e) {
+	// 			error_log($e->getMessage());
+	// 		}
+	// 		if (!isset($customer->id)) return Main::redirect("", array("warning", e("An error ocurred, please try again. You have not been charged.")));
+	// 		$customerID = $customer->id;
+	// 		$this->db->update("user", ["customerid" => $customerID], ["id" => $this->user->id]);
+	// 	}
 
-		// \Stripe\Customer::update($customerID , array(
-		//   "name" => Main::clean($_POST["name"], 3),
-		//   "address" => [
-		//   		"line1" => Main::clean($_POST["address"], true),
-		//   		"city" => Main::clean($_POST["city"], true),
-		//   		"country" => Main::clean(strtolower(Main::ccode($_POST["country"], true)), true),
-		//   		"postal_code" => Main::clean($_POST["zip"], true),
-		//   		"state" => Main::clean($_POST["state"], true)
-		//   ]
-		// ));
+	// 	// \Stripe\Customer::update($customerID , array(
+	// 	//   "name" => Main::clean($_POST["name"], 3),
+	// 	//   "address" => [
+	// 	//   		"line1" => Main::clean($_POST["address"], true),
+	// 	//   		"city" => Main::clean($_POST["city"], true),
+	// 	//   		"country" => Main::clean(strtolower(Main::ccode($_POST["country"], true)), true),
+	// 	//   		"postal_code" => Main::clean($_POST["zip"], true),
+	// 	//   		"state" => Main::clean($_POST["state"], true)
+	// 	//   ]
+	// 	// ));
 
-		$uniqueid = Main::strrand(16);
-		$SArray = [
-			":tid" => null,
-			":userid" => $this->user->id,
-			":plan" => $this->do,
-			":planid" => $plan->id,
-			":status" => "Pending",
-			":amount" => "0",
-			":date" => "NOW()",
-			":expiry" => "NOW()",
-			":lastpayment" => "NOW()",
-			":data" => NULL,
-			":coupon" => "1",
-			":uniqueid" => $uniqueid
-		];
-		$this->db->insert("subscription", $SArray);
-		$subid = $this->db->pdo()->lastInsertId();
+	// 	$uniqueid = Main::strrand(16);
+	// 	$SArray = [
+	// 		":tid" => null,
+	// 		":userid" => $this->user->id,
+	// 		":plan" => $this->do,
+	// 		":planid" => $plan->id,
+	// 		":status" => "Pending",
+	// 		":amount" => "0",
+	// 		":date" => "NOW()",
+	// 		":expiry" => "NOW()",
+	// 		":lastpayment" => "NOW()",
+	// 		":data" => NULL,
+	// 		":coupon" => "1",
+	// 		":uniqueid" => $uniqueid
+	// 	];
+	// 	$this->db->insert("subscription", $SArray);
+	// 	$subid = $this->db->pdo()->lastInsertId();
 
-		try {
-			$intent = [
-				"customer" => $customerID,
-				"items" => [
-					[
-						"plan" => $planid,
-					],
-				]
-			];
-			if (!empty($_POST["coupon"]) && $coupon = $this->db->get("coupons", ["code" => "?"], ["limit" => 1], [$_POST["coupon"]])) {
-				$intent["coupon"] = $coupon->data;
-				$this->db->update("coupons", "used = used + 1", ["id" => $coupon->id]);
-			}
-			$subscription = \Stripe\Subscription::create($intent);
-		} catch (Exception $e) {
-			error_log($e->getMessage());
-			return Main::redirect("", array("warning", e("An error ocurred, please try again. You have not been charged.")));
-		}
+	// 	try {
+	// 		$intent = [
+	// 			"customer" => $customerID,
+	// 			"items" => [
+	// 				[
+	// 					"plan" => $planid,
+	// 				],
+	// 			]
+	// 		];
+	// 		if (!empty($_POST["coupon"]) && $coupon = $this->db->get("coupons", ["code" => "?"], ["limit" => 1], [$_POST["coupon"]])) {
+	// 			$intent["coupon"] = $coupon->data;
+	// 			$this->db->update("coupons", "used = used + 1", ["id" => $coupon->id]);
+	// 		}
+	// 		$subscription = \Stripe\Subscription::create($intent);
+	// 	} catch (Exception $e) {
+	// 		error_log($e->getMessage());
+	// 		return Main::redirect("", array("warning", e("An error ocurred, please try again. You have not been charged.")));
+	// 	}
 
-		if ($subscription->status != "active") {
-			return Main::redirect("", array("warning", e("Your credit card was declined. Please check your credit card and try again later.")));
-		}
+	// 	if ($subscription->status != "active") {
+	// 		return Main::redirect("", array("warning", e("Your credit card was declined. Please check your credit card and try again later.")));
+	// 	}
 
-		$SArray = [
-			":tid" => $subscription->id,
-			":data" => json_encode($subscription->items->data),
-		];
+	// 	$SArray = [
+	// 		":tid" => $subscription->id,
+	// 		":data" => json_encode($subscription->items->data),
+	// 	];
 
-		$this->db->update("subscription", [], ["id" => $subid], $SArray);
+	// 	$this->db->update("subscription", [], ["id" => $subid], $SArray);
 
-		// Update database
-		$UArray = [
-			":last_payment" => date("Y-m-d h:i:s"),
-			":pro" => "1",
-			":planid" => $plan->id,
-			":address" => json_encode(
-				[
-					"address" 	=>	Main::clean($_POST["address"], 3, TRUE),
-					"city" 	=>	Main::clean($_POST["city"], 3, TRUE),
-					"state" 	=>	Main::clean($_POST["state"], 3, TRUE),
-					"zip" 	=>	Main::clean($_POST["zip"], 3, TRUE),
-					"country" 	=>	Main::clean($_POST["country"], 3, TRUE)
-				]
-			),
-			":name" => Main::clean($_POST["name"])
-		];
+	// 	// Update database
+	// 	$UArray = [
+	// 		":last_payment" => date("Y-m-d h:i:s"),
+	// 		":pro" => "1",
+	// 		":planid" => $plan->id,
+	// 		":address" => json_encode(
+	// 			[
+	// 				"address" 	=>	Main::clean($_POST["address"], 3, TRUE),
+	// 				"city" 	=>	Main::clean($_POST["city"], 3, TRUE),
+	// 				"state" 	=>	Main::clean($_POST["state"], 3, TRUE),
+	// 				"zip" 	=>	Main::clean($_POST["zip"], 3, TRUE),
+	// 				"country" 	=>	Main::clean($_POST["country"], 3, TRUE)
+	// 			]
+	// 		),
+	// 		":name" => Main::clean($_POST["name"])
+	// 	];
 
-		if ($this->db->update("user", [], array("id" => $this->user->id), $UArray)) {
+	// 	if ($this->db->update("user", [], array("id" => $this->user->id), $UArray)) {
 
-			if (!empty($this->config["saleszapier"])) {
-				Main::curl($this->config["saleszapier"], [
-					"json" => true,
-					"post" => true,
-					"body" => json_encode([
-						"type" 			=> "sales",
-						"email"			=> $this->user->email,
-						"country" 	=> $this->country(),
-						"plan"			=> $plan->name,
-						"date"			=> date("Y-m-d H:i:s")
-					])
-				]);
-			}
+	// 		if (!empty($this->config["saleszapier"])) {
+	// 			Main::curl($this->config["saleszapier"], [
+	// 				"json" => true,
+	// 				"post" => true,
+	// 				"body" => json_encode([
+	// 					"type" 			=> "sales",
+	// 					"email"			=> $this->user->email,
+	// 					"country" 	=> $this->country(),
+	// 					"plan"			=> $plan->name,
+	// 					"date"			=> date("Y-m-d H:i:s")
+	// 				])
+	// 			]);
+	// 		}
 
 
-			$mail["to"] = $this->config["email"];
-			$mail["subject"] = "[{$this->config["title"]}] You have a new Subscriber.";
-			$mail["message"] = '<tr>
-															<td>Subscription - ' . $term . ' ' . $text . '</td>
-															<td class="alignright">' . Main::currency($this->config["currency"], $price) . '</td>
-														</tr>
-														' . (isset($coupon) ? '
-														<tr>
-															<td>Coupon - ' . $coupon->name . '</td>
-															<td class="alignright">-' . Main::currency($this->config["currency"], $price * ($coupon->discount / 100)) . '</td>
-														</tr>' : '') . '
-														<tr class="subtotal">
-															<td class="alignright" width="80%">Total</td>
-															<td class="alignright">' . Main::currency($this->config["currency"], (isset($coupon) ? $price * (1 - ($coupon->discount / 100)) : $price)) . '</td>
-														</tr>																												
-														<tr class="total">
-															<td class="alignright" width="80%">Charged on ' . date("d m Y - H:i:s") . '</td>
-														</tr>';
+	// 		$mail["to"] = $this->config["email"];
+	// 		$mail["subject"] = "[{$this->config["title"]}] You have a new Subscriber.";
+	// 		$mail["message"] = '<tr>
+	// 														<td>Subscription - ' . $term . ' ' . $text . '</td>
+	// 														<td class="alignright">' . Main::currency($this->config["currency"], $price) . '</td>
+	// 													</tr>
+	// 													' . (isset($coupon) ? '
+	// 													<tr>
+	// 														<td>Coupon - ' . $coupon->name . '</td>
+	// 														<td class="alignright">-' . Main::currency($this->config["currency"], $price * ($coupon->discount / 100)) . '</td>
+	// 													</tr>' : '') . '
+	// 													<tr class="subtotal">
+	// 														<td class="alignright" width="80%">Total</td>
+	// 														<td class="alignright">' . Main::currency($this->config["currency"], (isset($coupon) ? $price * (1 - ($coupon->discount / 100)) : $price)) . '</td>
+	// 													</tr>																												
+	// 													<tr class="total">
+	// 														<td class="alignright" width="80%">Charged on ' . date("d m Y - H:i:s") . '</td>
+	// 													</tr>';
 
-			Main::send($mail);
-			return Main::redirect(Main::href("user/settings", "", FALSE), array("success", e("You were successfully subscribed. Thank you!")));
-		}
-		return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("An unexpected issue occurred. Please contact us for more info.")));
-	}
+	// 		Main::send($mail);
+	// 		return Main::redirect(Main::href("user/settings", "", FALSE), array("success", e("You were successfully subscribed. Thank you!")));
+	// 	}
+	// 	return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("An unexpected issue occurred. Please contact us for more info.")));
+	// } 
 	/**
 	 * [webhook description]
 	 * @author KBRmedia <http://gempixel.com>
@@ -1252,124 +1363,125 @@ class App
 			return $this->$fn();
 		}
 
-		if (!isset($this->config["pt"]) || $this->config["pt"] != "stripe") return FALSE;
-		include(STRIPE);
+		// if (!isset($this->config["pt"]) || $this->config["pt"] != "stripe") return FALSE;
 
-		\Stripe\Stripe::setApiKey($this->config["stsk"]);
+		// include(STRIPE);
 
-		$payload = @file_get_contents("php://input");
+		// \Stripe\Stripe::setApiKey($this->config["stsk"]);
 
-		if (!$payload || empty($payload)) {
-			http_response_code(400);
-			exit;
-		}
+		// $payload = @file_get_contents("php://input");
 
-		if (!empty($this->config["stripesig"])) {
-			$sig_header = $_SERVER["HTTP_STRIPE_SIGNATURE"];
-			$event = null;
-			try {
-				$event = \Stripe\Webhook::constructEvent(
-					$payload,
-					$sig_header,
-					$this->config["stripesig"]
-				);
-			} catch (\UnexpectedValueException $e) {
-				// Invalid payload
-				error_log($e->getMessage());
-				http_response_code(400);
-				exit();
-			} catch (\Stripe\Error\SignatureVerification $e) {
-				// Invalid signature				
-				error_log($e->getMessage());
-				http_response_code(400);
-				exit();
-			}
-		}
+		// if (!$payload || empty($payload)) {
+		// 	http_response_code(400);
+		// 	exit;
+		// }
 
-		$e = json_decode($payload);
-		$ey = $e->data->object;
+		// if (!empty($this->config["stripesig"])) {
+		// 	$sig_header = $_SERVER["HTTP_STRIPE_SIGNATURE"];
+		// 	$event = null;
+		// 	try {
+		// 		$event = \Stripe\Webhook::constructEvent(
+		// 			$payload,
+		// 			$sig_header,
+		// 			$this->config["stripesig"]
+		// 		);
+		// 	} catch (\UnexpectedValueException $e) {
+		// 		// Invalid payload
+		// 		error_log($e->getMessage());
+		// 		http_response_code(400);
+		// 		exit();
+		// 	} catch (\Stripe\Error\SignatureVerification $e) {
+		// 		// Invalid signature				
+		// 		error_log($e->getMessage());
+		// 		http_response_code(400);
+		// 		exit();
+		// 	}
+		// }
 
-		if ($ey->object == "charge") {
+		// $e = json_decode($payload);
+		// $ey = $e->data->object;
 
-			if (!$user = $this->db->get("user", ["customerid" => $ey->customer], ["limit" => "1"])) return print("User does not exist");
+		// if ($ey->object == "charge") {
 
-			$subscription = $this->db->get("subscription", ["userid" => $user->id], ["limit" => "1", "order" => "date"]);
+		// 	if (!$user = $this->db->get("user", ["customerid" => $ey->customer], ["limit" => 1])) return print("User does not exist");
 
-			if ($ey->paid == true && $ey->status == "succeeded") {
+		// 	$subscription = $this->db->get("subscription", ["userid" => $user->id], ["limit" => "1", "order" => "date"]);
 
-				if ($subscription->plan == "yearly") {
-					$new_expiry = date("Y-m-d H:i:s", strtotime("+1 year", $e->created));
-				} elseif ($subscription->plan == "lifetime") {
-					$new_expiry = date("Y-m-d H:i:s", strtotime("+50 year", $e->created));
-				} else {
-					$new_expiry = date("Y-m-d H:i:s", strtotime("+1 month", $e->created));
-				}
+		// 	if ($ey->paid == true && $ey->status == "succeeded") {
 
-				$PArray = [
-					":date"  => "NOW()",
-					":cid" => $ey->id,
-					":tid"  => Main::strrand(16),
-					":amount"  =>  $ey->amount / 100,
-					":userid"  =>  $user->id,
-					":status" => "Completed",
-					":expiry" =>  $new_expiry,
-					":data" =>  json_encode($ey)
-				];
+		// 		if ($subscription->plan == "yearly") {
+		// 			$new_expiry = date("Y-m-d H:i:s", strtotime("+1 year", $e->created));
+		// 		} elseif ($subscription->plan == "lifetime") {
+		// 			$new_expiry = date("Y-m-d H:i:s", strtotime("+50 year", $e->created));
+		// 		} else {
+		// 			$new_expiry = date("Y-m-d H:i:s", strtotime("+1 month", $e->created));
+		// 		}
 
-				$this->db->insert("payment", $PArray);
+		// 		$PArray = [
+		// 			":date"  => "NOW()",
+		// 			":cid" => $ey->id,
+		// 			":tid"  => Main::strrand(16),
+		// 			":amount"  =>  $ey->amount / 100,
+		// 			":userid"  =>  $user->id,
+		// 			":status" => "Completed",
+		// 			":expiry" =>  $new_expiry,
+		// 			":data" =>  json_encode($ey)
+		// 		];
 
-				$amount = $subscription->amount + ($ey->amount / 100);
+		// 		$this->db->insert("payment", $PArray);
 
-				$this->db->update("subscription", ["amount" => $amount, "expiry" => $new_expiry, "status" => "Active"], ["userid" => $user->id]);
+		// 		$amount = $subscription->amount + ($ey->amount / 100);
 
-				$this->db->update("user", ["expiration" => $new_expiry, "pro" => "1"], ["id" => $user->id]);
+		// 		$this->db->update("subscription", ["amount" => $amount, "expiry" => $new_expiry, "status" => "Active"], ["userid" => $user->id]);
 
-				// $mail["to"] = $this->config["email"];
-				// $mail["subject"] = "[{$this->config["title"]}] Payment successfully charged.";
-				// $mail["message"] = '<tr>
-				// 												<td>Subscription - '.$subscription->plan.'</td>
-				// 												<td class="alignright">'.Main::currency($this->config["currency"], $ey->amount / 100).'</td>
-				// 											</tr>
-				// 											<tr class="soustotal">
-				// 												<td class="alignright" width="80%">Subtotal</td>
-				// 												<td class="alignright">'.Main::currency($this->config["currency"], $ey->amount / 100).'</td>
-				// 											</tr>																												
-				// 											<tr class="total">
-				// 												<td class="alignright" width="80%">Charged on '.$ey->source->brand.' ('.$ey->source->last4.')</td>
-				// 											</tr>';
+		// 		$this->db->update("user", ["expiration" => $new_expiry, "pro" => "1"], ["id" => $user->id]);
 
-				//    Main::send($mail);				   			    		
+		// 		// $mail["to"] = $this->config["email"];
+		// 		// $mail["subject"] = "[{$this->config["title"]}] Payment successfully charged.";
+		// 		// $mail["message"] = '<tr>
+		// 		// 												<td>Subscription - '.$subscription->plan.'</td>
+		// 		// 												<td class="alignright">'.Main::currency($this->config["currency"], $ey->amount / 100).'</td>
+		// 		// 											</tr>
+		// 		// 											<tr class="soustotal">
+		// 		// 												<td class="alignright" width="80%">Subtotal</td>
+		// 		// 												<td class="alignright">'.Main::currency($this->config["currency"], $ey->amount / 100).'</td>
+		// 		// 											</tr>																												
+		// 		// 											<tr class="total">
+		// 		// 												<td class="alignright" width="80%">Charged on '.$ey->source->brand.' ('.$ey->source->last4.')</td>
+		// 		// 											</tr>';
 
-			} elseif ($ey->status == "failed") {
-				$PArray = [
-					":date"  => "NOW()",
-					":cid" => $ey->id,
-					":tid"  => Main::strrand(16),
-					":amount"  =>  $ey->amount / 100,
-					":status"  =>  "Failed",
-					":userid"  =>  $user->id,
-					":data" =>  json_encode($ey)
-				];
+		// 		//    Main::send($mail);				   			    		
 
-				$this->db->insert("payment", $PArray);
-				$mail["to"] = $user->email;
-				$mail["subject"] = "[{$this->config["title"]}] Payment failed!";
-				$mail["message"] = '<tr>
-																<td>Subscription - ' . $subscription->plan . '</td>
-																<td class="alignright">' . Main::currency($this->config["currency"], $ey->amount / 100) . '</td>
-															</tr>
-															<tr class="soustotal">
-																<td class="alignright" width="80%">Subtotal</td>
-																<td class="alignright">' . Main::currency($this->config["currency"], $ey->amount / 100) . '</td>
-															</tr>																												
-															<tr class="total">
-																<td class="alignright" width="80%">Failed on ' . $ey->source->brand . ' (' . $ey->source->last4 . ')</td>
-															</tr>';
+		// 	} elseif ($ey->status == "failed") {
+		// 		$PArray = [
+		// 			":date"  => "NOW()",
+		// 			":cid" => $ey->id,
+		// 			":tid"  => Main::strrand(16),
+		// 			":amount"  =>  $ey->amount / 100,
+		// 			":status"  =>  "Failed",
+		// 			":userid"  =>  $user->id,
+		// 			":data" =>  json_encode($ey)
+		// 		];
 
-				Main::send($mail);
-			}
-		}
-		http_response_code(200);
+		// 		$this->db->insert("payment", $PArray);
+		// 		$mail["to"] = $user->email;
+		// 		$mail["subject"] = "[{$this->config["title"]}] Payment failed!";
+		// 		$mail["message"] = '<tr>
+		// 														<td>Subscription - ' . $subscription->plan . '</td>
+		// 														<td class="alignright">' . Main::currency($this->config["currency"], $ey->amount / 100) . '</td>
+		// 													</tr>
+		// 													<tr class="soustotal">
+		// 														<td class="alignright" width="80%">Subtotal</td>
+		// 														<td class="alignright">' . Main::currency($this->config["currency"], $ey->amount / 100) . '</td>
+		// 													</tr>																												
+		// 													<tr class="total">
+		// 														<td class="alignright" width="80%">Failed on ' . $ey->source->brand . ' (' . $ey->source->last4 . ')</td>
+		// 													</tr>';
+
+		// 		Main::send($mail);
+		// 	}
+		// }
+		// http_response_code(200); 
 	}
 	/**
 	 * Slack Responder
@@ -1399,7 +1511,7 @@ class App
 				$custom = "";
 			}
 
-			if (!$user = $this->db->get("user", ["slackid" => "?"], ["limit" => "1"], [$user_id])) {
+			if (!$user = $this->db->get("user", ["slackid" => "?"], ["limit" => 1], [$user_id])) {
 				return print($url);
 			}
 
@@ -1511,13 +1623,13 @@ class App
 			}
 			// Update database
 			if ($this->db->insert("payment", $insert) && $this->db->update("user", array("last_payment" => "NOW()", "expiration" => $expires, "pro" => "1", "planid" => $plan->id), array("id" => $this->userid))) {
-				Main::redirect(Main::href("user/settings", "", FALSE), array("success", e("Your payment was successfully made. Thank you.")));
+				Main::redirect(Main::href("user/membership", "", FALSE), array("success", e("Your payment was successfully made. Thank you.")));
 			} else {
-				Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("An unexpected issue occurred. Please contact us for more info.")));
+				Main::redirect(Main::href("pricing", "", FALSE), array("danger", e("An unexpected issue occurred. Please contact us for more info.")));
 			}
 		}
 		// Return to settings page
-		return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("An unexpected issue occurred. Please contact us for more info.")));
+		return Main::redirect(Main::href("pricing", "", FALSE), array("danger", e("An unexpected issue occurred. Please contact us for more info.")));
 	}
 	/**
 	 * Profile Shortcut
@@ -1542,7 +1654,7 @@ class App
 			return $this->profile_qr($user);
 		}
 
-		if ($this->logged() && $this->userid == $user->id && !$user->public) return Main::redirect(Main::href("user/settings", "", FALSE), array("danger", e("You have to make your profile public for this page to be accessible.")));
+		if ($this->logged() && $this->userid == $user->id && !$user->public) return Main::redirect(Main::href("user/settings#msettings", "", FALSE), array("danger", e("You have to make your profile public for this page to be accessible.")));
 		// Check if profile is public
 		if (!$user->public) return $this->_404();
 
@@ -1698,8 +1810,8 @@ class App
 			if (!Main::validate_csrf_token($_POST["token"])) {
 				return Main::redirect("contact", array("danger", e("Something went wrong, please try again.")));
 			}
-			if (empty($_POST["email"]) || !Main::email($_POST["email"]) || empty($_POST["message"]) || strlen($_POST["message"]) < 5) {
-				return Main::redirect("contact", array("danger", e("Please fill everything") . "!"));
+			if (empty($_POST["email"]) || !Main::email($_POST["email"]) || empty($_POST["message"]) || strlen($_POST["message"]) < 10 || strlen($_POST["topic"]) < 5) {
+				return Main::redirect("contact", array("danger", e("There is something wrong with your input data. Please try again.") . "!"));
 			}
 			// Check Captcha
 			if ($this->config["captcha"]) {
@@ -1712,10 +1824,15 @@ class App
 			$name = Main::clean($_POST["name"], 3, TRUE);
 			$mail["to"] = $this->config["email"];
 			$mail["subject"] = "[{$this->config["title"]}] You have been contacted!";
-			$mail["message"] = "From: $name ($email)<br><br>" . Main::clean($_POST["message"], 3, TRUE);
+			$mail["message"] =	"From: $name ($email)<br><br>"
+								. "Department: " . $_POST["department"] . 'with ' . $_POST["priority"] . '<br>'
+								. "Topic: " . Main::clean($_POST["topic"], 3, TRUE) . '<br><br>'
+								. Main::clean($_POST["message"], 3, TRUE) . "<br><br>"
+								. Date("Y-m-d H:i:s", strtotime("now"));
 			Main::send($mail);
 			return Main::redirect("contact", array("success", e("Your message has been sent. We will reply you as soon as possible.")));
 		}
+		Main::cdn("jqueryvalidation");
 		Main::set("title", e("Contact Us"));
 		Main::set("description", e("If you have any questions, feel free to contact us on this page."));
 		Main::set("url", "{$this->config["url"]}/contact");
@@ -2163,7 +2280,7 @@ class App
 							        <option value="direct"' . ($this->user->defaulttype == "direct" || $this->user->defaulttype == "" ? " selected" : "") . '>' . e("Direct") . '</option>
 							        <option value="frame"' . ($this->user->defaulttype == "frame" ? " selected" : "") . '>' . e("Frame") . '</option>
 							        <option value="splash"' . ($this->user->defaulttype == "splash" ? " selected" : "") . '>' . e("Splash") . '</option>
-						        </optgroup>' : '<option value="system">' . e("System") . '</option>');
+						        </optgroup>' : '<option value="system">' . e("Default") . '</option>');
 			if ($splash) {
 				$html .= '<optgroup label="' . e('Custom Splash') . '">';
 				foreach ($splash as $type) {
@@ -2243,12 +2360,17 @@ class App
 						          <li><a href='" . Main::href("user/logout") . "'><span class='glyphicon glyphicon-log-out'></span> " . e("Logout") . "</a></li>
 					          </ul>
 						  </li>";*/
-			$displayname = ($this->user->name) ? $this->user->name : $this->user->username;
+			$displayname = ($this->user->name) ? $this->user->name : $this->user->username;			
+			$pro = ($this->user->pro) ? "Pro" : "Free";
+			$style_for_badge = ($this->user->pro) ? "success" : "warning";
+			if ($this->isTeam()) {$pro = "Team"; $style_for_badge = "warning";}
 
 			$menu .= "<li class='d-sm-flex'>
 				<button class='d-flex align-items-center dropdown-toggle' type='button' id='dropdownMenuButton' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false' style='border:0px; background-color:transparent;'>
 					<span class='flex d-flex flex-column mr-8pt text-left'>
-						<span class='navbar-text-100'>{$displayname}</span>
+						<span class='navbar-text-100'>{$displayname}
+							<div style='position: relative;'><span class='badge badge-".$style_for_badge."' style='position: absolute;top: -30px;right: -20px;'>".$pro."</span></div>
+						</span>
 						<small class='navbar-text-50'>{$this->user->email}</small>
 					</span>
 					<img src='{$this->user->avatar}' alt='' style='width:32px;' class='ml-8pt' />
@@ -2623,18 +2745,24 @@ class App
 
 		$bundles = $this->db->get("bundle", array("userid" => "?"), "", array($this->user->id));
 
+		$short_url = ($url->domain ? $url->domain : $this->config["url"]).'/'. $url->alias.$url->custom;
+
 		echo '<form role="form" action="' . Main::href("user/bundles/update") . '" method="post">
-							  <div class="form-group">
-							    <label>' . e("URL") . '</label>
-							    <input type="text" class="form-control" value="' . $url->url . '" disabled>
-							  </div>
-							  <div class="form-group">
-									<label class="label-block">' . e("Choose Bundle") . ' <a href="#" data-action="bundle_create" data-title="' . e("Create Bundle") . '" class="btn btn-xs btn-primary pull-right ajax_call">' . e("Create Bundle") . '</a></label>';
+				<div class="form-group">
+					<label>' . e("Add following URL") . ':</label>
+					<p>
+						<span style="color: #007756;">' . $url->url . '</span>
+						<span style="position: relative; top: 3px; color: #6576ff;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right-fill" viewBox="0 0 16 16"><path d="M12.14 8.753l-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"></path></svg></span>
+						<span style="background-color: #ffffbb;font-weight: 700;padding: 5px 10px 5px 10px;color: #cf293a;">' . $short_url . '</span>
+					</p><hr>
+				</div>
+				<div class="form-group">
+					<label class="label-block">' . e("To selected Bundle below") . ' <a href="#" data-action="bundle_create" data-title="' . e("Create Bundle") . '" class="btn btn-xs btn-primary pull-right ajax_call">' . e("Create Bundle") . '</a></label>';
 		if (!$bundles) {
 			echo e('No bundles found');
 		} else {
 			echo '<select name="bundle_id">';
-			echo "<option value='0'>" . e("Remove from bundle") . "</option>";
+			echo "<option value='0'>" . e("Remove from Bundle") . "</option>";
 			foreach ($bundles as $bundle) {
 				echo '<option value="' . $bundle->id . '" ' . ($url->bundle == $bundle->id ? 'selected' : '') . '>' . $bundle->name . '</option>';
 			}
@@ -2906,7 +3034,7 @@ class App
 	protected function server_delete_account()
 	{
 		echo '<form action="' . Main::href("user/terminate") . '" method="post" class="form">
-								<p>' . e("We respect your privacy and as such you can delete your account permanently and remove all your data from our server. Please note that this action is permanent and cannot be reversed.") . '</p>
+								<p class="text-justify">' . e("We respect your privacy and as such you can delete your account permanently and remove all your data from our server. Please note that this action is permanent and cannot be reversed.") . '</p>
 
 								<div class="form-group">
 									<label>' . e("Password") . '</label>			
@@ -3153,7 +3281,7 @@ class App
 			$html .= "<a class='btn btn-block btn-primary' href='" . Main::href("user/export/$id") . Main::nonce("export_url-$id") . "' rel='nofollow' title='" . e("Export Data") . "'>" . e("Export Data") . "</a>";
 		} else {
 			$html .= '<h3>' . e("Export URLs") . '</h3>';
-			$html .= '<p>' . e("You can export your URLs along with a summary of the stats as CSV. Simply click the following button to create it.") . '</p>';
+			$html .= '<p class="text-justify">' . e("You can export your URLs along with a summary of the stats as CSV. Simply click the following button to create it.") . '</p>';
 			$html .= "<p class='d-flex justify-content-end'><a class='btn btn-primary' href='" . Main::href("user/export") . Main::nonce("export_url") . "' rel='nofollow' title='" . e("Export URLs") . "'>" . e("Export URLs") . "</a></p>";
 		}
 		$html .= '</div>';
@@ -3468,7 +3596,7 @@ class App
 
 		if (!$this->config["blog"]) return $this->_404();
 
-		if (!$post = $this->db->get("posts", ["published" => "?", "slug" => "?"], ["limit" => "1"], ["1", $this->do])) {
+		if (!$post = $this->db->get("posts", ["published" => "?", "slug" => "?"], ["limit" => 1], ["1", $this->do])) {
 			return $this->_404();
 		}
 
@@ -3504,7 +3632,7 @@ class App
 	 */
 	protected function r()
 	{
-		if (!$bundle = $this->db->get("bundle", ["slug" => "?"], ["limit" => "1"], [Main::clean($this->do, 3, TRUE)])) {
+		if (!$bundle = $this->db->get("bundle", ["slug" => "?"], ["limit" => 1], [Main::clean($this->do, 3, TRUE)])) {
 			return $this->_404();
 		}
 
@@ -3723,7 +3851,7 @@ class App
 					return Main::redirect("report", array("danger", $captcha));
 				}
 			}
-			if (!$this->db->get("reports", ["url" => "?"], ["limit" => "1"], [Main::clean($_POST["link"], 3, TRUE)])) {
+			if (!$this->db->get("reports", ["url" => "?"], ["limit" => 1], [Main::clean($_POST["link"], 3, TRUE)])) {
 				$this->db->insert("reports", [
 					":url"  => Main::clean($_POST["link"], 3, TRUE),
 					":type" => Main::clean($_POST["reason"], 3, TRUE),
@@ -3752,7 +3880,7 @@ class App
 	private function ProcessPayPalAPI()
 	{
 
-		if (!$plan = $this->db->get("plans", ["id" => ":id"], ["limit" => "1"], [":id" => $this->id])) {
+		if (!$plan = $this->db->get("plans", ["id" => ":id"], ["limit" => 1], [":id" => $this->id])) {
 			return Main::redirect(Main::href("pricing", "", FALSE));
 		}
 
@@ -3767,7 +3895,7 @@ class App
 
 		$connection->setConfig(
 			[
-				'log.LogEnabled' => false,
+				'log.LogEnabled' => true,
 				'log.FileName' => 'PayPal.log',
 				'log.LogLevel' => 'DEBUG',
 				'mode' => 'live'
@@ -3782,7 +3910,7 @@ class App
 			->setStartDate(date("c", strtotime("+2 minutes")));
 
 		$pplan = new PayPal\Api\Plan();
-		$pplan->setId($plan->stripeid);
+		$pplan->setId($plan->stripeid);	//???? stripeid ??
 		$agreement->setPlan($pplan);
 
 		$payer = new PayPal\Api\Payer();
@@ -3800,7 +3928,7 @@ class App
 
 			$approvalUrl = $agreement->getApprovalLink();
 			$uniqueid = Main::strrand(16);
-			$SArray = [
+			$SArray = [  //Subscription Array
 				":tid" => null,
 				":userid" => $this->user->id,
 				":plan" => $this->do,
@@ -3815,7 +3943,7 @@ class App
 			];
 			$this->db->insert("subscription", $SArray);
 
-			$UArray = [
+			$UArray = [  //User Array
 				":last_payment" => date("Y-m-d h:i:s"),
 				":pro" => "1",
 				":planid" => $plan->id,
@@ -3837,10 +3965,10 @@ class App
 		} catch (PayPal\Exception\PayPalConnectionException $ex) {
 			error_log($ex->getCode());
 			error_log($ex->getData());
-			return Main::redirect("user", array("danger", e("An issue occured. You have not been charged.")));
+			return Main::redirect("pricing", array("danger", e("An issue occured. You have not been charged.")));
 		} catch (Exception $e) {
 			error_log($e->getMessage());
-			return Main::redirect("user", array("danger", e("An issue occured. You have not been charged.")));
+			return Main::redirect("pricing", array("danger", e("An issue occured. You have not been charged.")));
 		}
 	}
 	/**
@@ -3863,7 +3991,7 @@ class App
 
 		$connection->setConfig(
 			[
-				'log.LogEnabled' => false,
+				'log.LogEnabled' => true,
 				'log.FileName' => 'PayPal.log',
 				'log.LogLevel' => 'DEBUG',
 				'mode' => 'live'
@@ -3880,18 +4008,16 @@ class App
 
 				$userid = str_replace('userid:', '', $response["description"]);
 
-				if (!$user = $this->db->get("user", ["id" => $userid], ["limit" => "1"])) return Main::redirect("user", array("danger", e("An issue occured. You have not been charged.")));
+				if (!$user = $this->db->get("user", ["id" => $userid], ["limit" => 1])) return Main::redirect("pricing", array("danger", e("An issue occured. You have not been charged.")));
 
 				$subscription = $this->db->get("subscription", ["userid" => $user->id], ["limit" => "1", "order" => "date"]);
 
-				if ($response["state"] !== "Active") return Main::redirect("user", array("danger", e("An issue occured. You have not been charged.")));
+				if ($response["state"] !== "Active") return Main::redirect("pricing", array("danger", e("An issue occured. You have not been charged.")));
 
 
 				if ($response["plan"]['payment_definitions'][0]['frequency'] == "YEAR") {
-
 					$new_expiry = date("Y-m-d H:i:s", strtotime("+1 year", strtotime($response['start_date'])));
 				} else {
-
 					$new_expiry = date("Y-m-d H:i:s", strtotime("+1 month", strtotime($response['start_date'])));
 				}
 
@@ -3918,13 +4044,96 @@ class App
 			} catch (PayPal\Exception\PayPalConnectionException $ex) {
 				error_log($ex->getCode());
 				error_log($ex->getData());
-				return Main::redirect("user", array("danger", e("An issue occured. You have not been charged.")));
+				return Main::redirect("pricing", array("danger", e("An issue occured. You have not been charged.")));
 			} catch (Exception $ex) {
 				error_log($ex->getMessage());
-				return Main::redirect("user", array("danger", e("An issue occured. You have not been charged.")));
+				return Main::redirect("pricing", array("danger", e("An issue occured. You have not been charged.")));
 			}
 		} else {
-			return Main::redirect("user", array("warning", e("Your payment has been canceled.")));
+			return Main::redirect("pricing", array("warning", e("Your payment has been canceled.")));
+		}
+	}
+
+	/**
+	 * [webhook_alepay description]
+	 * @author BizChain
+	 * @version 1.0
+	 * @return  [type] [description]
+	 */
+	protected function webhook_alepay()
+	{
+
+		include(AUTOLOAD);
+
+		$connection = new \PayPal\Rest\ApiContext(
+			new \PayPal\Auth\OAuthTokenCredential(
+				$this->config["pppublic"],
+				$this->config["ppprivate"]
+			)
+		);
+
+		$connection->setConfig(
+			[
+				'log.LogEnabled' => true,
+				'log.FileName' => 'PayPal.log',
+				'log.LogLevel' => 'DEBUG',
+				'mode' => 'live'
+			]
+		);
+
+		if (isset($_GET['success']) && $_GET['success'] == 'true') {
+			$token = $_GET['token'];
+			$agreement = new \PayPal\Api\Agreement();
+
+			try {
+				// Execute agreement
+				$response = $agreement->execute($token, $connection)->toArray();
+
+				$userid = str_replace('userid:', '', $response["description"]);
+
+				if (!$user = $this->db->get("user", ["id" => $userid], ["limit" => 1])) return Main::redirect("pricing", array("danger", e("An issue occured. You have not been charged.")));
+
+				$subscription = $this->db->get("subscription", ["userid" => $user->id], ["limit" => "1", "order" => "date"]);
+
+				if ($response["state"] !== "Active") return Main::redirect("pricing", array("danger", e("An issue occured. You have not been charged.")));
+
+
+				if ($response["plan"]['payment_definitions'][0]['frequency'] == "YEAR") {
+					$new_expiry = date("Y-m-d H:i:s", strtotime("+1 year", strtotime($response['start_date'])));
+				} else {
+					$new_expiry = date("Y-m-d H:i:s", strtotime("+1 month", strtotime($response['start_date'])));
+				}
+
+				$PArray = [
+					":date"  => "NOW()",
+					":cid" => $response['id'],
+					":tid"  => Main::strrand(16),
+					":amount"  =>  $response["plan"]['payment_definitions'][0]['amount']['value'],
+					":userid"  =>  $user->id,
+					":status" => "Completed",
+					":expiry" =>  $new_expiry,
+					":data" =>  json_encode($response)
+				];
+
+				$this->db->insert("payment", $PArray);
+
+				$amount = $subscription->amount + $PArray[":amount"];
+
+				$this->db->update("subscription", ["tid" => $response['id'], "amount" => $amount, "expiry" => $new_expiry, "status" => "Active"], ["userid" => $user->id]);
+
+				$this->db->update("user", ["expiration" => $new_expiry, "pro" => "1"], ["id" => $user->id]);
+
+				return Main::redirect(Main::href("user/membership", "", FALSE), array("success", e("Your payment was successfully made. Thank you.")));
+			} catch (PayPal\Exception\PayPalConnectionException $ex) {
+				error_log($ex->getCode());
+				error_log($ex->getData());
+				return Main::redirect("pricing", array("danger", e("An issue occured. You have not been charged.")));
+			} catch (Exception $ex) {
+				error_log($ex->getMessage());
+				return Main::redirect("pricing", array("danger", e("An issue occured. You have not been charged.")));
+			}
+		} else {
+			return Main::redirect("pricing", array("warning", e("Your payment has been canceled.")));
 		}
 	}
 
@@ -3935,6 +4144,345 @@ class App
 	 */
 	private function ProcessAlepayAPI()
 	{
-		// TODO: Tiến hành thanh toán qua Alepay!
+		$plan = $this->db->get("plans", ["id" => ":id"], ["limit" => 1], [":id" => $this->id]);
+		if (!$plan) {
+			return Main::redirect("pricing", array("error", 'Cannot detect plan information!'));
+		}
+
+		require(ROOT . '/includes/library/alepay/config.php');
+		require(ROOT . '/includes/library/alepay/Lib/Alepay.php');
+
+		$alepay = new Alepay($aleconfig);
+		$adata = array();
+		$mdata = json_decode(safe_b64decode($_POST["encryptdata"]));
+
+		$adata['amount'] = $mdata->ra;
+		$adata['orderCode'] = date('dmY') . '_' . uniqid();
+		$adata['currency'] = 'VND';
+		$adata['orderDescription'] = "Rebranding.today Service | Type (" . ucfirst($this->do) . ') | Name (' . $mdata->d . ")";
+		$adata['totalItem'] = 1;
+		// 0: Cho phép thanh toán ngay với thẻ quốc tế và trả góp
+		// 1: chỉ thanh toán ngay với thẻ quốc tế 2: Chỉ thanh toán trả góp
+		// 3: Thanh toán ngay với thẻ ATM, IB, QRCODE, thẻ quốc tế
+		//	  và thanh toán trả góp nếu
+		//	  thiết lập allowDomestic = true
+		$adata['checkoutType'] = 3;
+		$adata['buyerName'] = trim(Main::clean($_POST["name"], 3, TRUE));
+		$adata['buyerEmail'] = trim(Main::clean($_POST["email"], 3, TRUE));
+		$adata['buyerPhone'] = trim(Main::clean($_POST["mobile"], 3, TRUE));
+		$adata['buyerAddress'] = trim(Main::clean($_POST["address"], 3, TRUE));
+		$adata['buyerCity'] = trim(Main::clean($_POST["city"], 3, TRUE));
+		$adata['buyerCountry'] = trim(Main::clean($_POST["country"], 3, TRUE));
+		$adata['paymentHours'] = 24; //24 tiếng :  Thời gian cho phép thanh toán (tính bằng giờ)
+		$adata['allowDomestic'] = true;
+
+		/* Sử dụng Tokenization khi
+			1. Trial = 1 và mua gói Subscription (không mua Lifetime)
+			2. Chuyển gói Lifetime sang gói Subscription.
+		*/
+		if ($this->do !== "lifetime") { //Nếu không phải Lifetime thì Tokenization hehe
+			$adata['merchantSideUserId'] = $this->user->id;
+			$adata['buyerPostalCode'] = trim(Main::clean($_POST["zip"], 3, TRUE));
+			$adata['buyerState'] = $adata['buyerCity'];
+			$adata['isCardLink'] = true;
+		}
+
+		//Tạo callbackURL với các thông tin cần thiết -> cần thông tin gì thì add vào đây hết!
+		$aleconfig["callbackUrl"] = 'https://rebranding.today/processing/' . $this->do . '/' . $this->id . '?e='.$_POST["encryptdata"];
+		$adata['returnUrl'] = $aleconfig["callbackUrl"];
+		$adata['cancelUrl'] = 'https://rebranding.today/processing?alepay=cancel';
+
+		//var_dump($aleconfig["callbackUrl"]); return;
+
+		$result = $alepay->sendOrderToAlepay($adata);
+
+		if (isset($result) && !empty($result->checkoutUrl)) {
+			return Main::redirect($result->checkoutUrl, [], '', true);
+		} else {
+			return Main::redirect("pricing", array("danger", 'Fail to initialize payment process with error code: ' . $result->errorDescription));
+		}
 	}
+
+	/**
+	 * Alepay - process returned data
+	 **/
+	protected function processing()
+	{
+		// Require Login
+		// if (!$this->logged()) {
+		// 	return Main::redirect(Main::href("user/login", "", FALSE));
+		// }
+		if (isset($_REQUEST['alepay']) == 'cancel')
+			return Main::redirect("pricing", array("warning", e("You've just cancelled the payment process.")));
+
+		/* 	Xử lý renew
+			Cấu trúc: ==>> processing/renew
+		*/
+		if ($this->do == "renew") {
+			return;
+		}
+
+		/* Xử lý dữ liệu của Alepay trả về trong trường hợp mua lần đầu hoặc nâng cấp mà cần phải mua! */
+
+		if (isset($_REQUEST['data']) && isset($_REQUEST['checksum'])) {
+
+			$plan = $this->db->get("plans", ["id" => ":id"], ["limit" => 1], [":id" => $this->id]);
+			if (!$plan) {
+				return Main::redirect("pricing", array("danger", "Something wrong with the database! Please report to us!"));
+			}
+
+			//Giải mã thông tin mua hàng ở bước Checkout trước đây
+			$mInfo = json_decode(safe_b64decode($_REQUEST["e"]));
+
+			require(ROOT . '/includes/library/alepay/config.php');
+			require(ROOT . '/includes/library/alepay/Lib/Alepay.php');
+			$encryptKey = $aleconfig['encryptKey'];
+
+			$alepay = new Alepay($aleconfig);
+			$utils = new AlepayUtils();
+			$result = $utils->decryptCallbackData($_REQUEST['data'], $encryptKey);
+			$obj_data = json_decode($result);
+
+			if (is_object($obj_data->data)) {	//Nếu là Tokenize (Subscription)
+				$transaction_code = $obj_data->data->transactionCode;
+				$mdata = json_decode($alepay->getTransactionInfo($transaction_code));
+	
+				//000 = Giao dịch thành công
+				//150 = Thẻ bị review
+				//107 = Giao dịch đang được xử lý
+
+				if (($obj_data->errorCode === '000') || ($obj_data->errorCode === '150') || ($obj_data->errorCode === '107')) {
+
+					$new_expiry = date("Y-m-d H:i:s", strtotime($mInfo->e));
+					$payment_status = $alepay->alePaymentStatus($obj_data->errorCode);
+					$successTime = date("Y-m-d H:i:s", $mdata->successTime / 1000);
+					$data_token = json_encode($obj_data->data, JSON_UNESCAPED_UNICODE);  //Lưu vào Table::Subscription->data
+
+					if (!$mInfo->s) {
+						
+						$SArray = [  //S = Subscription 
+							":tid" => $mdata->orderCode,
+							":uniqueid" => $mdata->transactionCode,
+							":userid" => $this->user->id,
+							":plan" => $this->do,
+							":planid" => $this->id,
+							":status" => 'active',
+							":amount" => $mInfo->pp,
+							":date" => $successTime,
+							":expiry" => $new_expiry,
+							":lastpayment" => $successTime,
+							":data" => $data_token,
+							":reason" => $mdata->reason
+						];
+						$this->db->insert("subscription", $SArray);
+						
+					} else {
+						$SArray = [  //S = Subscription 
+							":uniqueid" => $mdata->transactionCode,
+							":plan" => $this->do,
+							":planid" => $this->id,
+							":status" => 'active',
+							":amount" => $mInfo->pp,
+							//":date" => $successTime,
+							":expiry" => $new_expiry,
+							":lastpayment" => $successTime,
+							":data" => $data_token,
+							":reason" => $mdata->reason
+						];						
+						$this->db->update("subscription", "", ["id" => $mInfo->s], $SArray);
+					}
+	
+					$PArray = [ //P = Payment
+						":date"  => $successTime,
+						":tid"  => $mdata->transactionCode,
+						":amount"  =>  $mdata->requestAmount,
+						":trial_days" => null,
+						":userid"  =>  $this->user->id,
+						":status" => $payment_status,
+						":expiry" => $new_expiry,
+						":data" =>  NULL
+					];
+					$this->db->insert("payment", $PArray);
+
+					
+					$UArray = [  //U = User || Activate the account
+						":last_payment" => $successTime,
+						":pro" => 1,
+						":planid" => $this->id,
+						":name" => $mdata->buyerName,
+						":expiration" => $new_expiry,
+						":trial" => 0
+					];
+					$this->db->update("user", "", array("id" => $this->user->id), $UArray);
+
+					if ($payment_status == "Completed")
+						return Main::redirect("user/membership", array("success", e('Thank you! Your payment has just been accepted and your account activated!')));
+					else
+						return Main::redirect("user/membership", array("warning", e('Thank you! The payment is being processed. Your account would be updated automatically as soon as we received the successfull message!')));
+
+				} else {
+					return Main::redirect("pricing", array("danger", "Payment failed with error code " . $obj_data->errorCode));
+				}
+				return Main::redirect("user", array("danger", "Wow, weird!"));
+			} else {				
+
+				$transaction_code = $obj_data->data;  //transaction code				
+				$mdata = json_decode($alepay->getTransactionInfo($transaction_code)); //data				
+	
+				if (($obj_data->errorCode === '000') || ($obj_data->errorCode === '150') || ($obj_data->errorCode === '107')) {
+
+					$new_expiry = date("Y-m-d H:i:s", strtotime($mInfo->e));
+					$payment_status = $alepay->alePaymentStatus($obj_data->errorCode);
+					$successTime =  date("Y-m-d H:i:s", $mdata->successTime / 1000);
+					
+					$PArray = [ //P = Payment
+						":date"  => $successTime,
+						":tid"  => $mdata->transactionCode,
+						":amount"  =>  $mdata->requestAmount,
+						":trial_days" => null,
+						":userid"  =>  $this->user->id,
+						":status" => $payment_status,
+						":expiry" =>  $new_expiry,
+						":data" =>  NULL
+					];
+					$this->db->insert("payment", $PArray);
+
+					if ($payment_status == "Completed") {
+						$UArray = [  //U = User || Activate the account
+							":last_payment" => $successTime,
+							":expiration" => $new_expiry,
+							":pro" => 1,
+							":planid" => $this->id,
+							":name" => $mdata->buyerName,
+							":trial" => 0
+						];
+						$this->db->update("user", [], array("id" => $this->user->id), $UArray);
+
+						return Main::redirect("user/membership", array("success", e('Thank you! Your payment has just been accepted and your account activated!')));
+					}
+					else
+						return Main::redirect("user/membership", array("warning", e('Thank you! The payment is being processed. Your account would be updated automatically as soon as we received the successfull message!')));
+				} else {
+					return Main::redirect("pricing", array("danger", "Payment failed with error code " . $obj_data->errorCode));
+				}
+				return Main::redirect("user", array("danger", "Wow, weird!"));
+			}
+		}
+		return Main::redirect("user", array("warning", "There is nothing to do with processing!"));
+	}
+
+	/**
+	 * For testing purpose
+	 **/
+	protected function testing()
+	{
+
+		
+		// require(ROOT . '/includes/library/alepay/config.php');
+		// require(ROOT . '/includes/library/alepay/Lib/Alepay.php');
+		// $encryptKey = $aleconfig['encryptKey'];
+		// $alepay = new Alepay($aleconfig);
+		// $utils = new AlepayUtils();
+
+		// $mdata = json_decode($alepay->getTransactionInfo('ALE00NCNC'));
+
+		// $successTime = date("Y-m-d H:i:s", $mdata->successTime / 1000);
+
+		// var_dump($mdata);
+		// echo '===============================';
+		// echo $successTime;
+		// return;
+
+
+		// $a = date("d-m-Y H:i:s", strtotime("now"));
+		// echo $a;
+
+echo date_default_timezone_get();
+echo "<br>";
+echo date("d-m-Y H:i:s", strtotime("now"));echo "<br>";echo "<br>";
+echo date("d-m-Y H:i:s");
+// include (ROOT."/includes/library/timezone.php");
+// $hehe = 'ffdsfe';
+
+// if (isset($_POST['timezone'])) {
+// 	echo "You selected ".$_POST['timezone'];
+// 	$hehe = $_POST['timezone'];
+// }
+
+// echo "<form action='https://rebranding.today/testing' method='post'>";
+
+
+// 	echo '<label>Select Your Timezone</label><select id="timezone" name="timezone">';
+// 	echo '<optgroup label="TimeZone">' . "\n";
+
+
+// 	foreach($timezonelist as $name => $timezone)
+// 	{
+
+// 		echo '<option name="' . $timezone . '"'. (($hehe == $name) ? "selected" : "") .' >' . $name . '</option>' . "\n";
+// 	}
+// 	echo '<optgroup>' . "\n";
+
+// 	echo '</select>';
+// 	echo '<button type="submit" class="btn btn-primary">Submit</button>';
+// echo "</form>";
+
+// 		return;
+
+
+
+					// Send Email
+					$mail["to"] = 'support@rebranding.today';					
+					$activate = "{$this->config["url"]}/user/activate/$key?email={$mail["to"]}";
+
+					$mail["subject"] = "[{$this->config["title"]}] Registration has been successful.";
+
+					$mail["message"] = str_replace("{site.title}", $this->config["title"], $this->config["email.activation"]);
+					$mail["message"] = str_replace("{site.link}", $this->config["url"], $mail["message"]);
+					$mail["message"] = str_replace("{user.username}", "", $mail["message"]);
+					$mail["message"] = str_replace("{user.activation}", $activate, $mail["message"]);
+					$mail["message"] = str_replace("http://http", "http", $mail["message"]);
+					$mail["message"] = str_replace("{user.email}", $data[":email"], $mail["message"]);
+					$mail["message"] = str_replace("{user.date}", date("d-m-Y"), $mail["message"]);
+
+					Main::send($mail);
+					echo "<br>email sent";
+					//return Main::redirect(Main::href("user/login", "", FALSE), array("success", e("An email has been sent to activate your account.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 	}
+
+
+
+
 }

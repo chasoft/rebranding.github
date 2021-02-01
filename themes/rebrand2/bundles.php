@@ -51,9 +51,11 @@
 				<div id="data-container">
 					<div class="btn-group btn-group-sm">
 					<a href="#" class="btn btn-default tooltip" data-content="<?php echo e("Select all") ?>" id="selectall"><i class="fa fa-check-square"></i></a>
-					<?php if ($this->permission("bundle") !== FALSE): ?>	
+					<!--
+					<php if ($this->permission("bundle") !== FALSE): ?>	
 						<a href="#" class="btn btn-default tooltip" data-content="<?php echo e("Add to bundle") ?>" id="addtobundle"><i class="fa fa-folder-open"></i></a>
-					<?php endif ?>
+					<php endif ?>
+					-->
 					<a href="#" class="btn btn-default tooltip" data-content="<?php echo e("Delete all") ?>"id="deleteall"><i class="fa fa-trash"></i></a>
 				</div>
 					<form action="<?php echo Main::href("user/delete") ?>" method="post" id="delete-all-urls">				

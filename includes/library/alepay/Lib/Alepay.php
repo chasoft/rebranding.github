@@ -82,8 +82,8 @@ class Alepay {
     public function sendOrderToAlepay($data) {
         // get demo data
         // $data = $this->createCheckoutData();
-        $data['returnUrl'] = $this->callbackUrl;
-        // $data['cancelUrl'] = 'http://' . $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] . '/demo-alepay';
+        //$data['returnUrl'] = $this->callbackUrl;
+        //$data['cancelUrl'] = 'http://' . $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] . '/demo-alepay';
         $url = $this->baseURL[$this->env] . $this->URI['requestPayment'];
         $result = $this->sendRequestToAlepay($data, $url);
         if (isset($result) && $result->errorCode == '000') {
@@ -162,9 +162,9 @@ class Alepay {
 
     public function sendTokenizationPayment($tokenization) {
 
-        $data = $this->createTokenizationPaymentData($tokenization);
+        //$data = $this->createTokenizationPaymentData($tokenization);
         $url = $this->baseURL[$this->env] . $this->URI['tokenizationPayment'];
-        $result = $this->sendRequestToAlepay($data, $url);
+        $result = $this->sendRequestToAlepay($tokenization, $url);
         if ($result->errorCode == '000') {
             $dataDecrypted = $this->alepayUtils->decryptData($result->data, $this->publicKey);
             return json_decode($dataDecrypted);
@@ -232,6 +232,15 @@ class Alepay {
         return $this->alepayUtils->decryptCallbackData($data, $this->publicKey);
     }
 
+    public function alePaymentStatus($data) {
+        if ($data == '000')
+            $payment_status = "Completed";
+        else if ($data == '150')
+            $payment_status = "Payment is being reviewed";
+        else 
+            $payment_status = "Pending";        
+        return $payment_status;
+    }
 }
 
 ?>

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ====================================================================================
  *                           Premium URL Shortener (c) KBRmedia
@@ -19,144 +20,192 @@
  * @link http://gempixel.com  
  */
 
-  // Defined Constants
-	define("_VERSION","5.9.7");
-	define("APP", TRUE);
+// Defined Constants
+define("_VERSION", "5.9.7");
+define("APP", TRUE);
 
-	define("ROOT", dirname(dirname(__FILE__)));
-	
-	define("STRIPE", ROOT."/includes/library/Stripe.load.php");
-	define("AUTOLOAD", ROOT."/includes/library/autoload.php");
+define("ROOT", dirname(dirname(__FILE__)));
 
-	// Compress Page
-	if($config["gzip"]){
-	  ob_start("ob_gzhandler"); 
+//define("STRIPE", ROOT . "/includes/library/Stripe.load.php");
+define("AUTOLOAD", ROOT . "/includes/library/autoload.php");
+
+// Compress Page
+if ($config["gzip"]) {
+	ob_start("ob_gzhandler");
+}
+// Starts a session
+if (!isset($_SESSION)) {
+	session_start();
+}
+// Error Reporting
+if (!isset($config["debug"]) || $config["debug"] == 0) {
+	error_reporting(0);
+} else {
+	ini_set('display_errors', 1);
+	ini_set('display_startup_errors', 1);
+	error_reporting(E_ALL);
+}
+
+if (!isset($config["secret_key"]) || $config["secret_key"] == "RKEY") {
+	$config["secret_key"] = "";
+}
+
+
+// Connect to database
+include(ROOT . "/includes/Database.class.php");
+$db = new Database($config, $dbinfo);
+$config = $db->get_config();
+$config["smtp"] = json_decode($config["smtp"], TRUE);
+$config["theme_config"] = json_decode($config["theme_config"]);
+
+$config["prefix"] = $dbinfo["prefix"];
+
+if (!empty($config["timezone"])) {
+	date_default_timezone_set($config["timezone"]);
+}
+
+// Defines Template
+define("TEMPLATE", ROOT . "/themes/{$config["theme"]}");
+
+// phpFastCache
+if ($config["cache"]) {
+	include(ROOT . "/includes/library/Cache.class.php");
+	phpFastCache::$storage = "auto";
+}
+
+// Application Helper
+include(ROOT . "/includes/Main.class.php");
+Main::set("config", $config);
+
+// Start Application		
+include(ROOT . "/includes/App.class.php");
+$app = new App($db, $config);
+
+// Default Language
+$_language = $config["default_lang"];
+// Set Language from Cookie
+if (isset($_COOKIE["lang"])) $_language = Main::clean($_COOKIE["lang"], 3, TRUE);
+// Set Language
+if (isset($_GET["lang"]) && strlen($_GET["lang"]) == "2") {
+	setcookie("lang", strip_tags($_GET["lang"]), strtotime('+30 days'), '/', NULL, 0);
+	$_language = Main::clean($_GET["lang"], 3, TRUE);
+}
+Main::set("language", $_language);
+
+// Get Language File
+if (isset($_language) && $_language != "en" && file_exists(ROOT . "/includes/languages/" . Main::clean($_language, 3, TRUE) . ".php")) {
+	include(ROOT . "/includes/languages/" . Main::clean($_language) . ".php");
+	if (isset($lang) && is_array($lang)) {
+		Main::set("lang", $lang);
+		$app->lang = $_language;
 	}
-	// Starts a session
-	if(!isset($_SESSION)){
-	  session_start();
+}
+
+// Get theme functions file
+if (file_exists(ROOT . "/themes/{$config["theme"]}/functions.php")) {
+	include(TEMPLATE . "/functions.php");
+}
+
+// Read string function
+function e($text)
+{
+	return Main::e($text);
+}
+function compress($buffer)
+{
+	$buffer = str_replace(array("\r\n", "\r", "\n", "\t", '  ', '    ', '    '), '', $buffer);
+	return $buffer;
+}
+function fixTitle($title)
+{
+	$title = str_replace("&quot;", '"', $title);
+	$title = str_replace("&amp;", '&', $title);
+	$title = str_replace("&amp;quot;", '"', $title);
+	return $title;
+}
+function installer()
+{
+	if (file_exists(ROOT . "/install.php")) return TRUE;
+	return FALSE;
+}
+function ad_type($type = null, $format = FALSE)
+{
+	$types = array(
+		"728" => array("name" => "728x90", "format" => "primary"),
+		"300" =>  array("name" => "300x250", "format" => "danger"),
+		"468" =>  array("name" => "468x60", "format" => "info"),
+		"resp" =>  array("name" => "Responsive", "format" => "warning"),
+		"frame" =>  array("name" => "Frame Page", "format" => "success"),
+		"splash" =>  array("name" => "Splash Page", "format" => "success"),
+	);
+	if (!isset($types[$type])) return FALSE;
+	if ($format) {
+		return "<span class='label label-{$types[$type]["format"]}'>{$types[$type]["name"]}</span>";
 	}
-	// Error Reporting
-	if(!isset($config["debug"]) || $config["debug"]==0) {
-	  error_reporting(0);
-	}else{
-		ini_set('display_errors', 1);
-		ini_set('display_startup_errors', 1);
-		error_reporting(E_ALL);
+	return $types[$type]["name"];
+}
+function uploads($file)
+{
+	global $config;
+	return $config["url"] . "/content/{$file}";
+}
+function assets($file)
+{
+	global $config;
+	return $config["url"] . "/static/{$file}";
+}
+if (!function_exists("idn_to_utf8")) {
+	function idn_to_utf8($domain)
+	{
+		return $domain;
 	}
+}
 
-	if(!isset($config["secret_key"]) || $config["secret_key"] == "RKEY"){
-	  $config["secret_key"] = "";
+function write($string, $default)
+{
+	if (!empty($string)) return e($string);
+	return e($default);
+}
+
+function days_left($date)
+{
+	return round((strtotime($date) - strtotime("now")) / (60 * 60 * 24), 0);
+}
+
+function safe_b64encode($string = '')
+{
+	$data = base64_encode($string);
+	$data = str_replace(['+', '/', '='], ['-', '_', ''], $data);
+	return $data;
+}
+
+function safe_b64decode($string = '')
+{
+	$data = str_replace(['-', '_'], ['+', '/'], $string);
+	$mod4 = strlen($data) % 4;
+	if ($mod4) {
+		$data .= substr('====', $mod4);
 	}
+	return base64_decode($data);
+}
 
+function encode($value = false)
+{
+	if (!$value) return false;
+	$iv_size = openssl_cipher_iv_length('aes-256-cbc');
+	$iv = openssl_random_pseudo_bytes($iv_size);
+	$crypttext = openssl_encrypt($value, 'aes-256-cbc', 'BIZCHAIN.VN', OPENSSL_RAW_DATA, $iv);
+	return safe_b64encode($iv . $crypttext);
+}
 
-	// Connect to database
-	include(ROOT."/includes/Database.class.php");	
-	$db = new Database($config, $dbinfo);
-	$config=$db->get_config();	
-	$config["smtp"]=json_decode($config["smtp"],TRUE);
-	$config["theme_config"] = json_decode($config["theme_config"]);
-
-	$config["prefix"] = $dbinfo["prefix"];
-
-	if(!empty($config["timezone"])){
-		date_default_timezone_set($config["timezone"]);
-	}
-
-	// Defines Template
-	define("TEMPLATE",ROOT."/themes/{$config["theme"]}");	
-
-	// phpFastCache
-	if($config["cache"]){
-		include(ROOT."/includes/library/Cache.class.php");
-		phpFastCache::$storage = "auto";		
-	}
-
-	// Application Helper
-	include(ROOT."/includes/Main.class.php");
-	Main::set("config",$config);
-
-  	// Start Application		
-	include(ROOT."/includes/App.class.php");
-		$app = new App($db,$config);	
-
-	// Default Language
-	$_language=$config["default_lang"];
-	// Set Language from Cookie
-	if(isset($_COOKIE["lang"])) $_language=Main::clean($_COOKIE["lang"],3,TRUE);	
-	// Set Language
-	if(isset($_GET["lang"]) && strlen($_GET["lang"])=="2"){
-		setcookie("lang",strip_tags($_GET["lang"]), strtotime('+30 days'), '/', NULL, 0);
-		$_language = Main::clean($_GET["lang"],3,TRUE);		
-	}		
-	Main::set("language", $_language);
-		
-	// Get Language File
-	if(isset($_language) && $_language!="en" && file_exists(ROOT."/includes/languages/".Main::clean($_language,3,TRUE).".php")) {
-  	include(ROOT."/includes/languages/".Main::clean($_language).".php");
-  	if(isset($lang) && is_array($lang)) {
-  		Main::set("lang",$lang);
-  		$app->lang = $_language;
-  	}
-	}
-
-	// Get theme functions file
-	if(file_exists(ROOT."/themes/{$config["theme"]}/functions.php")){
-		include(TEMPLATE."/functions.php");
-	}	
-
-	// Read string function
-	function e($text){
-		return Main::e($text);
-	}
-  function compress($buffer) {      
-      $buffer = str_replace(array("\r\n", "\r", "\n", "\t", '  ', '    ', '    '), '', $buffer);
-      return $buffer;
-  }
-  function fixTitle($title){
-  	$title = str_replace("&quot;",'"', $title);
-  	$title = str_replace("&amp;",'&', $title);
-  	$title = str_replace("&amp;quot;",'"', $title);
-  	return $title;
-  }
-  function installer(){
-  	if(file_exists(ROOT."/install.php")) return TRUE;
-  	return FALSE;
-  }
-	function ad_type($type = null, $format = FALSE){
-		$types = array(
-				"728" => array("name" => "728x90", "format" => "primary"),
-				"300" =>  array("name" => "300x250","format" => "danger"),
-				"468" =>  array("name" => "468x60", "format" => "info"),
-				"resp" =>  array("name" => "Responsive", "format" => "warning"),
-				"frame" =>  array("name" => "Frame Page", "format" => "success"),
-				"splash" =>  array("name" => "Splash Page", "format" => "success"),
-			);
-		if(!isset($types[$type])) return FALSE;
-		if($format){
-			return "<span class='label label-{$types[$type]["format"]}'>{$types[$type]["name"]}</span>";
-		}
-		return $types[$type]["name"];
-	}  
-	function uploads($file){
-		global $config;
-		return $config["url"]."/content/{$file}";
-	}	
-	function assets($file){
-		global $config;
-		return $config["url"]."/static/{$file}";		
-	}
-	if(!function_exists("idn_to_utf8")){
-		function idn_to_utf8($domain){
-			return $domain;
-		}
-	}
-
-	function write($string, $default){
-		if(!empty($string)) return e($string);
-		return e($default);
-	}
-
-	function days_left($date){
-		return round((strtotime($date) - strtotime("now")) / (60*60*24), 0);
-	}
+function decode($value = false)
+{
+	if (!$value) return false;
+	$crypttext = safe_b64decode($value);
+	$iv_size = openssl_cipher_iv_length('aes-256-cbc');
+	$iv = substr($crypttext, 0, $iv_size);
+	$crypttext = substr($crypttext, $iv_size);
+	if (!$crypttext) return false;
+	$decrypttext = openssl_decrypt($crypttext, 'aes-256-cbc', 'BIZCHAIN.VN', OPENSSL_RAW_DATA, $iv);
+	return rtrim($decrypttext);
+}

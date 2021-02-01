@@ -2099,7 +2099,7 @@ class Admin
     if ($this->config["pt"] == "paypalapi") return $this->createPlanPayPal($data);
     if ($this->config["pt"] == "alepay") return $this->createPlanAlepay($data);
 
-    include(STRIPE);
+/*     include(STRIPE);
 
     if ($this->config["pt"] == "stripe" && empty($this->config["stsk"])) return Main::redirect(Main::ahref("plans", "", FALSE), ["danger", "Please enter your Stripe keys."]);
     if ($this->config["pt"] == "stripe" && empty($this->config["stpk"])) return Main::redirect(Main::ahref("plans", "", FALSE), ["danger", "Please enter your Stripe keys."]);
@@ -2157,9 +2157,9 @@ class Admin
     } catch (Exception $e) {
       Main::redirect(Main::ahref("plans", "", FALSE), ["danger", $e->getMessage()]);
       exit;
-    } */
+    } 
 
-    return $product->id;
+    return $product->id; */
   }
 
 /**
@@ -2171,7 +2171,7 @@ class Admin
    */
   protected function createPlanAlepay($request)
   {
-    //TODO: { // }
+    //TODO: createPlanAlepay
     return false;
   }
 
@@ -2284,56 +2284,57 @@ class Admin
   protected function getPlans()
   {
     if (!$this->isExtended()) return FALSE;
-    include(STRIPE);
+    
+    //  include(STRIPE);
 
-    \Stripe\Stripe::setApiKey($this->config["stsk"]);
-    if ($this->sandbox) \Stripe\Stripe::setVerifySslCerts(false);
+    // \Stripe\Stripe::setApiKey($this->config["stsk"]);
+    // if ($this->sandbox) \Stripe\Stripe::setVerifySslCerts(false);
 
-    try {
+    // try {
 
-      $planMonthly = \Stripe\Plan::retrieve("PUSmonthly");
-    } catch (Exception $e) {
+    //   $planMonthly = \Stripe\Plan::retrieve("PUSmonthly");
+    // } catch (Exception $e) {
 
-      if ($e->getMessage() == "No such plan: PUSmonthly") {
+    //   if ($e->getMessage() == "No such plan: PUSmonthly") {
 
-        if (empty($this->config["pro_monthly"])) $this->config["pro_monthly"] = "5.99";
+    //     if (empty($this->config["pro_monthly"])) $this->config["pro_monthly"] = "5.99";
 
-        $planMonthly = \Stripe\Plan::create(array(
-          "amount" => $this->config["pro_monthly"] * 100,
-          "interval" => "month",
-          "nickname" => "Premium Plan - Monthly",
-          "product" => array(
-            "name" => "Premium Membership - Monthly"
-          ),
-          "currency" => strtolower($this->config["currency"]),
-          "id" => "PUSmonthly"
-        ));
-      }
-    }
+    //     $planMonthly = \Stripe\Plan::create(array(
+    //       "amount" => $this->config["pro_monthly"] * 100,
+    //       "interval" => "month",
+    //       "nickname" => "Premium Plan - Monthly",
+    //       "product" => array(
+    //         "name" => "Premium Membership - Monthly"
+    //       ),
+    //       "currency" => strtolower($this->config["currency"]),
+    //       "id" => "PUSmonthly"
+    //     ));
+    //   }
+    // }
 
-    try {
+    // try {
 
-      $planYearly = \Stripe\Plan::retrieve("PUSyearly");
-    } catch (Exception $e) {
+    //   $planYearly = \Stripe\Plan::retrieve("PUSyearly");
+    // } catch (Exception $e) {
 
-      if ($e->getMessage() == "No such plan: PUSyearly") {
+    //   if ($e->getMessage() == "No such plan: PUSyearly") {
 
-        if (empty($this->config["pro_yearly"])) $this->config["pro_monthly"] = "49.99";
+    //     if (empty($this->config["pro_yearly"])) $this->config["pro_monthly"] = "49.99";
 
-        $planYearly = \Stripe\Plan::create(array(
-          "amount" => $this->config["pro_yearly"] * 100,
-          "interval" => "year",
-          "nickname" => "Premium Plan - Yearly",
-          "product" => array(
-            "name" => "Premium Membership - Yearly"
-          ),
-          "currency" => strtolower($this->config["currency"]),
-          "id" => "PUSyearly"
-        ));
-      }
-    }
+    //     $planYearly = \Stripe\Plan::create(array(
+    //       "amount" => $this->config["pro_yearly"] * 100,
+    //       "interval" => "year",
+    //       "nickname" => "Premium Plan - Yearly",
+    //       "product" => array(
+    //         "name" => "Premium Membership - Yearly"
+    //       ),
+    //       "currency" => strtolower($this->config["currency"]),
+    //       "id" => "PUSyearly"
+    //     ));
+    //   }
+    // }
 
-    return \Stripe\Plan::all(array("limit" => 20));
+    // return \Stripe\Plan::all(array("limit" => 20));
   }
   /**
    * [plan_edit description]
@@ -2732,75 +2733,75 @@ class Admin
     if ($this->config["pt"] == "paypalapi") return true;
     if ($this->config["pt"] == "alepay") return true;
 
-    include(STRIPE);
+    // include(STRIPE);
 
-    \Stripe\Stripe::setApiKey($this->config["stsk"]);
-    if ($this->sandbox) \Stripe\Stripe::setVerifySslCerts(false);
+    // \Stripe\Stripe::setApiKey($this->config["stsk"]);
+    // if ($this->sandbox) \Stripe\Stripe::setVerifySslCerts(false);
 
-    // Price Changed
-    if ($_POST["price_monthly"] != $plan->price_monthly) {
-      $mPlan = \Stripe\Plan::retrieve($plan->slug . "monthly");
-      $productid = $mPlan->product;
-      $mPlan->delete();
+    // // Price Changed
+    // if ($_POST["price_monthly"] != $plan->price_monthly) {
+    //   $mPlan = \Stripe\Plan::retrieve($plan->slug . "monthly");
+    //   $productid = $mPlan->product;
+    //   $mPlan->delete();
 
-      try {
-        $planMonthly = \Stripe\Plan::create(array(
-          "amount" => $_POST["price_monthly"] * 100,
-          "interval" => "month",
-          "nickname" => "{$_POST["name"]} - Monthly",
-          "product" => $productid,
-          "currency" => strtolower($this->config["currency"]),
-          "id" => $plan->slug . "monthly"
-        ));
-      } catch (Exception $e) {
-        error_log("Stripe Error: {$e->getMessage()}");
-        Main::redirect(Main::ahref("plans/edit/{$plan->id}", "", FALSE), ["danger", $e->getMessage()]);
-        exit;
-      }
-    }
+    //   try {
+    //     $planMonthly = \Stripe\Plan::create(array(
+    //       "amount" => $_POST["price_monthly"] * 100,
+    //       "interval" => "month",
+    //       "nickname" => "{$_POST["name"]} - Monthly",
+    //       "product" => $productid,
+    //       "currency" => strtolower($this->config["currency"]),
+    //       "id" => $plan->slug . "monthly"
+    //     ));
+    //   } catch (Exception $e) {
+    //     error_log("Stripe Error: {$e->getMessage()}");
+    //     Main::redirect(Main::ahref("plans/edit/{$plan->id}", "", FALSE), ["danger", $e->getMessage()]);
+    //     exit;
+    //   }
+    // }
 
-    if ($_POST["price_yearly"] != $plan->price_yearly) {
-      $YPlan = \Stripe\Plan::retrieve($plan->slug . "yearly");
-      $productid = $YPlan->product;
-      $YPlan->delete();
+    // if ($_POST["price_yearly"] != $plan->price_yearly) {
+    //   $YPlan = \Stripe\Plan::retrieve($plan->slug . "yearly");
+    //   $productid = $YPlan->product;
+    //   $YPlan->delete();
 
-      try {
-        $planMonthly = \Stripe\Plan::create(array(
-          "amount" => $_POST["price_yearly"] * 100,
-          "interval" => "month",
-          "nickname" => "{$_POST["name"]} - Yearly",
-          "product" => $productid,
-          "currency" => strtolower($this->config["currency"]),
-          "id" => $plan->slug . "yearly"
-        ));
-      } catch (Exception $e) {
-        error_log("Stripe Error: {$e->getMessage()}");
-        Main::redirect(Main::ahref("plans/edit/{$plan->id}", "", FALSE), ["danger", $e->getMessage()]);
-        exit;
-      }
-    }
+    //   try {
+    //     $planMonthly = \Stripe\Plan::create(array(
+    //       "amount" => $_POST["price_yearly"] * 100,
+    //       "interval" => "month",
+    //       "nickname" => "{$_POST["name"]} - Yearly",
+    //       "product" => $productid,
+    //       "currency" => strtolower($this->config["currency"]),
+    //       "id" => $plan->slug . "yearly"
+    //     ));
+    //   } catch (Exception $e) {
+    //     error_log("Stripe Error: {$e->getMessage()}");
+    //     Main::redirect(Main::ahref("plans/edit/{$plan->id}", "", FALSE), ["danger", $e->getMessage()]);
+    //     exit;
+    //   }
+    // }
 
-    if ($_POST["price_lifetime"] != $plan->price_lifetime) {
-      $YPlan = \Stripe\Plan::retrieve($plan->slug . "lifetime");
-      $productid = $YPlan->product;
-      $YPlan->delete();
+    // if ($_POST["price_lifetime"] != $plan->price_lifetime) {
+    //   $YPlan = \Stripe\Plan::retrieve($plan->slug . "lifetime");
+    //   $productid = $YPlan->product;
+    //   $YPlan->delete();
 
-      try {
-        $planMonthly = \Stripe\Plan::create(array(
-          "amount" => $_POST["price_lifetime"],
-          "interval" => "month",
-          "nickname" => "{$_POST["name"]} - Lifetime",
-          "product" => $productid,
-          "currency" => strtolower($this->config["currency"]),
-          "id" => $plan->slug . "lifetime"
-        ));
-      } catch (Exception $e) {
-        error_log("Stripe Error: {$e->getMessage()}");
-        Main::redirect(Main::ahref("plans/edit/{$plan->id}", "", FALSE), ["danger", $e->getMessage()]);
-        exit;
-      }
-    }
-    return TRUE;
+    //   try {
+    //     $planMonthly = \Stripe\Plan::create(array(
+    //       "amount" => $_POST["price_lifetime"],
+    //       "interval" => "month",
+    //       "nickname" => "{$_POST["name"]} - Lifetime",
+    //       "product" => $productid,
+    //       "currency" => strtolower($this->config["currency"]),
+    //       "id" => $plan->slug . "lifetime"
+    //     ));
+    //   } catch (Exception $e) {
+    //     error_log("Stripe Error: {$e->getMessage()}");
+    //     Main::redirect(Main::ahref("plans/edit/{$plan->id}", "", FALSE), ["danger", $e->getMessage()]);
+    //     exit;
+    //   }
+    // }
+    // return TRUE;
   }
   /**
    * [plans_delete description]
@@ -2841,63 +2842,64 @@ class Admin
   protected function plans_sync()
   {
 
-    if (!$this->isExtended()) return FALSE;
+    //if (!$this->isExtended()) return FALSE;
 
-    if ($this->config["pt"] == "paypalapi") return $this->PayPalSync();
+    //if ($this->config["pt"] == "paypalapi") 
+    return $this->PayPalSync();
 
-    include(STRIPE);
+    // include(STRIPE);
 
-    $plans = $this->db->get("plans", ["free" => "0"]);
+    // $plans = $this->db->get("plans", ["free" => "0"]);
 
-    if ($this->config)
+    // if ($this->config)
 
-      \Stripe\Stripe::setApiKey($this->config["stsk"]);
-    if ($this->sandbox) \Stripe\Stripe::setVerifySslCerts(false);
+    //   \Stripe\Stripe::setApiKey($this->config["stsk"]);
+    // if ($this->sandbox) \Stripe\Stripe::setVerifySslCerts(false);
 
-    foreach ($plans as $plan) {
+    // foreach ($plans as $plan) {
 
-      try {
-        $product = \Stripe\Product::create([
-          "name" => $plan->name,
-          "type" => "service",
-        ]);
-      } catch (Exception $e) {
-        error_log("Stripe Error: " . $e->getMessage());
-        continue;
-      }
+    //   try {
+    //     $product = \Stripe\Product::create([
+    //       "name" => $plan->name,
+    //       "type" => "service",
+    //     ]);
+    //   } catch (Exception $e) {
+    //     error_log("Stripe Error: " . $e->getMessage());
+    //     continue;
+    //   }
 
-      try {
-        $planMonthly = \Stripe\Plan::create(array(
-          "amount" => $plan->price_monthly * 100,
-          "interval" => "month",
-          "nickname" => "{$plan->name} - Monthly",
-          "product" => $product->id,
-          "currency" => strtolower($this->config["currency"]),
-          "id" => $plan->slug . "monthly"
-        ));
-      } catch (Exception $e) {
-        error_log("Stripe Error: " . $e->getMessage());
-        continue;
-      }
+    //   try {
+    //     $planMonthly = \Stripe\Plan::create(array(
+    //       "amount" => $plan->price_monthly * 100,
+    //       "interval" => "month",
+    //       "nickname" => "{$plan->name} - Monthly",
+    //       "product" => $product->id,
+    //       "currency" => strtolower($this->config["currency"]),
+    //       "id" => $plan->slug . "monthly"
+    //     ));
+    //   } catch (Exception $e) {
+    //     error_log("Stripe Error: " . $e->getMessage());
+    //     continue;
+    //   }
 
-      $planYearly = \Stripe\Plan::create(array(
-        "amount" => $plan->price_yearly * 100,
-        "interval" => "year",
-        "nickname" => "{$plan->name} - Yearly",
-        "product" => $product->id,
-        "currency" => strtolower($this->config["currency"]),
-        "id" => $plan->slug . "yearly"
-      ));
+    //   $planYearly = \Stripe\Plan::create(array(
+    //     "amount" => $plan->price_yearly * 100,
+    //     "interval" => "year",
+    //     "nickname" => "{$plan->name} - Yearly",
+    //     "product" => $product->id,
+    //     "currency" => strtolower($this->config["currency"]),
+    //     "id" => $plan->slug . "yearly"
+    //   ));
 
-      $planLifetime = \Stripe\Plan::create(array(
-        "amount" => $plan->price_lifetime * 100,
-        "interval" => "year",
-        "nickname" => "{$plan->name} - Lifetime",
-        "product" => $product->id,
-        "currency" => strtolower($this->config["currency"]),
-        "id" => $plan->slug . "lifetime"
-      ));
-    }
+    //   $planLifetime = \Stripe\Plan::create(array(
+    //     "amount" => $plan->price_lifetime * 100,
+    //     "interval" => "year",
+    //     "nickname" => "{$plan->name} - Lifetime",
+    //     "product" => $product->id,
+    //     "currency" => strtolower($this->config["currency"]),
+    //     "id" => $plan->slug . "lifetime"
+    //   ));
+    // }
   }
   /**
    * Sync Plans
@@ -2916,7 +2918,7 @@ class Admin
     );
     $connection->setConfig(
       [
-        'log.LogEnabled' => false,
+        'log.LogEnabled' => true,
         'log.FileName' => 'PayPal.log',
         'log.LogLevel' => 'DEBUG',
         'mode' => 'live'
@@ -2936,7 +2938,7 @@ class Admin
         ->setType('REGULAR')
         ->setFrequency('Month')
         ->setFrequencyInterval("1")
-        ->setCycles("12")
+        ->setCycles("0")
         ->setAmount(new PayPal\Api\Currency(array('value' => $data->price_monthly, 'currency' => $this->config["currency"])));
 
       $paymentDefinitionY = new PayPal\Api\PaymentDefinition();
@@ -2945,7 +2947,7 @@ class Admin
         ->setType('REGULAR')
         ->setFrequency('Year')
         ->setFrequencyInterval("1")
-        ->setCycles("1")
+        ->setCycles("0")
         ->setAmount(new PayPal\Api\Currency(array('value' => $data->price_yearly, 'currency' => $this->config["currency"])));
 
       $paymentDefinitionA = new PayPal\Api\PaymentDefinition();
@@ -3001,38 +3003,39 @@ class Admin
   protected function deletePlan($plan)
   {
     if (!$this->isExtended()) return FALSE;
-    include(STRIPE);
+    
+    // include(STRIPE);
 
-    \Stripe\Stripe::setApiKey($this->config["stsk"]);
-    if ($this->sandbox) \Stripe\Stripe::setVerifySslCerts(false);
+    // \Stripe\Stripe::setApiKey($this->config["stsk"]);
+    // if ($this->sandbox) \Stripe\Stripe::setVerifySslCerts(false);
 
-    try {
-      $mPlan = \Stripe\Plan::retrieve($plan->slug . "monthly");
-      $productid = $mPlan->product;
-      $mPlan->delete();
-    } catch (Exception $e) {
-      error_log("Stripe Error: {$e->getMessage()}");
-      Main::redirect(Main::ahref("plans", "", FALSE), ["danger", $e->getMessage()]);
-      exit;
-    }
-    try {
-      $YPlan = \Stripe\Plan::retrieve($plan->slug . "yearly");
-      $productid = $YPlan->product;
-      $YPlan->delete();
-    } catch (Exception $e) {
-      error_log("Stripe Error: {$e->getMessage()}");
-      Main::redirect(Main::ahref("plans", "", FALSE), ["danger", $e->getMessage()]);
-      exit;
-    }
-    try {
-      $Product = \Stripe\Product::retrieve($productid);
-      $Product->delete();
-    } catch (Exception $e) {
-      error_log("Stripe Error: {$e->getMessage()}");
-      Main::redirect(Main::ahref("plans", "", FALSE), ["danger", $e->getMessage()]);
-      exit;
-    }
-    return TRUE;
+    // try {
+    //   $mPlan = \Stripe\Plan::retrieve($plan->slug . "monthly");
+    //   $productid = $mPlan->product;
+    //   $mPlan->delete();
+    // } catch (Exception $e) {
+    //   error_log("Stripe Error: {$e->getMessage()}");
+    //   Main::redirect(Main::ahref("plans", "", FALSE), ["danger", $e->getMessage()]);
+    //   exit;
+    // }
+    // try {
+    //   $YPlan = \Stripe\Plan::retrieve($plan->slug . "yearly");
+    //   $productid = $YPlan->product;
+    //   $YPlan->delete();
+    // } catch (Exception $e) {
+    //   error_log("Stripe Error: {$e->getMessage()}");
+    //   Main::redirect(Main::ahref("plans", "", FALSE), ["danger", $e->getMessage()]);
+    //   exit;
+    // }
+    // try {
+    //   $Product = \Stripe\Product::retrieve($productid);
+    //   $Product->delete();
+    // } catch (Exception $e) {
+    //   error_log("Stripe Error: {$e->getMessage()}");
+    //   Main::redirect(Main::ahref("plans", "", FALSE), ["danger", $e->getMessage()]);
+    //   exit;
+    // }
+    // return TRUE;
   }
   /**
    * Coupons
@@ -3188,19 +3191,19 @@ class Admin
    */
   protected function coupons_delete()
   {
-    if ($coupon = $this->db->get("coupons", ["id" => "?"], ["limit" => 1], [$this->id])) {
-      include(STRIPE);
+    // if ($coupon = $this->db->get("coupons", ["id" => "?"], ["limit" => 1], [$this->id])) {
+    //   include(STRIPE);
 
-      \Stripe\Stripe::setApiKey($this->config["stsk"]);
-      if ($this->sandbox) \Stripe\Stripe::setVerifySslCerts(false);
+    //   \Stripe\Stripe::setApiKey($this->config["stsk"]);
+    //   if ($this->sandbox) \Stripe\Stripe::setVerifySslCerts(false);
 
-      if ($coupon->data && $stripe = \Stripe\Coupon::retrieve($coupon->data)) {
-        $stripe->delete();
-      }
+    //   if ($coupon->data && $stripe = \Stripe\Coupon::retrieve($coupon->data)) {
+    //     $stripe->delete();
+    //   }
 
-      $this->db->delete("coupons", ["id" => $coupon->id]);
-      return Main::redirect(Main::ahref("coupons", "", FALSE), array("success", "Coupon has been deleted."));
-    }
+    //   $this->db->delete("coupons", ["id" => $coupon->id]);
+    //   return Main::redirect(Main::ahref("coupons", "", FALSE), array("success", "Coupon has been deleted."));
+    // }
     return Main::redirect(Main::ahref("coupons", "", FALSE), array("danger", "An error occurred, please try again."));
   }
   /**

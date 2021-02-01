@@ -8,12 +8,12 @@
 		<?php if (!$this->isTeam()) : ?>
 			<div class="panel panel-default panel-body">
 				<h3><?php echo e("Invite Member") ?></h3>
-				<form action="<?php echo Main::href("user/teams/add") ?>" method="post">
+				<form action="<?php echo Main::href("user/teams/add") ?>" method="post" id="teamform" name="teamform" >
 					<div class="row">
 						<div class="col-md-6">
 							<div class="form-group">
 								<label for="email" class="label-control"><?php echo e("Email") ?></label>
-								<input type="email" value="" name="email" class="form-control" placeholder="johndoe@email.tld" autofocus />
+								<input type="email" value="" name="email" id="email" class="form-control" placeholder="johndoe@email.tld" required autofocus />
 							</div>
 						</div>
 						<div class="col-md-6">
@@ -72,6 +72,7 @@
 					<?php echo Main::csrf_token(TRUE) ?>
 					<button class="btn btn-primary" type="submit"><?php echo e("Invite") ?></button>
 				</form>
+				<script>jQuery.validator.addMethod("validate_email",function(a,e){return!!/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(a)},"Please enter a valid Email."),$("#teamform").validate({rules:{email:{validate_email:!0}}});</script>
 			</div>
 		<?php endif ?>
 
@@ -91,7 +92,7 @@
 					<tbody>
 						<!-- Main Account -->
 						<tr>
-							<td><img src="<?php echo $this->avatar($teamleader,30) ?>" alt="" class="round"/></td>
+							<td><img width="30" height="30" src="<?php echo $this->avatar($teamleader,30) ?>" alt="" class="round"/></td>
 							<td><?php echo $teamleader->name ? $teamleader->name : $teamleader->username ?><br><?php echo ($teamleader->active ? '<span class="label label-success">' . e("Active") . '</span>' : '<span class="label label-danger">' . e("Inactive") . '</span>') ?></td>
 							<td><?php echo $teamleader->email ?></td>
 							<td>
@@ -132,7 +133,7 @@
 	<!--/#user-content-->
 	<div id="widgets" class="col-md-4">
 		<?php echo $this->sidebar() ?>
-		<div class="panel panel-default panel-body">
+		<div class="panel panel-default panel-body text-justify">
 			<h3><?php echo e("Events Permission") ?></h3>
 			<p><?php echo e("<b>Create</b>: A create event will allow your team member to shorten links, create splash pages & overlay and bundles.") ?></p>
 			<p><?php echo e("<b>Edit</b>: An edit event will allow your team member to edit links, splash pages & overlay and bundles.") ?></p>

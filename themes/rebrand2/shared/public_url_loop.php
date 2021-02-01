@@ -14,7 +14,7 @@
 			</div>
 		</div>
 		<div class="col-sm-2 url-stats">
-			<strong><?php echo $url->click ?></strong>
+			<strong><?php echo number_format($url->click,0) ?></strong>
 
 			<?php if ($this->logged()) :?>
 				<a href="<?php echo ($url->domain ? $url->domain : $this->config["url"]) ?>/<?php echo $url->alias.$url->custom ?>+" target="_blank" class="btn btn-primary btn-xs"><?php echo e("Clicks") ?></a>

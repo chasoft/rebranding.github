@@ -51,9 +51,9 @@
                   <?php echo ($user->public)?"<a href='".Main::href("u/{$user->username}")."' class='btn btn-primary btn-xs' target='_blank'>@{$user->username}</a>":"" ?>
                 </td>
                 <td><?php echo ($user->active?"Active":"Not Active") ?></td>                
-                <td><?php echo date("F d, Y",strtotime($user->date)) ?></td>
+                <td><?php echo date("d M, Y",strtotime($user->date)) ?></td>
                 <td><?php echo ($user->pro?"Pro":"Free") ?></td>
-                <td><?php echo ($user->pro?date("F d, Y",strtotime($user->expiration)):"n/a") ?></td>                
+                <td><?php echo ($user->pro?date("d M, Y",strtotime($user->expiration)):"n/a") ?></td>                
                 <td><a href="<?php echo Main::ahref("urls/view/{$user->id}") ?>" class="btn btn-success btn-xs"><?php echo $user->count ?></a></td>
                 <td>
                   <a href="<?php echo Main::ahref("payments/view/{$user->id}") ?>" class="btn btn-success btn-xs">View Payments</a>

@@ -7,14 +7,17 @@
 		<div class="main-content panel panel-default panel-body">
 			<h3><?php echo e("Account Settings") ?></h3>
 
-			<?php if (!empty($this->user->auth)) : ?>
+			<?php if (!empty($this->user->auth) && (!isset($_COOKIE["Social-login-remind-info"]) || $_COOKIE["Social-login-remind-info"] !== "on")) : ?>
 				<div class="alert alert-warning"><?php echo e("You have used a social network to login. Please note that in this case you don't have a password set.") ?></div>
-			<?php endif ?>
+			<?php
+				Main::cookie("Social-login-remind-info", "on", 31 * 24 * 60);
+			endif
+			?>
 
 			<?php if (empty($this->user->username)) : ?>
 				<div class="alert alert-warning"><?php echo e("You have used a social network to login. You will need to choose a username.") ?></div>
 			<?php endif ?>
-			<form action="<?php echo Main::href("user/settings") ?>" role="form" class="form-horizontal" method="post" enctype="multipart/form-data" autocomplete="off">
+			<form id="settingsform" name="settingsForm" action="<?php echo Main::href("user/settings") ?>" role="form" class="form-horizontal" method="post" enctype="multipart/form-data" autocomplete="off">
 				<!-- Nav tabs -->
 				<ul class='nav nav-tabs'>
 					<li class='active'><a href='#mbasic' data-toggle='tab'><?php echo e("Basic") ?></a></li>
@@ -62,7 +65,7 @@
 							<div class="col-sm-6">
 								<label class="control-label"><?php echo e("Email") ?></label>
 								<div class="">
-									<input type="text" value="<?php echo $this->user->email ?>" name="email" class="form-control" autocomplete="off" />
+									<input type="text" value="<?php echo $this->user->email ?>" name="email" id="email" class="form-control" autocomplete="off" />
 									<?php if ($this->config["user_activate"]) : ?>
 										<p class="help-block"><?php echo e("Please note that if you change your email, you will need to activate your account again.") ?></p>
 									<?php endif; ?>
@@ -73,6 +76,16 @@
 								<div class="">
 									<input type="text" value="<?php echo $address["mobile"] ?>" name="mobile" class="form-control" autocomplete="off" />
 								</div>
+							</div>
+						</div>
+						<div class='form-group'>
+							<label for='timezone' class='col-sm-3 control-label'><?php echo e("Time Zone") ?></label>
+							<div class='col-sm-9'>
+								<select name='timezone'>
+									<?php foreach ($timezonelist as $text => $tz) : ?>
+										<option value='<?php echo $text ?>' <?php echo (($text == $address["timezone"]) ? " selected " : "") ?>><?php echo ($text . ' | ' . $tz) ?></option>
+									<?php endforeach ?>
+								</select>
 							</div>
 						</div>
 					</div>
@@ -115,14 +128,22 @@
 						<div class="form-group">
 							<label class="col-sm-3 control-label"><?php echo e("Password") ?></label>
 							<div class="col-sm-9">
-								<input type="password" value="" name="password" class="form-control" autocomplete="new-password" />
+								<input type="password" value="" id="password" name="password" class="form-control" minlength="5" autocomplete="new-password" />
+								<a tabindex="-1" href="#" class="form-icon form-icon-right passcode-switch" data-target="password">
+									<em name="iconshow" class="passcode-icon icon-show icon far fa-eye"></em>
+									<em name="iconhide" class="passcode-icon icon-hide icon far fa-eye-slash"></em>
+								</a>
 								<p class="help-block"><?php echo ucfirst(e("leave blank to keep current one")) ?>.</p>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="col-sm-3 control-label"><?php echo e("Confirm Password") ?></label>
 							<div class="col-sm-9">
-								<input type="password" value="" name="cpassword" class="form-control" autocomplete="off" />
+								<input type="password" value="" id="cpassword" name="cpassword" class="form-control" minlength="5" autocomplete="off" />
+								<a tabindex="-1" href="#" class="form-icon form-icon-right passcode-switch" data-target="password">
+									<em name="iconshow" class="passcode-icon icon-show icon far fa-eye"></em>
+									<em name="iconhide" class="passcode-icon icon-hide icon far fa-eye-slash"></em>
+								</a>
 								<p class="help-block"><?php echo ucfirst(e("leave blank to keep current one")) ?>.</p>
 							</div>
 						</div>
@@ -131,7 +152,7 @@
 						<hr>
 						<?php if ($this->config["allowdelete"]) : ?>
 							<h4><?php echo e("Delete your account") ?></h4>
-							<p><?php echo e("We respect your privacy and as such you can delete your account permanently and remove all your data from our server. Please note that this action is permanent and cannot be reversed.") ?></p>
+							<p class="text-justify"><?php echo e("We respect your privacy and as such you can delete your account permanently and remove all your data from our server. Please note that this action is permanent and cannot be reversed.") ?></p>
 							<p class="d-flex justify-content-end"><a href="" class="btn btn-danger ajax_call" data-action="delete_account" data-title="<?php echo e("Delete your account") ?>"><?php echo e("Delete permanently") ?></a></p>
 						<?php endif ?>
 					</div>
@@ -141,13 +162,27 @@
 				<hr>
 				<button type="submit" class="btn btn-primary"><?php echo e("Update") ?></button>
 			</form>
+			<script>
+				jQuery.validator.addMethod("validate_email", function(a, e) {
+					return !!/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(a)
+				}, "Please enter a valid Email."), $("#settingsform").validate({
+					rules: {
+						email: {
+							validate_email: !0
+						},
+						cpassword: {
+							equalTo: "#password"
+						}
+					}
+				});
+			</script>
 		</div>
 	</div>
 	<!--/#user-content-->
 	<div id="widgets" class="col-md-4">
 		<div class="panel panel-default panel-body">
 			<h3><?php echo e("Activate Dark Mode") ?></h3>
-			<p><?php echo e("Enable dark mode if you would like more contrast. This only applies to the dashboard.") ?></p>
+			<p class="text-justify"><?php echo e("Enable dark mode if you would like more contrast. This only applies to the dashboard.") ?></p>
 			<?php if (isDark()) : ?>
 				<p class="d-flex justify-content-end"><a href="?darkmode=off" class="btn btn-primary"><?php echo e("Disable Dark Mode") ?></a></p>
 			<?php else : ?>

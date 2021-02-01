@@ -21,11 +21,11 @@
 			<div class="row2 g-gs">
 			
 				<?php foreach ($free as $plan): ?>
-				<div class="col-md-4">
+				<div class="col-sm-4 col-md-4">
 					<div class="price-plan card card-bordered text-center">
 						<div class="card-inner">
 							<div class="price-plan-media">
-								<img src="https://rebranding.today/themes/rebrand2/assets/images/plan-s1.svg" alt="">
+								<img src="https://rebranding.today/themes/rebrand2/assets/images/<?php echo e($plan["icon"]) ?>" alt="">
 							</div>
 							<div class="price-plan-info">
 								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
@@ -38,7 +38,7 @@
 							<div class="price-plan-action">						
 								  <?php if($this->logged()): ?>
 									<?php if(!$this->pro()): ?>
-									  <a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
+									  <a class="btn btn-warning btn-round"><?php echo e("Current Plan") ?></a> 
 									<?php else: ?>
 									  <a class="btn btn-default btn-round"><?php echo e("Free Forever") ?></a> 
 									<?php endif ?>
@@ -52,29 +52,29 @@
 				<?php endforeach ?>
 				
 				<?php foreach ($monthly as $plan): ?>
-				<div class="col-md-4">
+				<div class="col-sm-4 col-md-4">
 					<div class="price-item card card-bordered text-center">
 						<div class="card-inner">
 							<div class="price-plan-media">
-								<img src="https://rebranding.today/themes/rebrand2/assets/images/plan-s2.svg" alt="">
+								<img src="https://rebranding.today/themes/rebrand2/assets/images/<?php echo e($plan["icon"]) ?>" alt="">
 							</div>
 							<div class="price-plan-info">
 								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
 								<span><?php echo e($plan["description"]) ?></span>
 							</div>
 							<div class="price-plan-amount">
-								<div class="amount"><?php echo Main::currency($this->config["currency"], number_format($plan["price"], 2)) ?> 
-									<span>/<?php echo e("mo") ?></span>
+								<div class="amount"><?php echo Main::currency($this->config["currency"], number_format($plan["price"]/1000, 0)) ?>K
+									<span>/<?php echo e("month") ?></span>
 								</div>
 								<span class="bill"></span>
 							</div>
 							<div class="price-plan-action">
-							  <?php if ($this->logged() && $this->pro() && $this->user->planid == $plan["id"]): ?>
-								  <?php if ($this->user->trial): ?>
-									<a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>   
-								  <?php else: ?>
-									<a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
-								  <?php endif ?>
+							  <?php if ($this->logged() && $this->pro() && $this->user->planid == $plan["id"]) : ?>								
+								<?php if (($subscription->plan == "monthly") && (!$this->user->trial)) : ?>  
+									<a class="btn btn-warning btn-round"><?php echo e("Current Plan") ?></a>
+								<?php else : ?>
+									<a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}") ?>" class="btn btn-primary btn-round" <?php echo (days_left($this->user->expiration) > 720) ? "disabled" : "" ?> ><?php echo e("Subscribe") ?></a>
+								<?php endif ?>
 							  <?php else: ?>
 								<?php if($plan["trial"] && (!$this->logged() || ($this->logged() && !$this->db->get("payment", "trial_days IS NOT NULL AND userid = '{$this->user->id}'", ["limit" => 1])))): ?>
 									<a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}?trial=1") ?>" class="btn btn-primary btn-round"><?php echo $plan["trial"] ?>-<?php echo e("Day") ?> <?php echo e("Free Trial") ?></a>  
@@ -100,11 +100,11 @@
 			<div class="row2 g-gs">
 			
 				<?php foreach ($free as $plan): ?>
-				<div class="col-md-4">
+				<div class="col-sm-4 col-md-4">
 					<div class="price-plan card card-bordered text-center">
 						<div class="card-inner">
 							<div class="price-plan-media">
-								<img src="https://rebranding.today/themes/rebrand2/assets/images/plan-s1.svg" alt="">
+								<img src="https://rebranding.today/themes/rebrand2/assets/images/<?php echo e($plan["icon"]) ?>" alt="">
 							</div>
 							<div class="price-plan-info">
 								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
@@ -117,7 +117,7 @@
 							<div class="price-plan-action">		
 							  <?php if($this->logged()): ?>
 								<?php if(!$this->pro()): ?>
-								  <a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
+								  <a class="btn btn-warning btn-round"><?php echo e("Current Plan") ?></a> 
 								<?php else: ?>
 								  <a class="btn btn-default btn-round"><?php echo e("Free Forever") ?></a> 
 								<?php endif ?>
@@ -131,29 +131,29 @@
 				<?php endforeach ?>
 				
 				<?php foreach ($yearly as $plan): ?>
-				<div class="col-md-4">
+				<div class="col-sm-4 col-md-4">
 					<div class="price-item card card-bordered text-center">
 						<div class="card-inner">
 							<div class="price-plan-media">
-								<img src="https://rebranding.today/themes/rebrand2/assets/images/plan-s2.svg" alt="">
+								<img src="https://rebranding.today/themes/rebrand2/assets/images/<?php echo e($plan["icon"]) ?>" alt="">
 							</div>
 							<div class="price-plan-info">
 								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
 								<span><?php echo e($plan["description"]) ?></span>
 							</div>
 							<div class="price-plan-amount">
-								<div class="amount"><?php echo Main::currency($this->config["currency"],$plan["price"]) ?>
-									<span>/<?php echo e("yr") ?></span>
+								<div class="amount"><?php echo Main::currency($this->config["currency"],number_format($plan["price"] / 1000,0)) ?>K
+									<span>/<?php echo e("year") ?></span>
 								</div>
-								<span class="bill"><?php echo Main::currency($this->config["currency"], number_format($plan["price"]/12, 2)) ?>/<?php echo e("mo") ?> (<?php echo e("Save.")." {$plan["discount"]}" ?>%)</span>
+								<span class="bill"><?php echo Main::currency($this->config["currency"], number_format($plan["price"]/12/1000, 0)) ?>k/<?php echo e("month") ?> (<?php echo e("Save.")." {$plan["discount"]}" ?>%)</span>
 							</div>
 							<div class="price-plan-action">
 							  <?php if ($this->logged() && $this->pro() && $this->user->planid == $plan["id"]): ?>
-								  <?php if ($this->user->trial): ?>
-									<a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>   
-								  <?php else: ?>
-									<a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
-								  <?php endif ?>
+								<?php if (($subscription->plan == "yearly") && (!$this->user->trial)) : ?>
+									<a class="btn btn-warning btn-round"><?php echo e("Current Plan") ?></a> 
+								<?php else: ?>
+									<a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}") ?>" class="btn btn-primary btn-round" <?php echo (days_left($this->user->expiration) > 720) ? "disabled" : "" ?> ><?php echo e("Subscribe") ?></a>
+								<?php endif ?>
 							  <?php else: ?>
 								<?php if($plan["trial"] && (!$this->logged() || ($this->logged() && !$this->db->get("payment", "trial_days IS NOT NULL AND userid = '{$this->user->id}'", ["limit" => 1])))): ?>                  
 									<a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}?trial=1") ?>" class="btn btn-primary btn-round"><?php echo $plan["trial"] ?>-<?php echo e("Day") ?> <?php echo e("Free Trial") ?></a>                      
@@ -179,11 +179,11 @@
 			<div class="row2 g-gs">
 			
 				<?php foreach ($free as $plan): ?>
-				<div class="col-md-4">
+				<div class="col-sm-4 col-md-4">
 					<div class="price-plan card card-bordered text-center">
 						<div class="card-inner">
 							<div class="price-plan-media">
-								<img src="https://rebranding.today/themes/rebrand2/assets/images/plan-s1.svg" alt="">
+								<img src="https://rebranding.today/themes/rebrand2/assets/images/<?php echo e($plan["icon"]) ?>" alt="">
 							</div>
 							<div class="price-plan-info">
 								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
@@ -196,7 +196,7 @@
 							<div class="price-plan-action">		
 							  <?php if($this->logged()): ?>
 								<?php if(!$this->pro()): ?>
-								  <a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
+								  <a class="btn btn-warning btn-round"><?php echo e("Current Plan") ?></a> 
 								<?php else: ?>
 								  <a class="btn btn-default btn-round"><?php echo e("Free Forever") ?></a> 
 								<?php endif ?>
@@ -210,28 +210,28 @@
 				<?php endforeach ?>
 				
 				<?php foreach ($lifetime as $plan): ?>
-				<div class="col-md-4">
+				<div class="col-sm-4 col-md-4">
 					<div class="price-item card card-bordered text-center">
 						<div class="card-inner">
 							<div class="price-plan-media">
-								<img src="https://rebranding.today/themes/rebrand2/assets/images/plan-s2.svg" alt="">
+								<img src="https://rebranding.today/themes/rebrand2/assets/images/<?php echo e($plan["icon"]) ?>" alt="">
 							</div>
 							<div class="price-plan-info">
 								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
 								<span><?php echo e($plan["description"]) ?></span>
 							</div>
 							<div class="price-plan-amount">
-								<div class="amount"><?php echo Main::currency($this->config["currency"],$plan["price"]) ?>
-									<span>/<?php echo e("yr") ?></span>
+								<div class="amount"><?php echo Main::currency($this->config["currency"],number_format($plan["price"]/1000,0)) ?>K
+									<span>/<?php echo e("lifetime") ?></span>
 								</div>
 								<span class="bill"><?php echo e("Great saving!") ?></span>
 							</div>
 							<div class="price-plan-action">
 							  <?php if ($this->logged() && $this->pro() && $this->user->planid == $plan["id"]): ?>
-								  <?php if ($this->user->trial): ?>
-									<a href="<?php echo Main::href("upgrade/lifetime/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>   
+								<?php if ((days_left($this->user->expiration) > 720) && (!$this->user->trial)) : ?>
+									<a class="btn btn-warning btn-round"><?php echo e("Current Plan") ?></a> 
 								  <?php else: ?>
-									<a class="btn btn-default btn-round"><?php echo e("Current Plan") ?></a> 
+									<a href="<?php echo Main::href("upgrade/lifetime/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>   
 								  <?php endif ?>
 							  <?php else: ?>
 								<?php if($plan["trial"] && (!$this->logged() || ($this->logged() && !$this->db->get("payment", "trial_days IS NOT NULL AND userid = '{$this->user->id}'", ["limit" => 1])))): ?>                  
@@ -275,16 +275,16 @@
 			</tr>
 			<tr class="tb-ftr-item">
 				<td class="tb-ftr-info"><?php echo e("URLs allowed") ?></td>
-				<td class="tb-ftr-plan"><?php echo $free[0]["urls"]== "0" ? e("Unlimited") : $free[0]["urls"] ?></td>
-				<td class="tb-ftr-plan"><?php echo $monthly[0]["urls"]== "0" ? e("Unlimited") : $monthly[0]["urls"] ?></td>
-				<td class="tb-ftr-plan"><?php echo $monthly[1]["urls"]== "0" ? e("Unlimited") : $monthly[1]["urls"] ?></td>
+				<td class="tb-ftr-plan"><?php echo $free[0]["urls"]== "0" ? e("Unlimited") : number_format($free[0]["urls"],0) ?></td>
+				<td class="tb-ftr-plan"><?php echo $monthly[0]["urls"]== "0" ? e("Unlimited") : number_format($monthly[0]["urls"]) ?></td>
+				<td class="tb-ftr-plan"><?php echo $monthly[1]["urls"]== "0" ? e("Unlimited") : number_format($monthly[1]["urls"]) ?></td>
 			</tr>
 			<!-- .tb-ftr-item -->
 			<tr class="tb-ftr-item">
 				<td class="tb-ftr-info"><?php echo e("Clicks per month") ?></td>
-				<td class="tb-ftr-plan"><?php echo $free[0]["clicks"]== "0" ? e("Unlimited") : $free[0]["clicks"] ?></td>
-				<td class="tb-ftr-plan"><?php echo $monthly[0]["clicks"]== "0" ? e("Unlimited") : $monthly[0]["clicks"] ?></td>
-				<td class="tb-ftr-plan"><?php echo $monthly[1]["clicks"]== "0" ? e("Unlimited") : $monthly[1]["clicks"] ?></td>
+				<td class="tb-ftr-plan"><?php echo $free[0]["clicks"]== "0" ? e("Unlimited") : number_format($free[0]["clicks"]) ?></td>
+				<td class="tb-ftr-plan"><?php echo $monthly[0]["clicks"]== "0" ? e("Unlimited") : number_format($monthly[0]["clicks"]) ?></td>
+				<td class="tb-ftr-plan"><?php echo $monthly[1]["clicks"]== "0" ? e("Unlimited") : number_format($monthly[1]["clicks"]) ?></td>
 			</td>
 			<tr class="tb-ftr-item">
 				<td class="tb-ftr-info"><?php echo e("Team Member") ?></td>
@@ -330,21 +330,21 @@
 				<td class="tb-ftr-info"><?php echo e("Custom Splash Pages") ?></td>
 				<td class="tb-ftr-plan">
 					<?php if ($free[0]["permission"]->splash->enabled): ?>
-						<?php echo $free[0]["permission"]->splash->count == "0" ? e("Unlimited") : $free[0]["permission"]->splash->count ?>
+						<?php echo $free[0]["permission"]->splash->count == "0" ? e("Unlimited") : number_format($free[0]["permission"]->splash->count) ?>
 					<?php else: ?>						
 						<span class="features no"></span>
 					<?php endif ?>
 				</td>
 				<td class="tb-ftr-plan">
 					<?php if ($monthly[0]["permission"]->splash->enabled): ?>
-						<?php echo $monthly[0]["permission"]->splash->count == "0" ? e("Unlimited") : $monthly[0]["permission"]->splash->count ?>
+						<?php echo $monthly[0]["permission"]->splash->count == "0" ? e("Unlimited") : number_format($monthly[0]["permission"]->splash->count) ?>
 					<?php else: ?>						
 						<span class="features no"></span>
 					<?php endif ?>
 				</td>
 				<td class="tb-ftr-plan">
 					<?php if ($monthly[1]["permission"]->splash->enabled): ?>
-						<?php echo $monthly[1]["permission"]->splash->count == "0" ? e("Unlimited") : $monthly[1]["permission"]->splash->count ?>
+						<?php echo $monthly[1]["permission"]->splash->count == "0" ? e("Unlimited") : number_format($monthly[1]["permission"]->splash->count) ?>
 					<?php else: ?>						
 						<span class="features no"></span>
 					<?php endif ?>
@@ -354,21 +354,21 @@
 				<td class="tb-ftr-info"><?php echo e("Custom Overlay Pages") ?></td>
 				<td class="tb-ftr-plan">
 					<?php if ($free[0]["permission"]->overlay->enabled): ?>
-						<?php echo $free[0]["permission"]->overlay->count == "0" ? e("Unlimited") : $free[0]["permission"]->overlay->count ?>
+						<?php echo $free[0]["permission"]->overlay->count == "0" ? e("Unlimited") : number_format($free[0]["permission"]->overlay->count) ?>
 					<?php else: ?>						
 						<span class="features no"></span>
 					<?php endif ?>
 				</td>
 				<td class="tb-ftr-plan">
 					<?php if ($monthly[0]["permission"]->splash->enabled): ?>
-						<?php echo $monthly[0]["permission"]->overlay->count == "0" ? e("Unlimited") : $monthly[0]["permission"]->overlay->count ?>
+						<?php echo $monthly[0]["permission"]->overlay->count == "0" ? e("Unlimited") : number_format($monthly[0]["permission"]->overlay->count) ?>
 					<?php else: ?>						
 						<span class="features no"></span>
 					<?php endif ?>
 				</td>
 				<td class="tb-ftr-plan">
 					<?php if ($monthly[1]["permission"]->splash->enabled): ?>
-						<?php echo $monthly[1]["permission"]->overlay->count == "0" ? e("Unlimited") : $monthly[1]["permission"]->overlay->count ?>
+						<?php echo $monthly[1]["permission"]->overlay->count == "0" ? e("Unlimited") : number_format($monthly[1]["permission"]->overlay->count) ?>
 					<?php else: ?>						
 						<span class="features no"></span>
 					<?php endif ?>
@@ -378,21 +378,21 @@
 				<td class="tb-ftr-info"><?php echo e("Event Tracking") ?></td>
 				<td class="tb-ftr-plan">
 					<?php if ($free[0]["permission"]->pixels->enabled): ?>
-						<?php echo $free[0]["permission"]->pixels->count == "0" ? e("Unlimited") : $free[0]["permission"]->pixels->count ?>
+						<?php echo $free[0]["permission"]->pixels->count == "0" ? e("Unlimited") : number_format($free[0]["permission"]->pixels->count) ?>
 					<?php else: ?>						
 						<span class="features no"></span>
 					<?php endif ?>
 				</td>
 				<td class="tb-ftr-plan">
 					<?php if ($monthly[0]["permission"]->splash->enabled): ?>
-						<?php echo $monthly[0]["permission"]->pixels->count == "0" ? e("Unlimited") : $monthly[0]["permission"]->pixels->count ?>
+						<?php echo $monthly[0]["permission"]->pixels->count == "0" ? e("Unlimited") : number_format($monthly[0]["permission"]->pixels->count) ?>
 					<?php else: ?>						
 						<span class="features no"></span>
 					<?php endif ?>
 				</td>
 				<td class="tb-ftr-plan">
 					<?php if ($monthly[1]["permission"]->splash->enabled): ?>
-						<?php echo $monthly[1]["permission"]->pixels->count == "0" ? e("Unlimited") : $monthly[1]["permission"]->pixels->count ?>
+						<?php echo $monthly[1]["permission"]->pixels->count == "0" ? e("Unlimited") : number_format($monthly[1]["permission"]->pixels->count) ?>
 					<?php else: ?>						
 						<span class="features no"></span>
 					<?php endif ?>

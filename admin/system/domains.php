@@ -18,7 +18,7 @@
             </thead>
             <tbody>          
               <?php foreach ($domains as $domain): ?>
-                <?php $user = $this->db->get("user", ["id" => $domain->userid], ["limit" => "1"]) ?>
+                <?php $user = $this->db->get("user", ["id" => $domain->userid], ["limit" => 1]) ?>
                 <tr data-id="<?php echo $domain->id ?>">
                   <td><a href="<?php echo $domain->domain ?>" target="_blank"><?php echo $domain->domain ?></a></td>
                   <td><a href="<?php echo Main::href("user/view/{$user->id}") ?>"><?php echo $user->email ?></a></td>

@@ -33,7 +33,7 @@
 
               <p><strong><?php echo e("Your API key") ?></strong></p>
               <pre class="code"><span><?php echo $this->user->api ?></span></pre>
-              <a href="<?php echo Main::href("user/tools/regenerate").Main::nonce("regenerate_api") ?>" class="btn btn-primary delete" title="<?php echo e("Regenerate API Key") ?>" data-content="<?php echo e("If you proceed, your current applications will not work anymore. You will need to change your api key for it to work again.") ?>"><?php echo e("Regenerate") ?></a>
+              <span class="d-flex justify-content-end"><a href="<?php echo Main::href("user/tools/regenerate").Main::nonce("regenerate_api") ?>" class="btn btn-primary delete" title="<?php echo e("Regenerate API Key") ?>" data-content="<?php echo e("If you proceed, your current applications will not work anymore. You will need to change your api key for it to work again.") ?>"><?php echo e("Regenerate") ?></a></span>
               <hr>
               <p class="alert alert-info"><?php printf("Developer API 1.0 will be deprecated soon. We highly recommend you upgrade to API 2.0. If you still need to access API 1.0, you can do so by clicking %s", "<a class='btn btn-primary btn-xs' href='".Main::href("user/tools#api")."'>".e("here")."</a>") ?></p>
             </div>

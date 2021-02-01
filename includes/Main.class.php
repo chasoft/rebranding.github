@@ -1016,6 +1016,14 @@ class Main
         "latest" => "10.3.2",
         "src" => "//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.3.2/highlight.min.js",
         "css" => "//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.3.2/styles/night-owl.min.css"
+      ],
+      "jqueryvalidation" => [
+        "latest" => "1.19.2",
+        "src" => "//cdnjs.cloudflare.com/ajax/libs/jquery-validate/[version]/jquery.validate.min.js"
+      ],
+      "typedjs" => [
+        "latest" => "2.0.11",
+        "src" => "//cdnjs.cloudflare.com/ajax/libs/typed.js/[version]/typed.min.js"
       ]
     );
     if (array_key_exists($cdn, $cdns)) {
@@ -1395,7 +1403,7 @@ class Main
    **/
   public static function currency($code = "", $amount = "")
   {
-    $array = array('AUD' => array('label' => 'Australian Dollar', 'format' => '$%s'), 'CAD' => array('label' => 'Canadian Dollar', 'format' => '$%s'), 'EUR' => array('label' => 'Euro', 'format' => '€ %s'), 'GBP' => array('label' => 'Pound Sterling', 'format' => '£ %s'), 'JPY' => array('label' => 'Japanese Yen', 'format' => '¥ %s'), 'USD' => array('label' => 'U.S. Dollar', 'format' => '$%s'), 'NZD' => array('label' => 'N.Z. Dollar', 'format' => '$%s'), 'CHF' => array('label' => 'Swiss Franc', 'format' => '%s Fr'), 'HKD' => array('label' => 'Hong Kong Dollar', 'format' => '$%s'), 'SGD' => array('label' => 'Singapore Dollar', 'format' => '$%s'), 'SEK' => array('label' => 'Swedish Krona', 'format' => '%s kr'), 'DKK' => array('label' => 'Danish Krone', 'format' => '%s kr'), 'PLN' => array('label' => 'Polish Zloty', 'format' => '%s zł'), 'NOK' => array('label' => 'Norwegian Krone', 'format' => '%s kr'), 'HUF' => array('label' => 'Hungarian Forint', 'format' => '%s Ft'), 'CZK' => array('label' => 'Czech Koruna', 'format' => '%s Kč'), 'ILS' => array('label' => 'Israeli New Sheqel', 'format' => '₪ %s'), 'MXN' => array('label' => 'Mexican Peso', 'format' => '$%s'), 'BRL' => array('label' => 'Brazilian Real', 'format' => 'R$%s'), 'MYR' => array('label' => 'Malaysian Ringgit', 'format' => 'RM %s'), 'PHP' => array('label' => 'Philippine Peso', 'format' => '₱ %s'), 'TWD' => array('label' => 'New Taiwan Dollar', 'format' => 'NT$%s'), 'THB' => array('label' => 'Thai Baht', 'format' => '฿ %s'), 'TRY' => array('label' => 'Turkish Lira', 'format' => 'TRY %s'), 'INR' => array('label' => 'Indian Rupee', 'format' => '₹ %s'),);
+    $array = array('VND' => array('label' => 'Vietnam Dong', 'format' => 'đ %s'),'AUD' => array('label' => 'Australian Dollar', 'format' => '$%s'), 'CAD' => array('label' => 'Canadian Dollar', 'format' => '$%s'), 'EUR' => array('label' => 'Euro', 'format' => '€ %s'), 'GBP' => array('label' => 'Pound Sterling', 'format' => '£ %s'), 'JPY' => array('label' => 'Japanese Yen', 'format' => '¥ %s'), 'USD' => array('label' => 'U.S. Dollar', 'format' => '$%s'), 'NZD' => array('label' => 'N.Z. Dollar', 'format' => '$%s'), 'CHF' => array('label' => 'Swiss Franc', 'format' => '%s Fr'), 'HKD' => array('label' => 'Hong Kong Dollar', 'format' => '$%s'), 'SGD' => array('label' => 'Singapore Dollar', 'format' => '$%s'), 'SEK' => array('label' => 'Swedish Krona', 'format' => '%s kr'), 'DKK' => array('label' => 'Danish Krone', 'format' => '%s kr'), 'PLN' => array('label' => 'Polish Zloty', 'format' => '%s zł'), 'NOK' => array('label' => 'Norwegian Krone', 'format' => '%s kr'), 'HUF' => array('label' => 'Hungarian Forint', 'format' => '%s Ft'), 'CZK' => array('label' => 'Czech Koruna', 'format' => '%s Kč'), 'ILS' => array('label' => 'Israeli New Sheqel', 'format' => '₪ %s'), 'MXN' => array('label' => 'Mexican Peso', 'format' => '$%s'), 'BRL' => array('label' => 'Brazilian Real', 'format' => 'R$%s'), 'MYR' => array('label' => 'Malaysian Ringgit', 'format' => 'RM %s'), 'PHP' => array('label' => 'Philippine Peso', 'format' => '₱ %s'), 'TWD' => array('label' => 'New Taiwan Dollar', 'format' => 'NT$%s'), 'THB' => array('label' => 'Thai Baht', 'format' => '฿ %s'), 'TRY' => array('label' => 'Turkish Lira', 'format' => 'TRY %s'), 'INR' => array('label' => 'Indian Rupee', 'format' => '₹ %s'),);
     if (empty($code)) return $array;
 
     $code = strtoupper($code);

@@ -16,12 +16,12 @@
 					<hr class="visible-sm visible-xs">
 					<div class="row">
 						<div class="col-sm-3 url-stats">
-								<?php echo $url->click ?>
+								<?php echo number_format($url->click,0) ?>
 								<span><?php echo e("Clicks") ?></span>
 							<br>
 						</div>
 						<div class="col-sm-3 url-stats">							
-								<?php echo $url->unique ?>
+								<?php echo number_format($url->unique,0) ?>
 								<span><?php echo e("Unique Clicks")?></span>
 						</div>
 						<div class="col-sm-6 url-data">

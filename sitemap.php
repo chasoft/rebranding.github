@@ -71,6 +71,7 @@
 	</url>	
 <?php endforeach;?>		
 <?php if($config["blog"]): ?>	
+	$lastdate = null;
 <?php foreach($posts as $i => $post): ?>	
 	<?php if ($i == 0) {$lastdate = $post->date;} ?>		
 	<url>

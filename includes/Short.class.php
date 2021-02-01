@@ -138,7 +138,7 @@ class Short extends App
 		if (isset($option["api"]) && $option["api"] && isset($option["user"])) {
 			$this->user = $option["user"];
 			$this->user->id = $option["user"]->id;
-			$this->user->plan = $this->db->get("plans", ["id" => $this->user->planid], ["limit" => "1"]);
+			$this->user->plan = $this->db->get("plans", ["id" => $this->user->planid], ["limit" => 1]);
 		}
 
 		// Validate URL
@@ -376,7 +376,7 @@ class Short extends App
 			":description" => isset($array["description"]) && !empty($array["description"]) ? Main::clean($array["description"], 3, TRUE) : "",
 			":location" => $countries,
 			":devices" => $devices,
-			":date" => "NOW()",
+			":date" => date("Y-m-d H:i:s"),//"NOW()",
 			":pass" => isset($array["password"]) ? Main::clean($array["password"], 3) : "",
 			":meta_title" => $meta_title,
 			":meta_description" => $meta_description,
@@ -565,7 +565,7 @@ class Short extends App
 
 		if ($url->userid > 0) {
 			$current = idn_to_utf8($_SERVER["HTTP_HOST"]);
-			$user = $this->db->get("user", ["id" => $url->userid], ["limit" => "1"]);
+			$user = $this->db->get("user", ["id" => $url->userid], ["limit" => 1]);
 
 			$list = [
 				str_replace(["http://", "https://"], "", $this->config["url"])
@@ -760,7 +760,7 @@ class Short extends App
 				":short" => $this->action,
 				":urlid" => $url->id,
 				":urluserid" => $url->userid,
-				":date" => "NOW()",
+				":date" => date("Y-m-d H:i:s"),//"NOW()",
 				":country" => $this->country(),
 				":referer" => $referer,
 				":domain" => $domain,
@@ -919,16 +919,19 @@ class Short extends App
 		if ($url->pro) {
 			$this->injectPixels($url->pixels, $url->userid);
 		}
+
+		$data = json_decode($splash->data);
+
 		// Add timer animation	
 		if (!empty($this->config["timer"]) || $this->config["timer"] !== "0") {
 
-			Main::add('<script type="text/javascript">var count = ' . $this->config['timer'] . ';var countdown = setInterval(function(){$(".c-countdown span").html(count);if (count < 1) {clearInterval(countdown);window.location="' . $url->url . '";}count--;}, 1000);</script>', "custom", FALSE);
+			Main::add('<script type="text/javascript">var count = ' . $data->timer . ';var countdown = setInterval(function(){$(".c-countdown span").html(count);if (count < 1) {clearInterval(countdown);window.location="' . $url->url . '";}count--;}, 1000);</script>', "custom", FALSE);
 		}
 		if ($url->domain) $this->config["url"] = $url->domain;
 
 		$this->footerShow = false;
 		$this->headerShow = false;
-		$data = json_decode($splash->data);
+		//$data = json_decode($splash->data);
 		$data->avatar = Main::href("content/{$data->avatar}");
 		$data->banner = Main::href("content/{$data->banner}");
 		$this->header();
@@ -1425,7 +1428,7 @@ class Short extends App
 	{
 
 		// check if banned
-		if ($this->db->get("reports", ["bannedlink" => "?"], ["limit" => "1"], [$url])) {
+		if ($this->db->get("reports", ["bannedlink" => "?"], ["limit" => 1], [$url])) {
 			return TRUE;
 		}
 

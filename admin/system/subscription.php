@@ -22,7 +22,7 @@
               <td><?php echo $Sub->tid ?></td>
               <td><a href="<?php echo Main::ahref("users/edit/{$Sub->userid}")?>" class="btn btn-success btn-xs"><?php echo $Sub->userid ?></a></td>
               <td><?php echo $Sub->status ?></td>
-              <td><?php echo $Sub->amount ?></td>
+              <td class="text-right"><?php echo number_format($Sub->amount,0) ?></td>
               <td><?php echo $Sub->date ?></td>
               <td><?php echo $Sub->expiry ?></td>
             </tr>      

@@ -5,12 +5,12 @@
       <div class="col-sm-5 col-xs-12">
         <div class="promo">
           <h1><?php echo e("Congrats!") ?></h1>
-          <p class="description"><?php echo e("Your <strong>domain name</strong> is now successfully pointed to our server. You can now start using it from the platform and shorten branded links with your own domain name.") ?></p>
-          <p class="description"><?php echo e("If you want to display another page instead of this page when someone accesses your root domain name, you can define that link in your settings by logging in to your account. You can also define a custom 404 error page.") ?></p>
-          <p class="description"><?php echo e("If you have any questions, please do not hesitate to contact us.") ?></p>
+          <p class="description text-justify"><?php echo e("Your <strong>domain name</strong> is now successfully pointed to our server. You can now start using it from the platform and shorten branded links with your own domain name.") ?></p>
+          <p class="description text-justify"><?php echo e("If you want to display another page instead of this page when someone accesses your root domain name, you can define that link in your settings by logging in to your account. You can also define a custom 404 error page.") ?></p>
+          <p class="description text-justify"><?php echo e("If you have any questions, please do not hesitate to contact us.") ?></p>
           <br>
           <p>
-            <a href="<?php echo Main::href("user") ?>" class="btn btn-secondary btn-round"><?php echo e("Login to your account") ?></a>
+            <a href="<?php echo Main::href("user") ?>" class="btn btn-secondary btn-round"><?php echo e("Login") ?></a>
             &nbsp;&nbsp;
             <a href="<?php echo Main::href("contact") ?>" class="btn btn-primary btn-round"><?php echo e("Contact us") ?></a>            
           </p>

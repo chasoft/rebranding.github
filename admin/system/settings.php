@@ -448,7 +448,7 @@
 							<ul class="form_opt" data-id="pt" data-callback="paymentProcess">
 								<li class="text-label">Payment Processor <small>Choose between PayPal, PayPal API or Stripe. Subscription only possible with Stripe and PayPal API.</small></li>
 								<li><a href="" class="last<?php echo (($this->config["pt"] == "stripe") ? ' current' : '') ?>" data-value="stripe">Stripe</a></li>
-								<li><a href="" class="last<?php echo (($this->config["pt"] == "alepay") ? ' current' : '') ?>" data-value="alepay">Stripe</a></li>
+								<li><a href="" class="last<?php echo (($this->config["pt"] == "alepay") ? ' current' : '') ?>" data-value="alepay">Alepay</a></li>
 								<li><a href="" class="<?php echo (($this->config["pt"] == "paypalapi") ? ' current' : '') ?>" data-value="paypalapi">Paypal API</a></li>
 								<li><a href="" class="first<?php echo (($this->config["pt"] == "paypal") ? ' current' : '') ?>" data-value="paypal">Paypal</a></li>
 							</ul>
@@ -507,29 +507,6 @@
 									<div class="col-sm-9">
 										<input type="text" class="form-control" name="ppprivate" id="ppprivate" value="<?php echo $this->config['ppprivate'] ?>">
 										<p class="help-block">Please enter your live client secret.</p>
-									</div>
-								</div>
-							</div>
-							<div id="alepayholder" class="toggles" <?php echo ($this->config["pt"] == "alepay") ? '' : 'style="display: none;"' ?>>
-								<div class="form-group">
-									<label for="apapikey" class="col-sm-3 control-label">API Key</label>
-									<div class="col-sm-9">
-										<input type="text" class="form-control" name="apapikey" id="apapikey" value="<?php echo $this->config['apapikey'] ?>">
-										<p class="help-block">Please enter your Alepay API Key.</p>
-									</div>
-								</div>
-								<div class="form-group">
-									<label for="apencryptkey" class="col-sm-3 control-label">Encrypt Key</label>
-									<div class="col-sm-9">
-										<input type="text" class="form-control" name="apencryptkey" id="apencryptkey" value="<?php echo $this->config['apencryptkey'] ?>">
-										<p class="help-block">Please enter your Alepay Encrypt Key.</p>
-									</div>
-								</div>
-								<div class="form-group">
-									<label for="apchecksumkey" class="col-sm-3 control-label">Checksum Key</label>
-									<div class="col-sm-9">
-										<input type="text" class="form-control" name="apchecksumkey" id="apchecksumkey" value="<?php echo $this->config['apchecksumkey'] ?>">
-										<p class="help-block">Please enter your Alepay Checksum Key.</p>
 									</div>
 								</div>
 							</div>

@@ -499,6 +499,13 @@ $(function() {
     $(".code-selector[data-id="+c+"]").fadeIn();
     update_sidebar();
   });
+
+  //Fix Tabs on loading by BizChain
+  location.hash&&$("a[href="+location.hash+"]").tab("show");
+  $(document.body).on("click","a[data-toggle]",function(t){location.hash=this.getAttribute("href")});
+  $(window).on("popstate",function(){var o=location.hash;$("a[href="+o+"]").tab("show")});
+  //End of Fix
+
 }); // End jQuery Ready
 /**
  * iCheck Load Function

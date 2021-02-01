@@ -32,8 +32,8 @@
   <div class="col-md-3">
     <div class="panel panel-default panel-black">
       <div class="panel-body">
-        <p class="main-stats"><span><?php echo Main::currency($this->config["currency"],$this->db->count("payment","(MONTH(date) = MONTH(CURDATE()) AND YEAR(date) = YEAR(CURDATE())) AND status='Completed'","amount") - $this->db->count("payment","(MONTH(date) = MONTH(CURDATE()) AND YEAR(date) = YEAR(CURDATE())) AND status='Refunded'","amount")) ?></span> in <?php echo date("F") ?></p>
-         <p><?php echo Main::currency($this->config["currency"],$this->db->count("payment","status='Completed'","amount") - $this->db->count("payment","status='Refunded'","amount")) ?> Total</p>
+        <p class="main-stats"><span><?php echo Main::currency($this->config["currency"],number_format($this->db->count("payment","(MONTH(date) = MONTH(CURDATE()) AND YEAR(date) = YEAR(CURDATE())) AND status='Completed'","amount") - $this->db->count("payment","(MONTH(date) = MONTH(CURDATE()) AND YEAR(date) = YEAR(CURDATE())) AND status='Refunded'","amount"),0)) ?></span> in <?php echo date("M") ?></p>
+         <p><?php echo Main::currency($this->config["currency"],number_format($this->db->count("payment","status='Completed'","amount") - $this->db->count("payment","status='Refunded'","amount")),0) ?> Total</p>
       </div>
     </div>
   </div>       
@@ -166,7 +166,7 @@
               <tr>
                 <td><?php echo ($user->admin)?"<strong>{$user->email}</strong>":$user->email ?></td>
                 <td><?php echo ($user->active?"Active":"Not Active") ?></td>                  
-                <td><?php echo date("F d, Y",strtotime($user->date)) ?></td>
+                <td><?php echo date("d M, Y",strtotime($user->date)) ?></td>
                 <td align="right">
                   <a href="<?php echo Main::ahref("users/edit/{$user->id}") ?>" class="btn btn-primary btn-xs">Edit</a>
                   <a href="<?php echo Main::ahref("users/delete/{$user->id}").Main::nonce("delete_user-{$user->id}") ?>" class="btn btn-danger btn-xs delete" title="Delete user only">Delete User</a>
@@ -199,7 +199,7 @@
                 <td><a href="<?php echo Main::ahref("user/edit/{$payment->userid}") ?>" class="btn btn-info btn-xs"><?php echo $payment->userid ?></a></td>
                 <td><?php echo date("M d, Y - H:i",strtotime($payment->date)) ?></td>
                 <td><?php echo date("M d, Y - H:i",strtotime($payment->expiry)) ?></td>
-                <td><?php echo $payment->amount ?></td>
+                <td class="text-right"><?php echo number_format($payment->amount,0) ?></td>
               </tr>                  
             <?php endforeach ?>  
           </tbody>

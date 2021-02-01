@@ -54,7 +54,6 @@
     */
     "security" => 'PUS155303e8c22847c73be43306faf833c30ae0bdb82228b0a7815175d8b8cd4b80',  // !!!! DON'T CHANGE THIS IF YOUR SITE IS LIVE !!!!
     "public_token" => '96ed25f972b37c4215c6ad8b2c5ba4d3', // This is randomly generated and it is a public key
-
     "debug" => 2,   // Enable debug mode (outputs errors) - 0 = OFF, 1 = Error message, 2 = Error + Queries (Don't enable this if your site is live!)
     "demo" => 0 // Demo mode
   );

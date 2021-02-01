@@ -4,7 +4,7 @@
     <div class="row">
       <div class="col-sm-8 col-xs-12">
         <div class="promo">
-		  <div class="today"><h1>Rebranding .<span class="typed-text"></span><span class="cursor"> |</span></h1><br><h1><?php echo '<span class="yellow-underline">'.e("Your Own").'</span> '.e("URL Shortener") ?></h1></div>		
+		  <div class="today"><h1>Rebranding . <span class="forPeople"></span></h1><h1><?php echo '<span class="yellow-underline">'.e("Your Own").'</span> '.e("URL Shortener") ?></h1></div>		
           <p class="description"><?php echo e("Shorten, Personalize, and Share").' <span class="yellow-underline">'.e("<b>fully branded</b>").'</span> '.e("ShortURLs for your business. Try Rebranding Today for free.") ?></p>
         </div>        
         <?php echo Main::message() ?>
