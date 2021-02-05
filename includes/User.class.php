@@ -1057,7 +1057,7 @@ class User extends App
 					return Main::redirect(Main::href("user/bundles", "", FALSE), array("danger", e("Something went wrong, please try again.")));
 				}
 				if ($this->db->update("url", array("bundle" => "?"), array("id" => "?", "userid" => "?"), array(Main::clean($_POST["bundle_id"], 3, TRUE), Main::clean($_POST["url_id"], 3, TRUE), $this->user->id))) {
-					Main::redirect(Main::href("user/bundles", "", FALSE), array("success", e("This URL has been added to the bundle.")));
+					Main::redirect(Main::href("user/bundles", "", FALSE), array("success", e("The URL has been added to the bundle.")));
 					return;
 				}
 			}
@@ -1170,7 +1170,7 @@ class User extends App
 		// Edit URL
 		if (isset($_POST["token"])) {
 			if (!Main::validate_csrf_token($_POST["token"])) {
-				Main::redirect(Main::href("user/edit/{$this->id}", "", FALSE), array("danger", e("Something went wrong, please try again.")));
+				Main::redirect(Main::href("user/edit/{$this->id}", "", FALSE), array("danger", e("Invalid token! Please refresh and try again.")));
 				return;
 			}
 			if ($this->config["demo"]) {
@@ -1200,7 +1200,11 @@ class User extends App
 				}
 			}
 
-			if (isset($_POST["expiry"]) && !empty($_POST["expiry"]) && strtotime("now") > strtotime($_POST["expiry"])) return array('error' => 1, 'msg' => e('The expiry date must be later than today.'));
+			if (isset($_POST["expiry"]) && !empty($_POST["expiry"])) {
+				$_POST["expiry"] = substr($_POST["expiry"], 3, 2) . '/' . substr($_POST["expiry"], 0, 2) . '/' . substr($_POST["expiry"], 6, 4);
+			}
+
+			if (isset($_POST["expiry"]) && !empty($_POST["expiry"]) && strtotime("now") >= strtotime($_POST["expiry"])) return array('error' => 1, 'msg' => e('The expiry date must be later than today.'));
 
 			if (!empty($_POST['location'][0]) && !empty($_POST['target'][0])) {
 				foreach ($_POST['location'] as $i => $country) {
@@ -1274,6 +1278,8 @@ class User extends App
 				$data[":type"] = $_POST["type"];
 			}
 
+			var_dump($this->user->plan->permission);return;
+
 			if ($this->permission('pixels')) {
 
 				$pixels = "";
@@ -1310,7 +1316,7 @@ class User extends App
 			}
 
 			if ($this->db->update("url", "", array("id" => $this->id, "userid" => $this->user->id), $data)) {
-				return Main::redirect(Main::href("user/edit/{$this->id}", "", FALSE), array("success", e("This URL has been successfully updated.")));
+				return Main::redirect(Main::href("user/edit/{$this->id}", "", FALSE), array("success", e("The URL has been successfully updated.")));
 			}
 			return Main::redirect(Main::href("user/edit/{$this->id}", "", FALSE));
 		}
@@ -1378,9 +1384,14 @@ class User extends App
 
 
 		$header = e("Edit URL");
-		$url->expiry = $url->expiry ? date("m/d/Y", strtotime($url->expiry)) : "";
-		$content = "      
-	    <form action='" . Main::href("user/edit/{$url->id}") . "' method='post' class='form-horizontal' role='form'>
+		$url->expiry = $url->expiry ? date("d/m/Y", strtotime($url->expiry)) : "";
+		$short_url = ($url->domain ? $url->domain : $this->config["url"]) . '/' . $url->alias . $url->custom;
+		$content = "
+		<div style='margin-top: -20px;margin-left: -3px;'>
+		<span style='position: relative; top: 3px; color: #6576ff;'><svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-caret-right-fill' viewBox='0 0 16 16'><path d='M12.14 8.753l-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z'></path></svg></span>
+		<span><a class='alink' target='_blank' href='" . $short_url . "'>" . $short_url . "</a></span>
+		</div>
+	    <form action='" . Main::href("user/edit/{$url->id}") . "' method='post' class='form-horizontal' role='form' autocomplete='off'>
 		    
 		    " . (!$url->status ? "<p class='alert alert-info'>" . e("We are currently manually approving links. As soon as the link is approved, you will be able to start using it.") . "</p>" : "") . "
 
@@ -1415,28 +1426,26 @@ class User extends App
 	      <div class='form-group'>
 	        <label for='custom' class='col-sm-3 control-label'>" . e("Custom Alias") . "</label>
 	        <div class='col-sm-9'>
-	          <input type='text' class='form-control' id='custom' value='{$url->custom}' name='custom' placeholder='e.g. apple'>
+	          <input type='text' class='form-control' id='custom' value='{$url->custom}' name='custom' placeholder='e.g. san-pham-tot'>
 	          <p class='help-block'></p>
 	        </div>
 	      </div> " : "") . "
 
 	      <div class='form-group'>
-	        <label for='pass' class='col-sm-3 control-label'>" . e("Link Expiration") . "</label>
+	        <label for='expiry' class='col-sm-3 control-label'>" . e("Link Expiration") . "</label>
 	        <div class='col-sm-9'>
-	          <input type='text' class='form-control' data-toggle='dateeditor' name='expiry' id='expiry' " . ($url->expiry ? "value='{$url->expiry}'" : '') . " autocomplete = 'off'>
+	          <input type='text' class='form-control' data-toggle='dateeditor' name='expiry' id='expiry' " . ($url->expiry ? "value='{$url->expiry}'" : '') . " />
 	        </div>
 	      </div>
-
 	      <div class='form-group'>
 	        <label for='pass' class='col-sm-3 control-label'>" . e("Password") . "</label>
 	        <div class='col-sm-9'>
-	          <input type='text' class='form-control' name='pass' id='pass' value='{$url->pass}'>
+				<input type='text' class='form-control' name='pass' id='pass' value='{$url->pass}' autocomplete='off' />
 	          <div class='help-block'>" . e("Note that the password might be encrypted. To update this simply enter the password again.") . "</div>
 	        </div>
 	      </div>
-
 	      <div class='form-group'>
-	        <label for='description' class='col-sm-3 control-label'>" . e("Note") . " (" . e("optional") . ")</label>
+	        <label for='description' class='col-sm-3 control-label'>" . e("Note") . " <i class='fas fa-info-circle' data-toggle='tooltip' data-placement='right' title='" . e("optional") . "'></i></label>
 	        <div class='col-sm-9'>
 	          <input type='text' class='form-control' name='description' id='description' value='{$url->description}'>
 	        </div>
@@ -1446,7 +1455,7 @@ class User extends App
 			$splash = $this->db->get("splash", array("userid" => "?"), array("order" => "date"), array($this->user->id));
 			$overlay = $this->db->get("overlay", array("userid" => "?"), array("order" => "date"), array($this->user->id));
 			$content .= "<hr><div class='form-group'>
-	        <label for='description' class='col-sm-3 control-label'>" . e("Redirection") . "</label>
+	        <label for='type' class='col-sm-3 control-label'>" . e("Redirection") . "</label>
 	        <div class='col-sm-9'>
 			      <select name='type'>
 			      	" . ($this->user->pro ? "<optgroup label='" . e("Redirection") . "'>
@@ -1682,9 +1691,9 @@ class User extends App
 		$widgets .= '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("URL Info") . '</h3>';
 		$widgets .= '<p><em>' . $url->click . '</em> ' . e("Clicks") . ' ' . e("since") . ' ' . date("F, d Y", strtotime($url->date)) . '</p>';
-		$widgets .= "<p><i class='glyphicon glyphicon-link'></i> {$url->domain}/{$url->alias}{$url->custom} <a href='#' class='inline-copy copy' data-clipboard-text='{$url->domain}/{$url->alias}{$url->custom}'>" . e("Copy") . "</a></p>";
-		$widgets .= "<p><i class='glyphicon glyphicon-qrcode'></i> {$url->domain}/{$url->alias}{$url->custom}/qr <a href='#' class='inline-copy copy' data-clipboard-text='{$url->domain}/{$url->alias}{$url->custom}/qr'>" . e("Copy") . "</a></p>";
-		$widgets .= "<p>" . e("To change the dimension of the QR code, add the size parameter to the url and then your desired dimension. (Max 500x500)") . " e.g. ?size=300x300</p>";
+		$widgets .= "<p style='color: #2066de;'><i class='glyphicon glyphicon-link'></i> {$url->domain}/{$url->alias}{$url->custom} <a href='#' class='inline-copy copy' data-clipboard-text='{$url->domain}/{$url->alias}{$url->custom}'>" . e("Copy") . "</a></p>";
+		$widgets .= "<p style='color: #2066de;'><i class='glyphicon glyphicon-qrcode'></i> {$url->domain}/{$url->alias}{$url->custom}/qr <a href='#' class='inline-copy copy' data-clipboard-text='{$url->domain}/{$url->alias}{$url->custom}/qr'>" . e("Copy") . "</a></p>";
+		$widgets .= "<p>" . e("To change the dimension of the QR code, add the size parameter to the url and then your desired dimension (Max 500x500). <u>Note</u>: default size is 149x149 pixels") . "<br>" . " e.g. <a class='alink-grey' href='{$url->domain}/{$url->alias}{$url->custom}/qr?size=300x300'>.../{$url->alias}{$url->custom}/qr<span style='font-weight:bold;border-bottom: 1px dashed;'> ?size=300x300</span></a></p>";
 		$widgets .= '</div>';
 		$widgets .= $this->widgets("export", $url->id);
 
@@ -4297,7 +4306,7 @@ class User extends App
 		if (!$this->config["pro"]) return FALSE;
 
 		//if (isset($this->config["pt"]) && $this->config["pt"] == "stripe" && $subscription = $this->db->get("subscription", array("userid" => "?"), array("order" => "date"), array($this->userid))) {
-		if (isset($this->config["pt"]) && $subscription = $this->db->get("subscription", array("userid" => "?"), array("order" => "date"), array($this->userid))) {
+		if (isset($this->config["pt"]) && $subscription = $this->db->get("subscription", array("userid" => "?"), array("order" => "id"), array($this->userid))) {
 			$html = '<div class="main-content panel panel-default panel-body">';
 			$html .= "<h3>" . e("Subscription History") . " </h3>";
 			$html .= '<div class="table-responsive">';
@@ -4319,7 +4328,7 @@ class User extends App
 					              <td class="text-right">' . number_format($payment->amount, 0) . '</td>
 					              <td>' . date("d M, Y", strtotime($payment->date)) . '</td>
 					              <td>' . date("d M, Y", strtotime($payment->expiry)) . '</td>
-					              <td>' . e(ucfirst($payment->status)) . '</td>
+					              <td><span class="'. ((ucfirst($payment->status) == 'Pending') || (ucfirst($payment->status) == 'Thẻ bị review') ? 'badge badge-warning' : '')  .'">' . e(ucfirst($payment->status)) . '</span></td>
 					            </tr>';
 			}
 			$html .= '</tbody>
@@ -4329,7 +4338,7 @@ class User extends App
 			echo $html;
 		}
 
-		$payments = $this->db->get("payment", array("userid" => "?"), array("order" => "date", "asc" => 0), array($this->userid));
+		$payments = $this->db->get("payment", array("userid" => "?"), array("order" => "id", "asc" => 0), array($this->userid));
 
 		$html = '<div class="main-content panel panel-default panel-body">';
 		$html .= "<h3>" . e("Latest Transactions") . (($this->user->pro && (!$this->user->trial)) ? ("<a href='" . Main::href("pricing", TRUE) . "' class='btn btn-secondary btn-sm pull-right'>" . e("Pricing") . "</a>") : "") . "</h3>";
@@ -4340,7 +4349,8 @@ class User extends App
 					            <th>' . e("Transaction ID") . '</th>
 					            <th>' . e("Amount") . '</th>
 					            <th>' . e("Date") . '</th>
-					            <th>' . e("Expiration") . '</th>
+								<th>' . e("Expiration") . '</th>
+								<th>' . e("Status") . '</th>								
 					          </tr>
 					        </thead>
 					        <tbody>';
@@ -4349,7 +4359,9 @@ class User extends App
 				              <td>' . ($payment->status == "Refunded" ? "<span class='label label-success'>" . e("Refunded") . "</span> " : "") . $payment->tid . '</td>
 				              <td class="text-right">' . ($payment->status == "Refunded" ? "-" : "") . (($payment->trial_days) ? e('Free Trial') : number_format($payment->amount, 0)) . '</td>
 				              <td>' . date("d M, Y", strtotime($payment->date)) . '</td>
-				              <td>' . ($payment->status == "Refunded" ? "" : date("d M, Y", strtotime($payment->expiry))) . '</td>
+							  <td>' . ($payment->status == "Refunded" ? "" : date("d M, Y", strtotime($payment->expiry))) . '</td>
+							  <td> <span class="'. ((ucfirst($payment->status) == 'Pending') || (ucfirst($payment->status) == 'Thẻ bị review') ? 'badge badge-warning' : '')  . '">' . ($payment->status) . '</td>
+							  
 							</tr>';
 		}
 		$html .= '</tbody>

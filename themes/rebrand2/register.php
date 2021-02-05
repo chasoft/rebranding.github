@@ -17,8 +17,7 @@
         <?php endif ?>
       </div>
       <?php echo Main::message() ?>
-      <form id="registerform" name="registerform" role="form" class="live_form" id="login_form" method="post" action="<?php echo Main::href("user/register") ?>">
-
+      <form id="registerform" name="registerform" role="form" class="live_form" id="login_form" method="post" action="<?php echo Main::href("user/register") ?>" autocomplete="off">
         <?php if (!$this->config["private"] && $this->config["user"] &&  ($this->config["fb_connect"] || $this->config["tw_connect"] || $this->config["gl_connect"])) : ?>
           <div class="social">
             <h3><?php echo e("Login using a social network") ?></h3>
@@ -50,7 +49,7 @@
           <input type="email" class="form-control" id="email" placeholder="<?php echo e("Please enter a valid email.") ?>" name="email" required>
         </div>
         <div class="form-group">
-          <label for="pass"><?php echo e("Password") ?></label>
+          <label for="password"><?php echo e("Password") ?></label>
           <input type="password" class="form-control" id="password" placeholder="<?php echo e("Please enter a valid password.") ?>" name="password" minlength="5" required>
           <a tabindex="-1" href="#" class="form-icon form-icon-right passcode-switch" data-target="password">
             <em name="iconshow" class="passcode-icon icon-show icon far fa-eye"></em>
@@ -58,18 +57,17 @@
           </a>
         </div>
         <div class="form-group">
-          <label for="pass2"><?php echo e("Confirm Password") ?></label>
-          <a tabindex="-1" href="#" class="form-icon form-icon-right passcode-switch" data-target="password">
+          <label for="cpassword"><?php echo e("Confirm Password") ?></label>
+          <input type="password" class="form-control" id="cpassword" equalTo="password" placeholder="<?php echo e("Please confirm your password.") ?>" name="cpassword" minlength="5" required>
+          <a tabindex="-1" href="#" class="form-icon form-icon-right passcode-switch" data-target="cpassword">
             <em name="iconshow" class="passcode-icon icon-show icon far fa-eye"></em>
             <em name="iconhide" class="passcode-icon icon-hide icon far fa-eye-slash"></em>
-          </a>          
-          <input type="password" class="form-control" id="cpassword" equalTo="password" placeholder="<?php echo e("Please confirm your password.") ?>" name="cpassword" minlength="5" required>
-
+          </a>
         </div>
         <?php echo Main::captcha() ?>
         <div class="form-group">
           <label>
-            <input type="checkbox" class="checkbox" name="terms" id="terms" data-class="blue" required > 
+            <input type="checkbox" name="terms" value="1" data-class="blue" id="terms" required>
             <span class="check-box"><?php echo e("I agree to the") ?> <a href="<?php echo $this->config["url"] ?>/page/terms-of-service" target="_blank"><?php echo e("terms and conditions") ?></a>.</span>
           </label>
         </div>
@@ -77,7 +75,25 @@
         <button type="submit" class="btn btn-primary"><?php echo e("Create account") ?></button>
         <a href="<?php echo Main::href("user/login") ?>" class="pull-right" style="margin-top: 7px;"><?php echo e("Go to login page") ?></a>
       </form>
-      <script>jQuery.validator.addMethod("validate_email",function(a,e){return!!/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(a)},"Please enter a valid Email."),jQuery.validator.addMethod("validate_username",function(a,e){return!!/^\w{4,}$/.test(a)},"Please choose a valid Username."),$("#registerform").validate({rules:{email:{validate_email:!0},cpassword:{equalTo:"#password"},username:{validate_username:!0}}});</script>
+      <script>
+        jQuery.validator.addMethod("validate_email", function(a, e) {
+          return !!/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(a)
+        }, "Please enter a valid Email."), jQuery.validator.addMethod("validate_username", function(a, e) {
+          return !!/^\w{4,}$/.test(a)
+        }, "Please choose a valid Username."), $("#registerform").validate({
+          rules: {
+            email: {
+              validate_email: !0
+            },
+            cpassword: {
+              equalTo: "#password"
+            },
+            username: {
+              validate_username: !0
+            }
+          }
+        });
+      </script>
       <div class="centered">
         <div class="text-center">
           <ul class="list-inline link1">

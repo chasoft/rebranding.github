@@ -140,7 +140,7 @@
 							<label class="col-sm-3 control-label"><?php echo e("Confirm Password") ?></label>
 							<div class="col-sm-9">
 								<input type="password" value="" id="cpassword" name="cpassword" class="form-control" minlength="5" autocomplete="off" />
-								<a tabindex="-1" href="#" class="form-icon form-icon-right passcode-switch" data-target="password">
+								<a tabindex="-1" href="#" class="form-icon form-icon-right passcode-switch" data-target="cpassword">
 									<em name="iconshow" class="passcode-icon icon-show icon far fa-eye"></em>
 									<em name="iconhide" class="passcode-icon icon-hide icon far fa-eye-slash"></em>
 								</a>

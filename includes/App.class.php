@@ -153,8 +153,8 @@ class App
 
 				//Set the default timezone				
 				$address = json_decode($this->user->address, TRUE);
-				include (ROOT."/includes/library/timezone.php");
-				if (ISSET($address["timezone"]) && ISSET($timezonelist[$address["timezone"]]))
+				include(ROOT . "/includes/library/timezone.php");
+				if (isset($address["timezone"]) && isset($timezonelist[$address["timezone"]]))
 					date_default_timezone_set($timezonelist[$address["timezone"]]);
 				else
 					date_default_timezone_set('Asia/Bangkok');
@@ -260,7 +260,7 @@ class App
 
 
 				// }
-				
+
 
 				// var_dump($user);
 				// var_dump($subscription);
@@ -712,7 +712,7 @@ class App
 
 		if ($this->logged()) {	// Nếu có đăng nhập thì kiểm tra tình hình Subscription (Dùng trong Template)
 			$subscription = $this->db->get("subscription", ["userid" => $this->user->id], ["limit" => "1", "order" => "date"]);
-			if (!$subscription){
+			if (!$subscription) {
 				$subscription = new stdClass;
 				$subscription->plan = "";
 			}
@@ -799,7 +799,7 @@ class App
 	{
 		// Require Login
 		if (!$this->logged()) {
-			$_SESSION["redirect"] = "upgrade";	
+			$_SESSION["redirect"] = "upgrade";
 			return Main::redirect(Main::href("user/register", "", FALSE));
 		}
 
@@ -828,7 +828,7 @@ class App
 			], ["id" => $this->user->id]);
 
 			$PArray = [
-				":date"  => date("d-m-Y H:i:s"),//"NOW()",
+				":date"  => date("Y-m-d H:i:s"), //"NOW()",
 				":tid"  => Main::strrand(16),
 				":amount"  =>  "0.00",
 				":trial_days" => $plan->trial_days,
@@ -837,7 +837,6 @@ class App
 				":expiry" =>  date("Y-m-d H:i:s", strtotime("+ {$plan->trial_days} days")),
 				":data" =>  NULL
 			];
-
 			$this->db->insert("payment", $PArray);
 
 			return Main::redirect(Main::href("user", "", FALSE), ["success", e("Free trial has been activated! Your trial will expire in ") . ($plan->trial_days) . e(" days!.")]);
@@ -845,23 +844,23 @@ class App
 
 		// Query tất cả thông tin tài khoản hiện tại
 		$currentPlan = $this->db->get("plans", ["id" => $this->user->planid], ["limit" => "1"]);
-		$currentSub = $this->db->get("subscription", ["userid" => $this->user->id, "planid" => $this->user->planid], ["limit" => 1, "order" => 'id', "asc" => FALSE]); //Có thể có, có thể không, nên check xem có tồn tại ko trước khi dùng!!!
-		$lastpayment = $this->db->get("payment", ["userid" => $this->user->id], ["limit" => "1", "order" => 'id', "asc" => FALSE]);
-		
+		$currentSub = $this->db->get("subscription", ["userid" => $this->user->id, "status" => 'Active'], ["limit" => 1, "order" => 'id', "asc" => FALSE]); //Có thể có, có thể không, nên check xem có tồn tại ko trước khi dùng!!!
+		$lastpayment = $this->db->get("payment", ["userid" => $this->user->id, "status" => "Completed"], ["limit" => "1", "order" => 'id', "asc" => FALSE]);
+
 		$paid_amt = 0;
 		$total_days = 0;
 		$used_days = 0;
 		$remaining_amt = 0;
 
-		if (!$this->isExpired() && (days_left($lastpayment->expiry) > 0)) {
+		if (!$this->isExpired() && ($lastpayment) && (days_left($lastpayment->expiry) > 0)) {
 			$paid_amt = $lastpayment->amount;
 			$total_days = round((strtotime($lastpayment->expiry) - strtotime($lastpayment->date)) / (60 * 60 * 24), 0);
 			$used_days = round((strtotime("now") - strtotime($lastpayment->date)) / (60 * 60 * 24), 0);
-			$remaining_amt = round(($total_days - $used_days) / $total_days * $paid_amt,0);
+			$remaining_amt = round(($total_days - $used_days) / $total_days * $paid_amt, 0);
 			if ($remaining_amt < 0) $remaining_amt = 0;
 		}
 
-		if (days_left($lastpayment->expiry) > 1000) { // Gói hiện tại là LifeTime - Trick:: > 1000 ngày là gần 3 năm! LifeTime = 50 năm!
+		if (($lastpayment) && (days_left($lastpayment->expiry) > 1000)) { // Gói hiện tại là LifeTime - Trick:: > 1000 ngày là gần 3 năm! LifeTime = 50 năm!
 
 			//Khi là Lifetime thì tiền khả dụng không bị trừ!
 			$remaining_amt = $lastpayment->amount;
@@ -871,19 +870,16 @@ class App
 
 				if ($remaining_amt < $plan->price_lifetime) {  //Chỉ nâng cấp từ LifeTime gói nhỏ -> gói lớn
 
-					$price = $plan->price_lifetime;					
+					$price = $plan->price_lifetime;
 					$request_amt = $price - $remaining_amt;
 					$new_expired_date = date("d-m-Y", strtotime("+50 year"));
-
 				} else return Main::redirect(Main::href("pricing", "", FALSE), array("warning", e("Can not downgrade higher lifetime plan to lower lifetime package!")));
-
 			} else {
 
 				//Upgrade from Lifetime to Subscription!
 				if ($currentPlan->id == $plan->id) {
 
 					return Main::redirect(Main::href("pricing", "", FALSE), array("warning", e("You are using lifetime for selected plan.")));
-
 				} else {
 					/*Chuyển gói LifeTime sang Subscription khác!
 						Nếu thiếu tiền thì thanh toán phần còn thiếu. => Chu kỳ = 1
@@ -898,15 +894,13 @@ class App
 
 						if ($price > $remaining_amt) {
 							$request_amt = $price - $remaining_amt;
-						}
-						else //($price <= $remaining_amt) 
+						} else //($price <= $remaining_amt) 
 						{
 							$request_amt = fmod($remaining_amt, $price);
 							$x = ceil($remaining_amt / $price);
 						}
 
 						$new_expired_date = date("d-m-Y", strtotime("+{$x} month"));
-						
 					} elseif ($this->do == "yearly") {
 
 						$price = $plan->price_yearly;
@@ -920,10 +914,9 @@ class App
 						}
 
 						$new_expired_date = date("d-m-Y", strtotime("+{$x} year"));
-						
 					} else return Main::redirect(Main::href("pricing", "", FALSE), array("danger", e("An error has occured, please contact us.")));
 				}
-			} 
+			}
 		} //end of upgrade from LifeTime
 
 		//Upgrade from Trial or Subscription to Subscription or LifeTime
@@ -934,51 +927,47 @@ class App
 			if ($this->do == "monthly") {
 
 				$price = $plan->price_monthly;
-				
+
 				if ($price > $remaining_amt) {
 					$request_amt = $price - $remaining_amt;
-				}
-				else // ($price <= $remaining_amt) 
+				} else // ($price <= $remaining_amt) 
 				{
 					$request_amt = fmod($remaining_amt, $price);
 					$x = ceil($remaining_amt / $price);
 				}
-				
+
 				$new_expired_date = date("d-m-Y", strtotime("+{$x} month", strtotime("now")));
-			
 			} elseif ($this->do == "yearly") {
 
 				$price = $plan->price_yearly;
 
 				if ($price > $remaining_amt) {
 					$request_amt = $price - $remaining_amt;
-				}
-				else // ($price <= $remaining_amt)
+				} else // ($price <= $remaining_amt)
 				{
 					$request_amt = fmod($remaining_amt, $price);
 					$x = ceil($remaining_amt / $price);
 				}
 				$new_expired_date = date("d-m-Y", strtotime("+{$x} year", strtotime("now")));
-
 			} elseif ($this->do == "lifetime") {
 
 				$price = $plan->price_lifetime;
-				
+
 				if ($price > $remaining_amt) {
 					$request_amt = $price - $remaining_amt;
-				}
-				else // ($price <= $remaining_amt)
+				} else // ($price <= $remaining_amt)
 				{
 					$request_amt = fmod($remaining_amt, $price);
 					$x = ceil($remaining_amt / $price);
 				}
 
-				$new_expired_date = date("d-m-Y", strtotime("+50 year"));				
+				$new_expired_date = date("d-m-Y", strtotime("+50 year"));
 			}
 		}
 
 		/* Mã hóa toàn bộ thông tin để sử dụng ở bước tiếp theo mà không cần phải Xử lý lại	*/
 		$mdata = [
+			"u" => $this->user->id,	// dùng để add vào description của phần payment
 			"uFid" => 0,	//uFid	= upgradeFrom ID	= PlanID hiện tại của User
 			//"uTid" => 0,	//uTid	= upgradeFrom ID	= PlanID user muốn nâng cấp ==> Cái này chính là $this->id
 			"pp" => $price,		//pp 	= package Price		= Giá tiền của gói hiện tại
@@ -1359,7 +1348,7 @@ class App
 	{
 
 		$fn = "webhook_{$this->do}";
-		if (in_array($this->do, ["slack", "paypal"]) && method_exists(__CLASS__, $fn)) {
+		if (in_array($this->do, ["slack", "paypal","alepay"]) && method_exists(__CLASS__, $fn)) {
 			return $this->$fn();
 		}
 
@@ -1481,7 +1470,7 @@ class App
 		// 		Main::send($mail);
 		// 	}
 		// }
-		// http_response_code(200); 
+		http_response_code(200);
 	}
 	/**
 	 * Slack Responder
@@ -1825,10 +1814,10 @@ class App
 			$mail["to"] = $this->config["email"];
 			$mail["subject"] = "[{$this->config["title"]}] You have been contacted!";
 			$mail["message"] =	"From: $name ($email)<br><br>"
-								. "Department: " . $_POST["department"] . 'with ' . $_POST["priority"] . '<br>'
-								. "Topic: " . Main::clean($_POST["topic"], 3, TRUE) . '<br><br>'
-								. Main::clean($_POST["message"], 3, TRUE) . "<br><br>"
-								. Date("Y-m-d H:i:s", strtotime("now"));
+				. "Department: " . $_POST["department"] . 'with ' . $_POST["priority"] . '<br>'
+				. "Topic: " . Main::clean($_POST["topic"], 3, TRUE) . '<br><br>'
+				. Main::clean($_POST["message"], 3, TRUE) . "<br><br>"
+				. Date("Y-m-d H:i:s", strtotime("now"));
 			Main::send($mail);
 			return Main::redirect("contact", array("success", e("Your message has been sent. We will reply you as soon as possible.")));
 		}
@@ -2338,7 +2327,7 @@ class App
 			if ($this->config["blog"]) {
 				$menu .= '<li><a href="' . Main::href("blog") . '">' . e("Blog") . '</a></li>';
 			}
-			if (!$this->pro() && $this->config["pro"]) {
+			if (!$this->user->pro || $this->user->trial ) {
 				$menu .= '<li><a href="' . $this->config["url"] . '/pricing" class="active">' . e("Upgrade") . '</a></li>';
 			}
 			if (!empty($option) && is_array($option)) {
@@ -2360,16 +2349,23 @@ class App
 						          <li><a href='" . Main::href("user/logout") . "'><span class='glyphicon glyphicon-log-out'></span> " . e("Logout") . "</a></li>
 					          </ul>
 						  </li>";*/
-			$displayname = ($this->user->name) ? $this->user->name : $this->user->username;			
+			$displayname = ($this->user->name) ? $this->user->name : $this->user->username;
 			$pro = ($this->user->pro) ? "Pro" : "Free";
 			$style_for_badge = ($this->user->pro) ? "success" : "warning";
-			if ($this->isTeam()) {$pro = "Team"; $style_for_badge = "warning";}
+			if ($this->isTeam()) {
+				$pro = "Team";
+				$style_for_badge = "warning";
+			}
+			if ($this->user->trial) {
+				$pro = "Trial";
+				$style_for_badge = "warning";
+			}
 
 			$menu .= "<li class='d-sm-flex'>
 				<button class='d-flex align-items-center dropdown-toggle' type='button' id='dropdownMenuButton' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false' style='border:0px; background-color:transparent;'>
 					<span class='flex d-flex flex-column mr-8pt text-left'>
 						<span class='navbar-text-100'>{$displayname}
-							<div style='position: relative;'><span class='badge badge-".$style_for_badge."' style='position: absolute;top: -30px;right: -20px;'>".$pro."</span></div>
+							<div style='position: relative;'><span class='badge badge-" . $style_for_badge . "' style='position: absolute;top: -30px;right: -20px;'>" . $pro . "</span></div>
 						</span>
 						<small class='navbar-text-50'>{$this->user->email}</small>
 					</span>
@@ -2380,10 +2376,9 @@ class App
 						<span class='glyphicon glyphicon-cloud" . ($this->user->public ? ' icon-green' : ' icon-red') . "'>
 						</span> " . e('Public Profile') . "
 					</a>
-					<a class='list-group-item' href='" . Main::href("user/builder") . "'><span class='glyphicon glyphicon-leaf'></span> " . e('Profile Builder') . "
-					</a>
-					" . ($this->config["pro"] && !$this->isTeam() ? "<a class='list-group-item' href='" . Main::href("user/membership") . "'><span class='glyphicon glyphicon-credit-card'></span> " . e("Membership") . "</a>" : "") . "
-					" . Main::plug("menu.dropdown") . "
+					<a class='list-group-item' href='" . Main::href("user/builder") . "'><span class='glyphicon glyphicon-leaf'></span> " . e('Profile Builder') . "</a>
+					<a class='list-group-item " . ($this->config["pro"] && !$this->isTeam() ? '' : 'disabled') . "' href='" . Main::href("user/membership") . "'><span class='glyphicon glyphicon-credit-card'></span> " . e("Membership") . "</a>"
+					. Main::plug("menu.dropdown") . "
 					<a class='list-group-item' href='" . Main::href("user/settings") . "'><span class='glyphicon glyphicon-cog'></span> " . e("Settings") . "</a>
 					<a class='list-group-item' href='" . Main::href("user/logout") . "'><span class='glyphicon glyphicon-log-out'></span> " . e("Logout") . "</a>
 				</div>
@@ -2448,10 +2443,9 @@ class App
 						<span class='glyphicon glyphicon-cloud" . ($this->user->public ? ' icon-green' : ' icon-red') . "'>
 						</span> " . e('Public Profile') . "
 					</a>
-					<a class='list-group-item' href='" . Main::href("user/builder") . "'><span class='glyphicon glyphicon-leaf'></span> " . e('Profile Builder') . "
-					</a>
-					" . ($this->config["pro"] && !$this->isTeam() ? "<a class='list-group-item' href='" . Main::href("user/membership") . "'><span class='glyphicon glyphicon-credit-card'></span> " . e("Membership") . "</a>" : "") . "
-					" . Main::plug("menu.dropdown") . "
+					<a class='list-group-item' href='" . Main::href("user/builder") . "'><span class='glyphicon glyphicon-leaf'></span> " . e('Profile Builder') . "</a>
+					<a class='list-group-item " . ($this->config["pro"] && !$this->isTeam() ? '' : 'disabled') . "' href='" . Main::href("user/membership") . "'><span class='glyphicon glyphicon-credit-card'></span> " . e("Membership") . "</a>"
+					. Main::plug("menu.dropdown") . "
 					<a class='list-group-item' href='" . Main::href("user/settings") . "'><span class='glyphicon glyphicon-cog'></span> " . e("Settings") . "</a>";
 
 			/* SideBar Menu*/
@@ -2459,24 +2453,19 @@ class App
 			$menu .= '<a class="list-group-item" href="' . Main::href("user") . '" class="active"><span class="glyphicon glyphicon-home"></span> ' . e('Dashboard') . '</a>';
 			$menu .= '<a class="list-group-item" href="' . Main::href("user/archive") . '"><span class="glyphicon glyphicon-briefcase"></span> ' . e('Archived Links') . '</a>';
 			$menu .= '<a class="list-group-item" href="' . Main::href("user/expired") . '"><span class="glyphicon glyphicon-calendar"></span> ' . e('Expired Links') . '</a>';
-
-			if ($this->permission("bundle") !== FALSE) {
-				$menu .= '<a class="list-group-item" href="' . Main::href("user/bundles") . '"><span class="glyphicon glyphicon-folder-open"></span> ' . e('Bundles') . '</a>';
-			}
+			$menu .= '<a class="list-group-item '. (($this->permission("bundle") !== FALSE) ? '' : 'disabled') . '" href="' . Main::href("user/bundles") . '"><span class="glyphicon glyphicon-folder-open"></span> ' . e('Bundles') . '</a>';
 			$menu .= '<hr data-content="' . e('Advanced features') . '" class="hr-text">';
 
-			$menu .= $this->permission("splash") === FALSE ? '' : '<a class="list-group-item" href="' . Main::href("user/splash") . '"><span class="glyphicon glyphicon-transfer"></span> ' . e('Splash Pages') . '' . ($this->permission("splash") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
-			$menu .= $this->permission("overlay") === FALSE ? '' : '<a class="list-group-item" href="' . Main::href("user/overlay") . '"><span class="glyphicon glyphicon-record"></span> ' . e('Overlay Pages') . '' . ($this->permission("overlay") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
-			$menu .= $this->permission("pixels") === FALSE ? '' : '<a class="list-group-item" href="' . Main::href("user/pixels") . '"><span class="glyphicon glyphicon-screenshot"></span> ' . e('Tracking Pixels') . '' . ($this->permission("pixels") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
-			$menu .= $this->permission("domain") === FALSE ? '' : '<a class="list-group-item" href="' . Main::href("user/domain") . '"><span class="glyphicon glyphicon-globe"></span> ' . e('Custom Domain') . '' . ($this->permission("domain") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
-			$menu .= $this->permission("team") === FALSE ? '' : '<a class="list-group-item" href="' . Main::href("user/teams") . '"><span class="glyphicon glyphicon-user"></span> ' . e('Teams') . '' . ($this->permission("team") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a>';
+			$menu .= '<a class="list-group-item ' . ($this->permission("splash") === FALSE ? 'disabled' : '') . '" href="' . Main::href("user/splash") . '"><span class="glyphicon glyphicon-transfer"></span> ' . e('Splash Pages') . '' . ($this->permission("splash") === FALSE ? '<span class="label label-secondary badge-pro">' . e('Pro') . '</span>' : '') . '</a>';
+			$menu .= '<a class="list-group-item ' . ($this->permission("overlay") === FALSE ? 'disabled' : ''). '" href="' . Main::href("user/overlay") . '"><span class="glyphicon glyphicon-record"></span> ' . e('Overlay Pages') . '' . ($this->permission("overlay") === FALSE ? '<span class="label label-secondary badge-pro">' . e('Pro') . '</span>' : '') . '</a>';
+			$menu .= '<a class="list-group-item ' . ($this->permission("pixels") === FALSE ? 'disabled' : '') . '" href="' . Main::href("user/pixels") . '"><span class="glyphicon glyphicon-screenshot"></span> ' . e('Tracking Pixels') . '' . ($this->permission("pixels") === FALSE ? '<span class="label label-secondary badge-pro">' . e('Pro') . '</span>' : '') . '</a>';
+			$menu .= '<a class="list-group-item ' . ($this->permission("domain") === FALSE ? 'disabled' : '') . '" href="' . Main::href("user/domain") . '"><span class="glyphicon glyphicon-globe"></span> ' . e('Custom Domain') . '' . ($this->permission("domain") === FALSE ? '<span class="label label-secondary badge-pro">' . e('Pro') . '</span>' : '') . '</a>';
+			$menu .= '<a class="list-group-item ' . ($this->permission("team") === FALSE ? 'disabled' : '')   . '" href="' . Main::href("user/teams") . '"><span class="glyphicon glyphicon-user"></span> ' . e('Teams') . '' . ($this->permission("team") === FALSE ? '<span class="label label-secondary badge-pro">' . e('Pro') . '</span>' : '') . '</a>';
 
 			$public = $this->user->public ? "<span class='label label-primary pull-right'>" . e("Online") . "</span>"  : "<span class='label label-danger pull-right'>" . e("Offline") . "</span>";
 
-			if ($this->config["api"] && $this->permission("api")) {
-				$menu .= '<hr data-content="' . e('Others') . '" class="hr-text">';
-				$menu .= '<a class="list-group-item" href="' . Main::href("user/tools") . '"><span class="glyphicon glyphicon-wrench"></span> ' . e('Tools &amp; Integrations') . '</a>';
-			}
+			$menu .= '<hr data-content="' . e('Others') . '" class="hr-text">';
+			$menu .= '<a class="list-group-item '. (($this->config["api"] && $this->permission("api")) ? '' : 'disabled') .'" href="' . Main::href("user/tools") . '"><span class="glyphicon glyphicon-wrench"></span> ' . e('Tools &amp; Integrations') . '</a>';			
 
 			/* Log out - at the end of the menu */
 			$menu .= "<div class='dropdown-divider'></div>";
@@ -2497,27 +2486,23 @@ class App
 		$menu .= '<li><a href="' . Main::href("user/archive") . '"><span class="glyphicon glyphicon-briefcase"></span> ' . e('Archived Links') . '</a></li>';
 		$menu .= '<li><a href="' . Main::href("user/expired") . '"><span class="glyphicon glyphicon-calendar"></span> ' . e('Expired Links') . '</a></li>';
 
-		if ($this->permission("bundle") !== FALSE) {
-			$menu .= '<li><a href="' . Main::href("user/bundles") . '"><span class="glyphicon glyphicon-folder-open"></span> ' . e('Bundles') . '</a></li>';
-		}
-
+		$menu .= '<li><a style="'. (($this->permission("bundle") !== FALSE) ? '' : 'disabled').'" href="' . Main::href("user/bundles") . '"><span class="glyphicon glyphicon-folder-open"></span> ' . e('Bundles') . '</a></li>';
+		
 		$menu .= '<li class="re-menu-heading"><h6 class="overline-title text-primary-alt">' . e('Advanced features') . '</h6></li>';
-		$menu .= '<li' . ($this->permission("splash") === FALSE ? ' class="locked"' : '') . '><a href="' . Main::href("user/splash") . '"><span class="glyphicon glyphicon-transfer"></span> ' . e('Splash Pages') . '' . ($this->permission("splash") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a></li>';
+		$menu .= '<li' . ($this->permission("splash") === FALSE ? ' class="disabled"' : '') . '><a href="' . Main::href("user/splash") . '"><span class="glyphicon glyphicon-transfer"></span> ' . e('Splash Pages') . '' . ($this->permission("splash") === FALSE ? '<span class="label label-secondary badge-pro">' . e('Pro') . '</span>' : '') . '</a></li>';
 
-		$menu .= '<li' . ($this->permission("overlay") === FALSE ? ' class="locked"' : '') . '><a href="' . Main::href("user/overlay") . '"><span class="glyphicon glyphicon-record"></span> ' . e('Overlay Pages') . '' . ($this->permission("overlay") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a></li>';
+		$menu .= '<li' . ($this->permission("overlay") === FALSE ? ' class="disabled"' : '') . '><a href="' . Main::href("user/overlay") . '"><span class="glyphicon glyphicon-record"></span> ' . e('Overlay Pages') . '' . ($this->permission("overlay") === FALSE ? '<span class="label label-secondary badge-pro">' . e('Pro') . '</span>' : '') . '</a></li>';
 
-		$menu .= '<li' . ($this->permission("pixels") === FALSE ? ' class="locked"' : '') . '><a href="' . Main::href("user/pixels") . '"><span class="glyphicon glyphicon-screenshot"></span> ' . e('Tracking Pixels') . '' . ($this->permission("pixels") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a></li>';
+		$menu .= '<li' . ($this->permission("pixels") === FALSE ? ' class="disabled"' : '') . '><a href="' . Main::href("user/pixels") . '"><span class="glyphicon glyphicon-screenshot"></span> ' . e('Tracking Pixels') . '' . ($this->permission("pixels") === FALSE ? '<span class="label label-secondary badge-pro">' . e('Pro') . '</span>' : '') . '</a></li>';
 
-		$menu .= '<li' . ($this->permission("domain") === FALSE ? ' class="locked"' : '') . '><a href="' . Main::href("user/domain") . '"><span class="glyphicon glyphicon-globe"></span> ' . e('Custom Domain') . '' . ($this->permission("domain") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a></li>';
+		$menu .= '<li' . ($this->permission("domain") === FALSE ? ' class="disabled"' : '') . '><a href="' . Main::href("user/domain") . '"><span class="glyphicon glyphicon-globe"></span> ' . e('Custom Domain') . '' . ($this->permission("domain") === FALSE ? '<span class="label label-secondary badge-pro">' . e('Pro') . '</span>' : '') . '</a></li>';
 
-		$menu .= '<li' . ($this->permission("team") === FALSE ? ' class="locked"' : '') . '><a href="' . Main::href("user/teams") . '"><span class="glyphicon glyphicon-user"></span> ' . e('Teams') . '' . ($this->permission("team") === FALSE ? '<span class="label label-secondary pull-right">' . e('Pro') . '</span>' : '') . '</a></li>';
+		$menu .= '<li' . ($this->permission("team") === FALSE ? ' class="disabled"' : '') . '><a href="' . Main::href("user/teams") . '"><span class="glyphicon glyphicon-user"></span> ' . e('Teams') . '' . ($this->permission("team") === FALSE ? '<span class="label label-secondary badge-pro">' . e('Pro') . '</span>' : '') . '</a></li>';
 
 		$public = $this->user->public ? "<span class='label label-primary pull-right'>" . e("Online") . "</span>"  : "<span class='label label-danger pull-right'>" . e("Offline") . "</span>";
 
-		if ($this->config["api"] && $this->permission("api")) {
-			$menu .= '<li class="re-menu-heading"><h6 class="overline-title text-primary-alt">' . e('Others') . '</h6></li>';
-			$menu .= '<li><a href="' . Main::href("user/tools") . '"><span class="glyphicon glyphicon-wrench"></span> ' . e('Tools &amp; Integrations') . '</a></li>';
-		}
+		$menu .= '<li class="re-menu-heading"><h6 class="overline-title text-primary-alt">' . e('Others') . '</h6></li>';
+		$menu .= '<li><a class="'. (($this->config["api"] && $this->permission("api"))? '' : 'disabled') .'" href="' . Main::href("user/tools") . '"><span class="glyphicon glyphicon-wrench"></span> ' . e('Tools &amp; Integrations') . '</a></li>';
 
 		Main::plug("menu.sidebar");
 
@@ -2721,11 +2706,14 @@ class App
 	private function server_bundle_urls()
 	{
 		// Check request
-		if (!isset($_POST["id"]) || !is_numeric($_POST["id"])) return $this->server_die();
+		if (!isset($_POST["id"]) || !is_numeric($_POST["id"]) || (!isset($_POST["name"]) || $_POST["name"] == "")) return $this->server_die();
 		// Get data
 		$urls = $this->db->get("url", array("bundle" => "?", "userid" => "?"), array("limit" => 50, "order" => "date"), array(Main::clean($_POST["id"], 3, TRUE), $this->user->id));
 		if (!$urls) return print("<p class='center'>" . e("No URLs found.") . "</p>");
 
+		$this_is_bundle = 1;
+
+		echo '<h4 class="bundle-name"><i class="fas fa-folder-open" style="margin-right: 10px;"></i><a href="' . Main::href("user/bundles") . '">' . e("Bundle URLs") . '</a><span style="position: relative; top: 2px; color: #6576ff;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right-fill" viewBox="0 0 16 16"><path d="M12.14 8.753l-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"></path></svg></span>' . $_POST["name"] . '</h4>';
 		foreach ($urls as $url) {
 			include(TEMPLATE . "/shared/url_loop.php");
 		}
@@ -2745,7 +2733,7 @@ class App
 
 		$bundles = $this->db->get("bundle", array("userid" => "?"), "", array($this->user->id));
 
-		$short_url = ($url->domain ? $url->domain : $this->config["url"]).'/'. $url->alias.$url->custom;
+		$short_url = ($url->domain ? $url->domain : $this->config["url"]) . '/' . $url->alias . $url->custom;
 
 		echo '<form role="form" action="' . Main::href("user/bundles/update") . '" method="post">
 				<div class="form-group">
@@ -2820,7 +2808,7 @@ class App
 		}
 
 		if ($this->db->update("url", ["bundle" => "?"], ["id" => "?", "userid" => "?"], [Main::clean($_POST["bundleid"], 3, TRUE), Main::clean($_POST["id"], 3, TRUE), $this->user->id])) {
-			return Main::JSON(["error" => 0, "success" => e("This URL has been added to the bundle.")]);
+			return Main::JSON(["error" => 0, "success" => e("The URL has been added to the bundle.")]);
 		}
 	}
 	/**
@@ -3269,8 +3257,8 @@ class App
 		if ($this->permission("export") === FALSE) {
 			$html = '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
 			$html .= '<h3>' . e("Upgrade to export data") . '</h3>';
-			$html .= '<p>' . e("You can upgrade to export your URLs along with a summary of the stats as CSV.") . '</p>';
-			$html .= "<a class='btn btn-primary' href='" . Main::href("pricing") . "' rel='nofollow'>" . e("Upgrade") . "</a>";
+			$html .= '<p class="text-justify">' . e("You can upgrade to export your URLs along with a summary of the stats as CSV.") . '</p>';
+			$html .= "<p class='d-flex justify-content-end'><a class='btn btn-primary' href='" . Main::href("pricing") . "' rel='nofollow'>" . e("Upgrade") . "</a></p>";
 			$html .= '</div>';
 			return $html;
 		}
@@ -4055,86 +4043,156 @@ class App
 	}
 
 	/**
-	 * [webhook_alepay description]
+	 * [webhook_alepay]
 	 * @author BizChain
 	 * @version 1.0
+	 * @description Lưu ý là 2 hàm Processing và webhook_alepay trùng lặp nhiều, fix / modify thì làm song song!!!
 	 * @return  [type] [description]
 	 */
 	protected function webhook_alepay()
 	{
+		$payload = @file_get_contents("php://input");
+		file_put_contents(date("Y-m-d H:i:s").'.txt',$payload);
+		if (!$payload || empty($payload)) {
+			http_response_code(400);
+			echo "1"; exit(1);
+		}
+		$aj = json_decode($payload);
+	
+		if (!isset($aj->transactionInfo->transactionCode))
+		{
+			http_response_code(400);
+			echo "2"; exit(2);
+		}
 
-		include(AUTOLOAD);
+		/* PROCESSING RECEIVED DATA*/
 
-		$connection = new \PayPal\Rest\ApiContext(
-			new \PayPal\Auth\OAuthTokenCredential(
-				$this->config["pppublic"],
-				$this->config["ppprivate"]
-			)
-		);
+		if (isset($aj->cardTokenInfo->token)) {	//***TOKENIZE (Subscription)
+			
+			if (!$getsub = $this->db->get("subscription", ["uniqueid" => ":uniqueid"], ["limit" => 1], [":uniqueid" => $aj->transactionInfo->transactionCode])) {
 
-		$connection->setConfig(
-			[
-				'log.LogEnabled' => true,
-				'log.FileName' => 'PayPal.log',
-				'log.LogLevel' => 'DEBUG',
-				'mode' => 'live'
-			]
-		);
+				http_response_code(404);
+				echo "3"; exit(3);
+				//return Main::redirect("user", array("danger", "Wow, weird! Registered payment not found in our database!"));
+			}
 
-		if (isset($_GET['success']) && $_GET['success'] == 'true') {
-			$token = $_GET['token'];
-			$agreement = new \PayPal\Api\Agreement();
+			//150 = Thẻ bị review
+			//107 = Giao dịch đang được xử lý
+			//171 = Thẻ của khách hàng đã được liên kết trên Merchant
+			//176 = thẻ 2D đang chờ xác thực
+			//999 = Lỗi không xác định. Vui lòng liên hệ với Quản trị viên Alepay
 
-			try {
-				// Execute agreement
-				$response = $agreement->execute($token, $connection)->toArray();
+			if (($aj->transactionInfo->status === '000') || ($aj->transactionInfo->status === '150') || ($aj->transactionInfo->status === '107') || ($aj->transactionInfo->status === '176')) {
+				
+				$successTime = date("Y-m-d H:i:s", $aj->transactionInfo->successTime / 1000);
+				$data_token = json_encode($aj->cardTokenInfo, JSON_UNESCAPED_UNICODE);  //Lưu vào Table::Subscription->data
 
-				$userid = str_replace('userid:', '', $response["description"]);
+				$SArray = [  //S = Subscription 
+					":tid" => $aj->transactionInfo->transactionCode,
+					":status" => ($aj->transactionInfo->status === '000') ? 'Active' : $aj->transactionInfo->message,
+					":date" => $successTime,
+					":lastpayment" => $successTime,
+					":data" => $data_token,
+					":reason" => $aj->transactionInfo->message
+				];
+				$this->db->update("subscription", "", "uniqueid = '" . $getsub->uniqueid . "'", $SArray);
 
-				if (!$user = $this->db->get("user", ["id" => $userid], ["limit" => 1])) return Main::redirect("pricing", array("danger", e("An issue occured. You have not been charged.")));
+				// Giao dịch thành công 100% --> thì mới Update Table => Payment + USER!
+				if ($aj->transactionInfo->status === '000') {
 
-				$subscription = $this->db->get("subscription", ["userid" => $user->id], ["limit" => "1", "order" => "date"]);
+					$PArray = [ //P = Payment
+						":status" => 'Completed',
+					];
+					$this->db->update("payment", "", "tid = '" . $getsub->uniqueid . "'", $PArray);
 
-				if ($response["state"] !== "Active") return Main::redirect("pricing", array("danger", e("An issue occured. You have not been charged.")));
+					$UArray = [  //U = User || Activate the account
+						":last_payment" => $successTime,
+						":pro" => 1,
+						":planid" => $getsub->planid,
+						":name" => $aj->transactionInfo->buyerName,
+						":expiration" => date("Y-m-d H:i:s", strtotime($getsub->expiry)),
+						":trial" => 0
+					];
+					$this->db->update("user", "", ["id" => $getsub->userid], $UArray);
 
+					http_response_code(200);
+					echo "4"; exit(4);
+					//return Main::redirect("user/membership", array("success", e('Thank you! Your payment has just been accepted and your account activated!')));
+				}
+			} else {
+				// Thanh toán thất bại
+				$SArray = [  //S = Subscription 
+					":status" => $aj->transactionInfo->message,
+				];
+				$this->db->update("subscription", "", "uniqueid = '" . $getsub->uniqueid . "'", $SArray);
 
-				if ($response["plan"]['payment_definitions'][0]['frequency'] == "YEAR") {
-					$new_expiry = date("Y-m-d H:i:s", strtotime("+1 year", strtotime($response['start_date'])));
-				} else {
-					$new_expiry = date("Y-m-d H:i:s", strtotime("+1 month", strtotime($response['start_date'])));
+				$PArray = [ //P = Payment
+					":status" => 'Failed',
+				];
+				$this->db->update("payment", "", "tid = '" . $getsub->uniqueid . "'", $PArray);
+
+				http_response_code(200);
+				echo "5"; exit(5);
+				//return Main::redirect("pricing", array("danger", "Payment failed. Please try again using an alternative payment!"));
+			}
+
+		} else { 
+			// Thanh toán 1 lần (không phải Subscription)
+			// Cập nhật Payment và User nếu cần			
+
+			if (!$getpayment = $this->db->get("payment", ["tid" => ":tid"], ["limit" => 1], [":tid" => $aj->transactionInfo->transactionCode])) {
+
+				http_response_code(404);
+				echo "6"; exit(6);
+				//return Main::redirect("user", array("danger", "Wow, weird! Registered payment not found in our database!"));
+			}
+
+			$info = json_decode($getpayment->data);
+
+			if (($aj->transactionInfo->status === '000') || ($aj->transactionInfo->status === '150') || ($aj->transactionInfo->status === '107') || ($aj->transactionInfo->status === '176')) {
+
+				$successTime = date("Y-m-d H:i:s", $aj->transactionInfo->successTime / 1000);
+
+				$PArray = [ //P = Payment
+					":status" => ($aj->transactionInfo->status === '000') ? "Completed" : $aj->transactionInfo->message
+				];
+				$this->db->update("payment", "", "tid = '" . $getpayment->tid . "'", $PArray);
+
+				// Giao dịch thành công 100% --> thì mới Update USER!
+				if ($aj->transactionInfo->status === '000') {
+
+					$UArray = [  //U = User || Activate the account
+						":last_payment" => $successTime,
+						":pro" => 1,
+						":planid" => $info->planid,
+						":name" => $aj->transactionInfo->buyerName,
+						":expiration" => date("Y-m-d H:i:s", strtotime($getpayment->expiry)),
+						":trial" => 0
+					];
+					$this->db->update("user", "", ["id" => $getpayment->userid], $UArray);
+
+					http_response_code(200);
+					echo "7"; exit(7);
+					//return Main::redirect("user/membership", array("success", e('Thank you! Your payment has just been accepted and your account activated!')));
 				}
 
-				$PArray = [
-					":date"  => "NOW()",
-					":cid" => $response['id'],
-					":tid"  => Main::strrand(16),
-					":amount"  =>  $response["plan"]['payment_definitions'][0]['amount']['value'],
-					":userid"  =>  $user->id,
-					":status" => "Completed",
-					":expiry" =>  $new_expiry,
-					":data" =>  json_encode($response)
+			} else {
+				// Thanh toán thất bại
+				$PArray = [ //P = Payment
+					":status" => 'Failed',
 				];
+				$this->db->update("payment", "", "tid = '" . $getpayment->tid . "'", $PArray);
 
-				$this->db->insert("payment", $PArray);
-
-				$amount = $subscription->amount + $PArray[":amount"];
-
-				$this->db->update("subscription", ["tid" => $response['id'], "amount" => $amount, "expiry" => $new_expiry, "status" => "Active"], ["userid" => $user->id]);
-
-				$this->db->update("user", ["expiration" => $new_expiry, "pro" => "1"], ["id" => $user->id]);
-
-				return Main::redirect(Main::href("user/membership", "", FALSE), array("success", e("Your payment was successfully made. Thank you.")));
-			} catch (PayPal\Exception\PayPalConnectionException $ex) {
-				error_log($ex->getCode());
-				error_log($ex->getData());
-				return Main::redirect("pricing", array("danger", e("An issue occured. You have not been charged.")));
-			} catch (Exception $ex) {
-				error_log($ex->getMessage());
-				return Main::redirect("pricing", array("danger", e("An issue occured. You have not been charged.")));
+				http_response_code(200);
+				echo "8"; exit(8);
+				//return Main::redirect("pricing", array("danger", "Payment failed. Please try again using an alternative payment!"));
 			}
-		} else {
-			return Main::redirect("pricing", array("warning", e("Your payment has been canceled.")));
 		}
+
+		/* END OF PROCESSING RECEIVED DATA */
+
+		http_response_code(200);
+		echo "9"; exit(9);
 	}
 
 	/**
@@ -4159,7 +4217,7 @@ class App
 		$adata['amount'] = $mdata->ra;
 		$adata['orderCode'] = date('dmY') . '_' . uniqid();
 		$adata['currency'] = 'VND';
-		$adata['orderDescription'] = "Rebranding.today Service | Type (" . ucfirst($this->do) . ') | Name (' . $mdata->d . ")";
+		$adata['orderDescription'] = "Rebranding.today Service | " . ucfirst($this->do) . ' | ' . $mdata->d . " | " . $mdata->u;
 		$adata['totalItem'] = 1;
 		// 0: Cho phép thanh toán ngay với thẻ quốc tế và trả góp
 		// 1: chỉ thanh toán ngay với thẻ quốc tế 2: Chỉ thanh toán trả góp
@@ -4187,52 +4245,115 @@ class App
 			$adata['isCardLink'] = true;
 		}
 
-		//Tạo callbackURL với các thông tin cần thiết -> cần thông tin gì thì add vào đây hết!
-		$aleconfig["callbackUrl"] = 'https://rebranding.today/processing/' . $this->do . '/' . $this->id . '?e='.$_POST["encryptdata"];
-		$adata['returnUrl'] = $aleconfig["callbackUrl"];
-		$adata['cancelUrl'] = 'https://rebranding.today/processing?alepay=cancel';
-
-		//var_dump($aleconfig["callbackUrl"]); return;
+		/* Tạo callbackURL với các thông tin cần thiết -> cần thông tin gì thì add vào đây hết!
+			Thiết lập " ?type = 0 / 1 / 2 "
+				0 = cancelURL
+				1 = start new payment
+				2 = Using 1-click token payment!
+		*/
+		//$aleconfig["callbackUrl"] = 'https://rebranding.today/webhook/alepay';
+		$adata['returnUrl'] = 'https://rebranding.today/processing/' . $this->do . '/' . $this->id . '?type=1';
+		$adata['cancelUrl'] = 'https://rebranding.today/processing/' . $this->do . '/' . $this->id . '?type=0&u=AAAAAAAAAAAAAAAAA' . $this->user->id;	// AAAAAAAAAAAAAAAAA + userid (17A + userid)
 
 		$result = $alepay->sendOrderToAlepay($adata);
 
+		/* object(stdClass)#28 (2) {
+				["token"]=> string(9) "ALE00NDAW"
+				["checkoutUrl"]=> string(83) "https://alepay-sandbox.nganluong.vn/checkout/v1/f528af23cf6e453ca2ea95aec20da66b/vi" } 
+		*/
 		if (isset($result) && !empty($result->checkoutUrl)) {
+
+			/* Tại thời điểm này đã có đủ thông tin thanh toán của khách hàng
+				Add thông tin thanh toán của khách vào DB
+				Nếu trường hợp chưa thanh toán được liền thì webhook_alepay sẽ xử lý!
+			*/
+
+			$new_expiry = date("Y-m-d H:i:s", strtotime($mdata->e));
+
+			$info = [
+				"planid" => $this->id
+			];
+
+			$PArray = [ //P = Payment
+				":date"  => date("Y-m-d H:i:s"),
+				":tid"  => $result->token,
+				":amount"  =>  $mdata->ra,
+				//":trial_days" => null,
+				":userid"  =>  $this->user->id,
+				":status" => 'Pending',			//Webhook sẽ update trường này và Table->User
+				":expiry" => $new_expiry,
+				":data" =>  json_encode($info)			//Lưu trữ các thông tin nào cần lưu, ví dụ: planid 
+			];
+			$this->db->insert("payment", $PArray);
+			
+			if ($this->do !== "lifetime") {
+				$SArray = [  //S = Subscription 
+					//":tid" => NULL,			//Webhook will update
+					":uniqueid" => $result->token,
+					":userid" => $this->user->id,
+					":plan" => $this->do,
+					":planid" => $this->id,
+					":status" => 'Pending',		//Webhook will update
+					":amount" => $mdata->pp,
+					//":date" => NULL,			//Webhook will update (aka $successTime) 
+					":expiry" => $new_expiry,
+					//":lastpayment" => NULL,	//Webhook will update (aka $successTime)
+					//":data" => NULL,			//Webhook will update
+					//":reason" => NULL			//Webhook will update
+				];
+				$this->db->insert("subscription", $SArray);
+			}
+			
 			return Main::redirect($result->checkoutUrl, [], '', true);
 		} else {
-			return Main::redirect("pricing", array("danger", 'Fail to initialize payment process with error code: ' . $result->errorDescription));
+			return Main::redirect("pricing", array("danger", e('Fail to initialize payment process with error code: ') . '<b>'. $result->errorDescription . '</b>'));
 		}
 	}
 
 	/**
-	 * Alepay - process returned data
+	 * Process returned payment data
 	 **/
 	protected function processing()
 	{
-		// Require Login
-		// if (!$this->logged()) {
-		// 	return Main::redirect(Main::href("user/login", "", FALSE));
-		// }
-		if (isset($_REQUEST['alepay']) == 'cancel')
-			return Main::redirect("pricing", array("warning", e("You've just cancelled the payment process.")));
+		//CancelURL
+		if (isset($_REQUEST['type']) && ($_REQUEST['type'] == '0')) {
+			if (isset($_REQUEST['u'])) {
 
-		/* 	Xử lý renew
-			Cấu trúc: ==>> processing/renew
-		*/
-		if ($this->do == "renew") {
+				// AAAAAAAAAAAAAAAAA + userid (17A + userid)
+				$userid = substr($_REQUEST['u'],17,(strlen($_REQUEST['u']) - 17));
+
+				$getSub = $this->db->get("subscription", ['userid' => $userid], ["limit" => 1, "order" => 'id' , "asc" => false], []);
+				$getPayment = $this->db->get("payment", ['userid'=> $userid], ["limit" => 1, "order" => "id", "asc" => false], []);
+
+				$SArray = [   
+					":status" => 'Failed'
+				];
+				$this->db->update("subscription", "", ["id" => $getSub->id], $SArray);
+
+				$PArray = [ //P = Payment
+					":status" => 'Failed',
+				];
+
+				$this->db->update("payment", "", ["id" => $getPayment->id], $PArray);
+			}
+
+			return Main::redirect("pricing", array("danger", "Payment failed. Please try again using an alternative payment!"));
+		}
+
+		//1-click payment for registered CARDs
+		if (isset($_REQUEST['type']) && ($_REQUEST['type']== '2')) {
+			echo "1-click payment";
 			return;
 		}
 
-		/* Xử lý dữ liệu của Alepay trả về trong trường hợp mua lần đầu hoặc nâng cấp mà cần phải mua! */
-
+		/* 	Xử lý renew ==>> processing/renew */
+		if ($this->do == "renew") {
+			echo "renew";
+			return;
+		}		
+		
+		/* Xử lý dữ liệu của Alepay trả về */
 		if (isset($_REQUEST['data']) && isset($_REQUEST['checksum'])) {
-
-			$plan = $this->db->get("plans", ["id" => ":id"], ["limit" => 1], [":id" => $this->id]);
-			if (!$plan) {
-				return Main::redirect("pricing", array("danger", "Something wrong with the database! Please report to us!"));
-			}
-
-			//Giải mã thông tin mua hàng ở bước Checkout trước đây
-			$mInfo = json_decode(safe_b64decode($_REQUEST["e"]));
 
 			require(ROOT . '/includes/library/alepay/config.php');
 			require(ROOT . '/includes/library/alepay/Lib/Alepay.php');
@@ -4243,132 +4364,122 @@ class App
 			$result = $utils->decryptCallbackData($_REQUEST['data'], $encryptKey);
 			$obj_data = json_decode($result);
 
-			if (is_object($obj_data->data)) {	//Nếu là Tokenize (Subscription)
+			if (is_object($obj_data->data)) {	//***TOKENIZE (Subscription)
+
 				$transaction_code = $obj_data->data->transactionCode;
 				$mdata = json_decode($alepay->getTransactionInfo($transaction_code));
-	
-				//000 = Giao dịch thành công
+				
+				if (!$getsub = $this->db->get("subscription", ["uniqueid" => ":uniqueid"], ["limit" => 1], [":uniqueid" => $transaction_code])) {
+					return Main::redirect("user", array("danger", "Wow, weird! Registered payment not found in our database!"));
+				}
+
 				//150 = Thẻ bị review
 				//107 = Giao dịch đang được xử lý
+				//171 = Thẻ của khách hàng đã được liên kết trên Merchant
+				//176 = thẻ 2D đang chờ xác thực
+				//999 = Lỗi không xác định. Vui lòng liên hệ với Quản trị viên Alepay
 
-				if (($obj_data->errorCode === '000') || ($obj_data->errorCode === '150') || ($obj_data->errorCode === '107')) {
-
-					$new_expiry = date("Y-m-d H:i:s", strtotime($mInfo->e));
-					$payment_status = $alepay->alePaymentStatus($obj_data->errorCode);
+				if (($obj_data->errorCode === '000') || ($obj_data->errorCode === '150') || ($obj_data->errorCode === '107') || ($obj_data->errorCode === '176')) {
+					
 					$successTime = date("Y-m-d H:i:s", $mdata->successTime / 1000);
 					$data_token = json_encode($obj_data->data, JSON_UNESCAPED_UNICODE);  //Lưu vào Table::Subscription->data
 
-					if (!$mInfo->s) {
-						
-						$SArray = [  //S = Subscription 
-							":tid" => $mdata->orderCode,
-							":uniqueid" => $mdata->transactionCode,
-							":userid" => $this->user->id,
-							":plan" => $this->do,
-							":planid" => $this->id,
-							":status" => 'active',
-							":amount" => $mInfo->pp,
-							":date" => $successTime,
-							":expiry" => $new_expiry,
-							":lastpayment" => $successTime,
-							":data" => $data_token,
-							":reason" => $mdata->reason
+					$SArray = [  //S = Subscription 
+						":tid" => $mdata->orderCode,
+						":status" => ($obj_data->errorCode === '000') ? 'Active' : $mdata->message,
+						":date" => $successTime,
+						":lastpayment" => $successTime,
+						":data" => $data_token,
+						":reason" => $mdata->reason
+					];
+					$this->db->update("subscription", "", "uniqueid = '".$getsub->uniqueid."'", $SArray);
+
+					// Giao dịch thành công 100% --> thì mới Update Table => Payment + USER!
+					if ($obj_data->errorCode === '000') {
+
+						$PArray = [ //P = Payment
+							":status" => 'Completed',
 						];
-						$this->db->insert("subscription", $SArray);
-						
-					} else {
-						$SArray = [  //S = Subscription 
-							":uniqueid" => $mdata->transactionCode,
-							":plan" => $this->do,
-							":planid" => $this->id,
-							":status" => 'active',
-							":amount" => $mInfo->pp,
-							//":date" => $successTime,
-							":expiry" => $new_expiry,
-							":lastpayment" => $successTime,
-							":data" => $data_token,
-							":reason" => $mdata->reason
-						];						
-						$this->db->update("subscription", "", ["id" => $mInfo->s], $SArray);
-					}
-	
-					$PArray = [ //P = Payment
-						":date"  => $successTime,
-						":tid"  => $mdata->transactionCode,
-						":amount"  =>  $mdata->requestAmount,
-						":trial_days" => null,
-						":userid"  =>  $this->user->id,
-						":status" => $payment_status,
-						":expiry" => $new_expiry,
-						":data" =>  NULL
-					];
-					$this->db->insert("payment", $PArray);
+						$this->db->update("payment", "", "tid = '" . $getsub->uniqueid . "'", $PArray);
 
-					
-					$UArray = [  //U = User || Activate the account
-						":last_payment" => $successTime,
-						":pro" => 1,
-						":planid" => $this->id,
-						":name" => $mdata->buyerName,
-						":expiration" => $new_expiry,
-						":trial" => 0
-					];
-					$this->db->update("user", "", array("id" => $this->user->id), $UArray);
-
-					if ($payment_status == "Completed")
-						return Main::redirect("user/membership", array("success", e('Thank you! Your payment has just been accepted and your account activated!')));
-					else
-						return Main::redirect("user/membership", array("warning", e('Thank you! The payment is being processed. Your account would be updated automatically as soon as we received the successfull message!')));
-
-				} else {
-					return Main::redirect("pricing", array("danger", "Payment failed with error code " . $obj_data->errorCode));
-				}
-				return Main::redirect("user", array("danger", "Wow, weird!"));
-			} else {				
-
-				$transaction_code = $obj_data->data;  //transaction code				
-				$mdata = json_decode($alepay->getTransactionInfo($transaction_code)); //data				
-	
-				if (($obj_data->errorCode === '000') || ($obj_data->errorCode === '150') || ($obj_data->errorCode === '107')) {
-
-					$new_expiry = date("Y-m-d H:i:s", strtotime($mInfo->e));
-					$payment_status = $alepay->alePaymentStatus($obj_data->errorCode);
-					$successTime =  date("Y-m-d H:i:s", $mdata->successTime / 1000);
-					
-					$PArray = [ //P = Payment
-						":date"  => $successTime,
-						":tid"  => $mdata->transactionCode,
-						":amount"  =>  $mdata->requestAmount,
-						":trial_days" => null,
-						":userid"  =>  $this->user->id,
-						":status" => $payment_status,
-						":expiry" =>  $new_expiry,
-						":data" =>  NULL
-					];
-					$this->db->insert("payment", $PArray);
-
-					if ($payment_status == "Completed") {
 						$UArray = [  //U = User || Activate the account
 							":last_payment" => $successTime,
-							":expiration" => $new_expiry,
 							":pro" => 1,
-							":planid" => $this->id,
+							":planid" => $getsub->planid,
 							":name" => $mdata->buyerName,
+							":expiration" => date("Y-m-d H:i:s", strtotime($getsub->expiry)),
 							":trial" => 0
 						];
-						$this->db->update("user", [], array("id" => $this->user->id), $UArray);
+						$this->db->update("user", "", ["id" => $getsub->userid], $UArray);
+
+						return Main::redirect("user/membership", array("success", e('Thank you! Your payment has just been accepted and your account activated!')));
+
+					}
+				} else {
+					// Thanh toán thất bại
+					$SArray = [  //S = Subscription 
+						":status" => $mdata->message,
+					];
+					$this->db->update("subscription", "", "uniqueid = '" . $getsub->uniqueid . "'", $SArray);
+
+					$PArray = [ //P = Payment
+						":status" => 'Failed',
+					];
+					$this->db->update("payment", "", "tid = '" . $getsub->uniqueid . "'", $PArray);
+
+					return Main::redirect("pricing", array("danger", "Payment failed. Please try again using an alternative payment!"));
+				}
+
+			} else { 
+				// Thanh toán 1 lần (không phải Subscription)
+				// Cập nhật Payment và User nếu cần
+				$transaction_code = $obj_data->data;  //transaction code				
+				$mdata = json_decode($alepay->getTransactionInfo($transaction_code)); 				
+
+				if (!$getpayment = $this->db->get("payment", ["tid" => ":tid"], ["limit" => 1], [":tid" => $transaction_code])) {
+					return Main::redirect("user", array("danger", "Wow, weird! Registered payment not found in our database!"));
+				}
+
+				$info = json_decode($getpayment->data);
+
+				if (($obj_data->errorCode === '000') || ($obj_data->errorCode === '150') || ($obj_data->errorCode === '107') || ($obj_data->errorCode === '176')) {
+
+					$successTime = date("Y-m-d H:i:s", $mdata->successTime / 1000);
+
+					$PArray = [ //P = Payment
+						":status" => ($obj_data->errorCode === '000') ? "Completed" : $mdata->message
+					];
+					$this->db->update("payment", "", "tid = '" . $getpayment->tid . "'", $PArray);
+
+					// Giao dịch thành công 100% --> thì mới Update USER!
+					if ($obj_data->errorCode === '000') {
+
+						$UArray = [  //U = User || Activate the account
+							":last_payment" => $successTime,
+							":pro" => 1,
+							":planid" => $info->planid,
+							":name" => $mdata->buyerName,
+							":expiration" => date("Y-m-d H:i:s", strtotime($getpayment->expiry)),
+							":trial" => 0
+						];
+						$this->db->update("user", "", ["id" => $getpayment->userid], $UArray);
 
 						return Main::redirect("user/membership", array("success", e('Thank you! Your payment has just been accepted and your account activated!')));
 					}
-					else
-						return Main::redirect("user/membership", array("warning", e('Thank you! The payment is being processed. Your account would be updated automatically as soon as we received the successfull message!')));
+
 				} else {
-					return Main::redirect("pricing", array("danger", "Payment failed with error code " . $obj_data->errorCode));
+					// Thanh toán thất bại
+					$PArray = [ //P = Payment
+						":status" => 'Failed',
+					];
+					$this->db->update("payment", "", "tid = '" . $getpayment->tid . "'", $PArray);
+
+					return Main::redirect("pricing", array("danger", "Payment failed. Please try again using an alternative payment!"));
 				}
-				return Main::redirect("user", array("danger", "Wow, weird!"));
 			}
 		}
-		return Main::redirect("user", array("warning", "There is nothing to do with processing!"));
+
+		return Main::redirect("user/membership", array("warning", e('Thank you! The payment is being processed. Your account would be updated automatically as soon as we received the successful message!')));
 	}
 
 	/**
@@ -4377,14 +4488,14 @@ class App
 	protected function testing()
 	{
 
-		
+
 		// require(ROOT . '/includes/library/alepay/config.php');
 		// require(ROOT . '/includes/library/alepay/Lib/Alepay.php');
 		// $encryptKey = $aleconfig['encryptKey'];
 		// $alepay = new Alepay($aleconfig);
 		// $utils = new AlepayUtils();
 
-		// $mdata = json_decode($alepay->getTransactionInfo('ALE00NCNC'));
+		// $mdata = json_decode($alepay->getTransactionInfo('ALE00NDAW'));
 
 		// $successTime = date("Y-m-d H:i:s", $mdata->successTime / 1000);
 
@@ -4394,95 +4505,178 @@ class App
 		// return;
 
 
+		// $aaa = "AAAAAAAAAAAAAAAAA0251"; //17 + userid
+		// $b = substr($aaa,17,(strlen($aaa) - 17));
+		// var_dump($b);
+		// return;
+
+
+
+
+		// $en = "eyJ1IjoiMTMiLCJ1RmlkIjowLCJwcCI6IjQ5MDAwIiwicmEiOjQ5MDAwLCJjIjoiVk5EIiwiZCI6IlBlcnNvbmFsIHBhY2thZ2UgKExpbWl0ZWQgT2ZmZXIpIiwiZSI6IjA0LTAzLTIwMjEiLCJzIjpmYWxzZX0";
+
+		// $ennnnnn = json_decode(safe_b64decode($en));
+
+		// var_dump($ennnnnn);
+		// return;
+
 		// $a = date("d-m-Y H:i:s", strtotime("now"));
 		// echo $a;
 
-echo date_default_timezone_get();
-echo "<br>";
-echo date("d-m-Y H:i:s", strtotime("now"));echo "<br>";echo "<br>";
-echo date("d-m-Y H:i:s");
-// include (ROOT."/includes/library/timezone.php");
-// $hehe = 'ffdsfe';
+		// echo date_default_timezone_get();
+		// echo "<br>";
+		// echo date("d-m-Y H:i:s", strtotime("now"));echo "<br>";echo "<br>";
+		// echo date("d-m-Y H:i:s");
+		// include (ROOT."/includes/library/timezone.php");
+		// $hehe = 'ffdsfe';
 
-// if (isset($_POST['timezone'])) {
-// 	echo "You selected ".$_POST['timezone'];
-// 	$hehe = $_POST['timezone'];
-// }
-
-// echo "<form action='https://rebranding.today/testing' method='post'>";
+		// if (isset($_POST['timezone'])) {
+		// 	echo "You selected ".$_POST['timezone'];
+		// 	$hehe = $_POST['timezone'];
+		// }
 
 
-// 	echo '<label>Select Your Timezone</label><select id="timezone" name="timezone">';
-// 	echo '<optgroup label="TimeZone">' . "\n";
+		try{
+			$input = file_get_contents("php://input");
+		}catch(Exception $ex) {
+			echo "LOI:::: ";
+			var_dump($ex);
+		}
+
+		return;
+
+		echo "<br>";
+		echo '$input : ';
+		var_dump($input);
 
 
-// 	foreach($timezonelist as $name => $timezone)
-// 	{
+		$aj = json_decode($input, TRUE);
+		if (!$aj) {
+				return;
+		}
 
-// 		echo '<option name="' . $timezone . '"'. (($hehe == $name) ? "selected" : "") .' >' . $name . '</option>' . "\n";
-// 	}
-// 	echo '<optgroup>' . "\n";
+		//var_dump($aj);
 
-// 	echo '</select>';
-// 	echo '<button type="submit" class="btn btn-primary">Submit</button>';
-// echo "</form>";
+		//file_put_contents(date("Y-m-d H:i:s").'.txt',$aj);
+		//echo $aj->timezone;
 
-// 		return;
-
-
-
-					// Send Email
-					$mail["to"] = 'support@rebranding.today';					
-					$activate = "{$this->config["url"]}/user/activate/$key?email={$mail["to"]}";
-
-					$mail["subject"] = "[{$this->config["title"]}] Registration has been successful.";
-
-					$mail["message"] = str_replace("{site.title}", $this->config["title"], $this->config["email.activation"]);
-					$mail["message"] = str_replace("{site.link}", $this->config["url"], $mail["message"]);
-					$mail["message"] = str_replace("{user.username}", "", $mail["message"]);
-					$mail["message"] = str_replace("{user.activation}", $activate, $mail["message"]);
-					$mail["message"] = str_replace("http://http", "http", $mail["message"]);
-					$mail["message"] = str_replace("{user.email}", $data[":email"], $mail["message"]);
-					$mail["message"] = str_replace("{user.date}", date("d-m-Y"), $mail["message"]);
-
-					Main::send($mail);
-					echo "<br>email sent";
-					//return Main::redirect(Main::href("user/login", "", FALSE), array("success", e("An email has been sent to activate your account.
+		foreach ($aj as $key => $valu) {
+			echo "key = $key and value = $valu" ;
+			echo "<br>";
+		}
 
 
+		if (isset($_POST['timezone'])) {
+			echo "AAAAAAAAYou selected ".$_POST['timezone'];
+			$hehe = $_POST['timezone'];
+		}
+
+include (ROOT."/includes/library/timezone.php");
+
+		echo "<form action='https://rebranding.today/testing' method='post'>";
 
 
+			echo '<label>Select Your Timezone</label><select id="timezone" name="timezone">';
+			echo '<optgroup label="TimeZone">' . "\n";
 
 
+			foreach($timezonelist as $name => $timezone)
+			{
+
+				echo '<option name="' . $timezone . '"'. (($hehe == $name) ? "selected" : "") .' >' . $name . '</option>' . "\n";
+			}
+			echo '<optgroup>' . "\n";
+
+			echo '</select>';
+			echo '<button type="submit" class="btn btn-primary">Submit</button>';
+		echo "</form>";
+
+				return;
 
 
+		$getSub = $this->db->get("subscription", ['userid' => 13], ["limit" => 1, "order" => 'id' , "asc" => false], []);
+		$getPayment = $this->db->get("payment", ['userid'=> 13], ["limit" => 1, "order" => "id", "asc" => false], []);
 
 
+		$getSub2 = $this->db->get("subscription", ['userid' => 13], ["limit" => 1, "order" => "id", "asc" => TRUE], []);
+		$getPayment2 = $this->db->get("payment", ['userid'=> 13], ["limit" => 1, "order" => "id", "asc" => TRUE], []);
 
 
+		var_dump($getSub);
+		echo "<br>FALSE<br>";
+		var_dump($getPayment);
 
 
+		echo "<br><br><br>";
+		echo "<br><br><br>";
+		echo "<br><br><br>";
+		echo "<br><br><br>";
+
+		var_dump($getSub2);
+		echo "<br>TRUE<br>";
+		var_dump($getPayment2);		
+		return;
 
 
+		// Send Email
+		// $mail["to"] = 'support@rebranding.today';					
+		// $activate = "{$this->config["url"]}/user/activate/$key?email={$mail["to"]}";
+
+		// $mail["subject"] = "[{$this->config["title"]}] Registration has been successful.";
+
+		// $mail["message"] = str_replace("{site.title}", $this->config["title"], $this->config["email.activation"]);
+		// $mail["message"] = str_replace("{site.link}", $this->config["url"], $mail["message"]);
+		// $mail["message"] = str_replace("{user.username}", "", $mail["message"]);
+		// $mail["message"] = str_replace("{user.activation}", $activate, $mail["message"]);
+		// $mail["message"] = str_replace("http://http", "http", $mail["message"]);
+		// $mail["message"] = str_replace("{user.email}", $data[":email"], $mail["message"]);
+		// $mail["message"] = str_replace("{user.date}", date("d-m-Y"), $mail["message"]);
+
+		// Main::send($mail);
+		// echo "<br>email sent";
+		//return Main::redirect(Main::href("user/login", "", FALSE), array("success", e("An email has been sent to activate your account.
+
+		// $content = '<form action="https://rebranding.today/testing" method="post">
+		// 			<input type="text" name="murl" value="' . (isset($_POST['murl']) ? $_POST['murl'] : "") . '" />
+		// 			<button type="submit">Submit</button>
+		// 			</form>';
+		// echo $content;
+
+		// if (isset($_POST['murl'])) {
+
+		// 	$murl = $_POST['murl'];
+		// 	$url_headers = get_headers($murl);
+
+		// 	$mreturn =  FALSE;
+		// 	foreach ($url_headers as $key => $value) {
+		// 		$x_frame_options_deny = strpos(strtolower($url_headers[$key]), strtolower('X-Frame-Options: DENY'));
+		// 		$x_frame_options_sameorigin = strpos(strtolower($url_headers[$key]), strtolower('X-Frame-Options: SAMEORIGIN'));
+		// 		$x_frame_options_allow_from = strpos(strtolower($url_headers[$key]), strtolower('X-Frame-Options: ALLOW-FROM'));
+		// 		if ($x_frame_options_deny !== false || $x_frame_options_sameorigin !== false || $x_frame_options_allow_from !== false) {
+		// 			$mreturn = TRUE;
+		// 		}
+		// 	}
 
 
+		// 	echo "<br><br><br><br>";
+		// 	var_dump($url_headers);
+		// 	echo "<br><br><br><br>";
+		// 	var_dump($mreturn);
+		// 	return;
+		// }
+
+		// echo "<br><br><br><br><br>";
+
+		// $a = '02/28/2021';
+		// $b = substr($a, 3, 2) . '/' . substr($a, 0, 2) . '/' . substr($a, 6, 4);
 
 
+		// $converted_date = substr($a, 3, 2) . '/' . substr($a, 0, 2) . '/' . substr($a, 6, 4);
+		// var_dump($converted_date);
+		// return;
+		// echo $b;
 
-
-
-
-
-
-
-
-
-
-
-
- 	}
-
-
-
-
+		// echo "<br><br><br><br><br>";
+		// echo date("Y-m-d", strtotime('02/28/2021'));
+	}
 }

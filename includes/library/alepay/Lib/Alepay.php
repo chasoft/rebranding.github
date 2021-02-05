@@ -231,16 +231,6 @@ class Alepay {
     public function decryptCallbackData($data) {
         return $this->alepayUtils->decryptCallbackData($data, $this->publicKey);
     }
-
-    public function alePaymentStatus($data) {
-        if ($data == '000')
-            $payment_status = "Completed";
-        else if ($data == '150')
-            $payment_status = "Payment is being reviewed";
-        else 
-            $payment_status = "Pending";        
-        return $payment_status;
-    }
 }
 
 ?>

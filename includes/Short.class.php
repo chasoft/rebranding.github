@@ -376,7 +376,7 @@ class Short extends App
 			":description" => isset($array["description"]) && !empty($array["description"]) ? Main::clean($array["description"], 3, TRUE) : "",
 			":location" => $countries,
 			":devices" => $devices,
-			":date" => date("Y-m-d H:i:s"),//"NOW()",
+			":date" => date("Y-m-d H:i:s"), //"NOW()",
 			":pass" => isset($array["password"]) ? Main::clean($array["password"], 3) : "",
 			":meta_title" => $meta_title,
 			":meta_description" => $meta_description,
@@ -531,7 +531,8 @@ class Short extends App
 
 		$current = str_replace("/" . urlencode($this->action), "", $current);
 
-		$current = explode("?", idn_to_utf8($current))[0];
+		//$current = explode("?", idn_to_utf8($current))[0];
+		$current = explode("?", $current)[0];
 
 
 		if ("http://" . $current == $this->config["url"] || "https://" . $current == $this->config["url"]) {
@@ -564,7 +565,8 @@ class Short extends App
 		}
 
 		if ($url->userid > 0) {
-			$current = idn_to_utf8($_SERVER["HTTP_HOST"]);
+			//$current = idn_to_utf8($_SERVER["HTTP_HOST"]);
+			$current = $_SERVER["HTTP_HOST"];
 			$user = $this->db->get("user", ["id" => $url->userid], ["limit" => 1]);
 
 			$list = [
@@ -613,7 +615,7 @@ class Short extends App
 			if (strlen($url->pass) >= 32) $_POST["password"] = md5($_POST["password"]);
 			// Check Password
 			if ($_POST["password"] !== $url->pass) {
-				return Main::redirect($this->action, array("danger", e("Please enter a valid password.")));
+				return Main::redirect(Main::href($this->action, FALSE), array("danger", e("Please enter a valid password.")));
 			}
 			// Set Session
 			$_SESSION["{$url->id}_passcheck"] = TRUE;
@@ -760,7 +762,7 @@ class Short extends App
 				":short" => $this->action,
 				":urlid" => $url->id,
 				":urluserid" => $url->userid,
-				":date" => date("Y-m-d H:i:s"),//"NOW()",
+				":date" => date("Y-m-d H:i:s"), //"NOW()",
 				":country" => $this->country(),
 				":referer" => $referer,
 				":domain" => $domain,
@@ -1129,7 +1131,7 @@ class Short extends App
 									<p>' . e('The access to this URL is restricted. Please enter your password to view it.') . '</p>					      
 					        <div class="form-group">
 					          <label for="pass1">' . e("Password") . '</label>
-					          <input type="password" class="form-control" id="pass1" placeholder="Password" name="password">             
+					          <input type="password" class="form-control" id="pass1" placeholder="Password" name="password" autofocus />             
 					        </div>        
 					        ' . Main::csrf_token(TRUE) . '
 					        <button type="submit" class="btn btn-primary">' . e("Unlock") . '</button>        
@@ -1154,7 +1156,8 @@ class Short extends App
 
 			$current = str_replace("/" . urlencode($this->action) . "+", "", $current);
 
-			$current = explode("?", idn_to_utf8($current))[0];
+			//$current = explode("?", idn_to_utf8($current))[0];
+			$current = explode("?", $current)[0];
 
 			if ("http://" . $current == $this->config["url"] || "https://" . $current == $this->config["url"]) {
 
@@ -1242,9 +1245,9 @@ class Short extends App
 			$('input[name=customreport]').on('apply.daterangepicker', function(ev, picker) {
 				$('#statslauncher').remove();
 				
-				$('<script>').attr('src', '{$this->config["url"]}/analytic/" . str_replace("=", "", base64_encode("{$url->id}:{$url->click}")) . "?token={$this->config["public_token"]}&from='+picker.startDate.format('MM/DD/YYYY')+'&to='+ picker.endDate.format('MM/DD/YYYY')).attr('id', 'statslauncher').appendTo('body');
+				$('<script>').attr('src', '{$this->config["url"]}/analytic/" . str_replace("=", "", base64_encode("{$url->id}:{$url->click}")) . "?token={$this->config["public_token"]}&from='+picker.startDate.format('DD/MM/YYYY')+'&to='+ picker.endDate.format('DD/MM/YYYY')).attr('id', 'statslauncher').appendTo('body');
 			  
-			  $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+			  $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
 			});
 		});</script>", "custom", TRUE);
 		$this->header();
@@ -1353,8 +1356,8 @@ class Short extends App
 			exit;
 		}
 		header('Pragma: public');
-		header('Cache-Control: max-age=86400');
-		header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 86400));
+		header('Cache-Control: max-age=2592000');
+		header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 2592000));
 		header('Content-type: image/jpeg;');
 		echo $image;
 	}
@@ -1472,12 +1475,12 @@ class Short extends App
 		if (!$this->config["adult"]) return FALSE;
 		if (empty($this->config["keyword_blacklist"])) {
 			$array = array(
-				'porn', 'sex', 'porno', 'redtube', '4tube', 'spankwire',
+				'porn', 'porno', 'redtube', '4tube', 'spankwire',
 				'xshare', 'ziporn', 'naked', 'pornstar', 'pussy', 'fuck', 'suck', 'porntube',
-				'scriptmaster', 'warez', 'scriptmafia', 'nulled', 'jigshare', 'gaaks', 'newone',
+				'scriptmaster', 'scriptmafia', 'jigshare', 'gaaks', 'newone',
 				'intercambiosgratis', 'scriptease', 'xtragfx', 'vivaprogram', 'kickassgfx',
-				'gfxdl', 'fulltemplatedownload', 'dlscript', 'nigger', 'dick', 'faggot', 'cunt', 'gay',
-				'asshole', 'penis', 'vagina', 'motherfucker', 'fucker', 'shit', 'fucked', 'boobs'
+				'gfxdl', 'fulltemplatedownload', 'dlscript', 'nigger', 'dick', 'faggot', 'cunt',
+				'asshole', 'penis', 'vagina', 'motherfucker', 'fucker', 'shit', 'fucked', 'boobs', 'javhd'
 			);
 		} else {
 			$array = explode(",", $this->config["keyword_blacklist"]);

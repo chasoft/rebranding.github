@@ -1,57 +1,61 @@
-<?php defined("APP") or die() // Main Page ?>  
+<?php defined("APP") or die() // Main Page 
+?>
 <section class="hero">
   <div class="container">
     <div class="row">
       <div class="col-sm-8 col-xs-12">
         <div class="promo">
-		  <div class="today"><h1>Rebranding . <span class="forPeople"></span></h1><h1><?php echo '<span class="yellow-underline">'.e("Your Own").'</span> '.e("URL Shortener") ?></h1></div>		
-          <p class="description"><?php echo e("Shorten, Personalize, and Share").' <span class="yellow-underline">'.e("<b>fully branded</b>").'</span> '.e("ShortURLs for your business. Try Rebranding Today for free.") ?></p>
-        </div>        
+          <div class="today">
+            <h1>Rebranding . <span class="forPeople"></span></h1>
+            <h1><?php echo '<span class="yellow-underline">' . e("Your Own") . '</span> ' . e("URL Shortener") ?></h1>
+          </div>
+          <p class="description"><?php echo e("Shorten, Personalize, and Share") . ' <span class="yellow-underline">' . e("<b>fully branded</b>") . '</span> ' . e("ShortURLs for your business. Try Rebranding Today for free.") ?></p>
+        </div>
         <?php echo Main::message() ?>
         <?php echo $this->shortener(array("multiple" => FALSE)) ?>
       </div>
       <div class="col-sm-4 hidden-xs main-image">
-        <?php if (isset($this->config["theme_config"]->hero) && !empty($this->config["theme_config"]->hero)): ?>
-          <img src="<?php echo "{$this->config["url"]}/content/{$this->config["theme_config"]->hero}"?>" alt="<?php echo $this->config["title"] ?>">
-        <?php else: ?>
+        <?php if (isset($this->config["theme_config"]->hero) && !empty($this->config["theme_config"]->hero)) : ?>
+          <img src="<?php echo "{$this->config["url"]}/content/{$this->config["theme_config"]->hero}" ?>" alt="<?php echo $this->config["title"] ?>">
+        <?php else : ?>
           <img src="<?php echo "{$this->config["url"]}/themes/rebrand2/assets/images/rebranding-your-own-domains.svg" ?>" alt="<?php echo $this->config["title"] ?>">
         <?php endif ?>
       </div>
     </div>
-  </div>   
+  </div>
 </section>
 <section class="alt-hero">
   <div class="container">
-      <div class="integrations">
-        <h3><?php echo e("Integrations") ?></h3>
-        <p><?php echo e("Connect with the following apps and others to extend your application.") ?></p>
-        <ul>
-          <li>
-            <h3><?php echo e("Slack") ?></h3>
-            <img src="<?php echo assets("img/slack.png") ?>" alt="<?php echo e("Slack") ?>">
-          </li>
-          <li>
-            <h3><?php echo e("Zapier") ?></h3>
-            <img src="<?php echo assets("img/zapier.png") ?>" alt="<?php echo e("Zapier") ?>">
-          </li>   
-          <li>
-            <h3><?php echo e("Google Tag Manager") ?></h3>
-            <img src="<?php echo assets("img/gtm.png") ?>" alt="<?php echo e("Google Tag Manager") ?>">
-          </li>
-          <li>
-            <h3><?php echo e("Facebook Pixels") ?></h3>
-            <img src="<?php echo assets("img/fbpixel.png") ?>" alt="<?php echo e("Facebook Pixels") ?>">
-          </li>                                   
-        </ul>
-      </div>
-      <a href="<?php echo Main::href("user/register") ?>" class="btn btn-primary btn-round"><?php echo e("Create an account") ?></a>    
-  </div>  
+    <div class="integrations">
+      <h3><?php echo e("Integrations") ?></h3>
+      <p><?php echo e("Connect with the following apps and others to extend your application.") ?></p>
+      <ul>
+        <li>
+          <h3><?php echo e("Slack") ?></h3>
+          <img src="<?php echo assets("img/slack.png") ?>" alt="<?php echo e("Slack") ?>">
+        </li>
+        <li>
+          <h3><?php echo e("Zapier") ?></h3>
+          <img src="<?php echo assets("img/zapier.png") ?>" alt="<?php echo e("Zapier") ?>">
+        </li>
+        <li>
+          <h3><?php echo e("Google Tag Manager") ?></h3>
+          <img src="<?php echo assets("img/gtm.png") ?>" alt="<?php echo e("Google Tag Manager") ?>">
+        </li>
+        <li>
+          <h3><?php echo e("Facebook Pixels") ?></h3>
+          <img src="<?php echo assets("img/fbpixel.png") ?>" alt="<?php echo e("Facebook Pixels") ?>">
+        </li>
+      </ul>
+    </div>
+    <a href="<?php echo Main::href("user/register") ?>" class="btn btn-primary btn-round"><?php echo e("Create an account") ?></a>
+  </div>
 </section>
 <?php $this->history() ?>
 <section id="mainto">
   <div class="container">
     <h3 class="text-center featureH">
-      <?php echo e("One short link, infinite possibilities.") ?>        
+      <?php echo e("One short link, infinite possibilities.") ?>
     </h3>
     <p class="text-center featureP">
       <?php echo e("A short link is a powerful marketing tool when you use it carefully. It is not just a link but a medium between your customer and their destination. A short link allows you to collect so much data about your customers and their behaviors.") ?>
@@ -78,7 +82,7 @@
               </h3>
               <p>
                 <?php echo e("Share your links to your network and measure data to optimize your marketing campaign's performance. Reach an audience that fits your needs.") ?>
-              </p> 
+              </p>
             </div>
           </div>
         </div>
@@ -92,13 +96,14 @@
         <p>
           <?php echo e("Understanding your users and customers will help you increase your conversion. Our system allows you to track everything. Whether it is the amount of clicks, the country or the referrer, the data is there for you to analyze it.") ?>
         </p>
-      </div>      
-    </div>   
+      </div>
+    </div>
     <p class="text-center">
-      <a href="<?php echo Main::href("user/register") ?>" class="btn btn-secondary btn-lg btn-round"><?php echo e("Create an account") ?></a></p>
-    </p>              
-    <p class="text-center"><span class="small"><?php echo e("Start for free, upgrade later - No credit card required.") ?></span></p>                  
-  </div>    
+      <a href="<?php echo Main::href("user/register") ?>" class="btn btn-secondary btn-lg btn-round"><?php echo e("Create an account") ?></a>
+    </p>
+    </p>
+    <p class="text-center"><span class="small"><?php echo e("Start for free, upgrade later - No credit card required.") ?></span></p>
+  </div>
 </section>
 <section class="light">
   <div class="container">
@@ -112,26 +117,38 @@
         <p>
           <?php echo e("Our product lets your target your users to better understand their behavior and provide them a better overall experience through smart re-targeting. We provide you many powerful tools to reach them better.") ?>
         </p>
-        <br>   
-        <a href="<?php echo Main::href("user/register") ?>" class="c2a"><?php echo e("Get Started") ?></a>                    
+        <br>
+        <a href="<?php echo Main::href("user/register") ?>" class="c2a"><?php echo e("Get Started") ?></a>
       </div>
       <div class="col-sm-7 image">
-        <img src="<?php echo $this->config["url"] ?>/themes/cleanex/assets/images/landing.png" alt="<?php echo e("Powerful tools that work") ?>">
+        <img src="<?php echo $this->config["url"] ?>/themes/cleanex/assets/images/landing.png" alt="<?php echo e("Powerful tools that work") ?>" loading="lazy">
       </div>
-    </div>         
-  </div>    
+    </div>
+  </div>
 </section>
 <section>
   <div class="container">
     <div class="feature">
       <div class="row">
         <div class="col-sm-7 rand image">
-          <div class="rand1"> <i class="glyphicon glyphicon-link"></i> <h3><?php echo e("Link Controls") ?></h3></div>
-          <div class="rand2"> <i class="glyphicon glyphicon-lock"></i> <h3><?php echo e("Privacy Control") ?></h3></div>
-          <div class="rand3"> <i class="glyphicon glyphicon-briefcase"></i> <h3><?php echo e("Link Management") ?></h3></div>
-          <div class="rand4"> <i class="glyphicon glyphicon-dashboard"></i> <h3><?php echo e("Powerful Dashboard") ?></h3></div>
-          <div class="rand5"> <i class="glyphicon glyphicon-star"></i> <h3><?php echo e("Premium Features") ?></h3></div>
-          <div class="rand6"> <i class="glyphicon glyphicon-stats"></i> <h3><?php echo e("Statistics") ?></h3></div>
+          <div class="rand1"> <i class="glyphicon glyphicon-link"></i>
+            <h3><?php echo e("Link Controls") ?></h3>
+          </div>
+          <div class="rand2"> <i class="glyphicon glyphicon-lock"></i>
+            <h3><?php echo e("Privacy Control") ?></h3>
+          </div>
+          <div class="rand3"> <i class="glyphicon glyphicon-briefcase"></i>
+            <h3><?php echo e("Link Management") ?></h3>
+          </div>
+          <div class="rand4"> <i class="glyphicon glyphicon-dashboard"></i>
+            <h3><?php echo e("Powerful Dashboard") ?></h3>
+          </div>
+          <div class="rand5"> <i class="glyphicon glyphicon-star"></i>
+            <h3><?php echo e("Premium Features") ?></h3>
+          </div>
+          <div class="rand6"> <i class="glyphicon glyphicon-stats"></i>
+            <h3><?php echo e("Statistics") ?></h3>
+          </div>
         </div>
         <div class="col-sm-5 info">
           <h2>
@@ -144,11 +161,11 @@
           </p>
           <br>
           <a href="<?php echo Main::href("user/register") ?>" class="c2a"><?php echo e("Get Started") ?></a>
-        </div>      
-      </div>   
-    </div>   
+        </div>
+      </div>
+    </div>
   </div>
-</section>  
+</section>
 <section class="light">
   <div class="container">
     <div class="feature">
@@ -164,13 +181,13 @@
           </p>
           <br>
           <a href="<?php echo Main::href("user/register") ?>" class="c2a"><?php echo e("Get Started") ?></a>
-        </div> 
+        </div>
         <div class="col-sm-7">
-          <img src="<?php echo $this->config["url"] ?>/static/img/profiles.png" alt="<?php echo e("Create your Public Profile") ?>" class="img-responsivmaine">
-        </div>             
-      </div>   
-    </div>   
-  </div>  
+          <img src="<?php echo $this->config["url"] ?>/static/img/profiles.png" alt="<?php echo e("Create your Public Profile") ?>" class="img-responsivmaine" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 <section>
   <h3 class="text-center featureH"><?php echo e("Targeting your customers") ?></h3>
@@ -181,41 +198,41 @@
           <i class="glyphicon glyphicon-globe"></i>
           <h3><?php echo e("Target Customers") ?></h3>
           <p><?php echo e("Target your users based on their location and device and redirect them to specialized pages to increase your conversion.") ?></p>
-        </div>    
+        </div>
         <div class="col-sm-4">
           <i class="glyphicon glyphicon-star"></i>
           <h3><?php echo e("Custom Landing Page") ?></h3>
           <p><?php echo e("Create a custom landing page to promote your product or service on forefront and engage the user in your marketing campaign.") ?></p>
-        </div>      
+        </div>
         <div class="col-sm-4">
           <i class="glyphicon glyphicon-asterisk"></i>
           <h3><?php echo e("Overlays") ?></h3>
           <p><?php echo e("Use our overlay tool to display unobtrusive notifications on the target website. A perfect way to send a message to your customers or run a promotion campaign.") ?></p>
         </div>
-      </div>    
-      <br> 
+      </div>
+      <br>
       <div class="row">
         <div class="col-sm-4">
           <i class="glyphicon glyphicon-th"></i>
           <h3><?php echo e("Event Tracking") ?></h3>
           <p><?php echo e("Add your custom pixel from providers such as Facebook and track events right when they are happening.") ?></p>
-        </div>        
+        </div>
         <div class="col-sm-4">
           <i class="glyphicon glyphicon-glass"></i>
           <h3><?php echo e("Premium Aliases") ?></h3>
           <p><?php echo e("As a premium membership, you will be able to choose a premium alias for your links from our list of reserved aliases.") ?></p>
-        </div>    
+        </div>
         <div class="col-sm-4">
           <i class="glyphicon glyphicon-cloud"></i>
           <h3><?php echo e("Robust API") ?></h3>
           <p><?php echo e("Use our powerful API to build custom applications or extend your own application with our powerful tools.") ?></p>
-        </div>         
-      </div>  
+        </div>
+      </div>
     </div>
   </div>
   <p class="text-center">
     <a href="<?php echo Main::href("user/register") ?>" class="btn btn-secondary btn-lg btn-round"><?php echo e("Get Started") ?></a>
-  </p>         
+  </p>
 </section>
 <?php $this->public_list() ?>
 <section class="calltoaction">
@@ -224,24 +241,24 @@
       <h2><?php echo e("Start your marketing campaign now and reach your customers efficiently.") ?></h2>
       <a href="<?php echo Main::href("user/register") ?>" class="btn btn-secondary btn-round"><?php echo e("Register now") ?></a>
     </div>
-    <?php if ($this->config["homepage_stats"]): ?>
+    <?php if ($this->config["homepage_stats"]) : ?>
       <div class="stats">
         <h2 class="text-center"><?php echo e("Marketing with confidence.") ?></h2>
         <div class="row">
           <div class="col-sm-4">
-            <strong><?php echo e("Powering") ?></strong>      
+            <strong><?php echo e("Powering") ?></strong>
             <h3><?php echo $this->count("urls") ?> <span><?php echo e("Links") ?></span></h3>
           </div>
           <div class="col-sm-4">
-            <strong><?php echo e("Serving") ?></strong>      
+            <strong><?php echo e("Serving") ?></strong>
             <h3><?php echo $this->count("clicks") ?> <span> <?php echo e("Clicks") ?></span></h3>
           </div>
           <div class="col-sm-4">
             <strong><?php echo e("Trusted by") ?></strong>
             <h3><?php echo $this->count("users") ?> <span><?php echo e("Customers") ?></span></h3>
           </div>
-        </div>           
+        </div>
       </div>
-    <?php endif ?> 
+    <?php endif ?>
   </div>
 </section>

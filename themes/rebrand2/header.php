@@ -43,7 +43,7 @@
   <a href="#body" id="back-to-top"><i class="glyphicon glyphicon-chevron-up"></i></a>
   <?php if ($this->isUser) : // Show header for logged user 
   ?>
-    <?php if ($this->user->trial) : ?>
+    <?php if ($this->user->trial && $this->isexpired(7)) : ?>
       <div class="header-top alert alert-warning text-center">
         <?php echo e("Your trial expires in ") ?> <?php echo date("d", strtotime($this->user->expiration) - strtotime("tomorrow")) ?> <?php echo e("days") ?>
         <a href="<?php echo Main::href("pricing") ?>" class="btn btn-outline-warning btn-sm"><?php echo e("Upgrade now") ?></a>
@@ -75,7 +75,9 @@
                 <!-- Drop Down NavBar -->
                 <div class='dropdown'>
                   <button class='navbar-toggle' type='button' id='dropMainMenu' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
-                    <i class="glyphicon glyphicon-align-justify"></i>
+                    <i class="glyphicon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M2.5 11.5A.5.5 0 0 1 3 11h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 3 7h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 3 3h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
+                      </svg></i>
                   </button>
                   <div class='dropdown-menu list-group list-group-special' aria-labelledby='dropMainMenu'>
                     <?php echo $this->all_menu(array(array("href" => "https://help.rebranding.today", "text" => e("Help"), "icon" => "fa fa-question-circle"))) ?>
@@ -122,7 +124,9 @@
                       <!-- Drop Down NavBar -->
                       <div class='dropdown dropdown-2'>
                         <button class='navbar-toggle' type='button' id='dropMainMenu' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
-                          <i class="glyphicon glyphicon-align-justify"></i>
+                          <i class="glyphicon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
+                              <path fill-rule="evenodd" d="M2.5 11.5A.5.5 0 0 1 3 11h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 3 7h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 3 3h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
+                            </svg></i>
                         </button>
                         <ul class='dropdown-menu list-group list-group-special' aria-labelledby='dropMainMenu'>
                           <?php echo $this->all_menu(array(array("href" => "https://help.rebranding.today", "text" => e("Help"), "icon" => "fa fa-question-circle"))) ?>

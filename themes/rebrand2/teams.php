@@ -8,7 +8,7 @@
 		<?php if (!$this->isTeam()) : ?>
 			<div class="panel panel-default panel-body">
 				<h3><?php echo e("Invite Member") ?></h3>
-				<form action="<?php echo Main::href("user/teams/add") ?>" method="post" id="teamform" name="teamform" >
+				<form action="<?php echo Main::href("user/teams/add") ?>" method="post" id="teamform" name="teamform">
 					<div class="row">
 						<div class="col-md-6">
 							<div class="form-group">
@@ -72,7 +72,17 @@
 					<?php echo Main::csrf_token(TRUE) ?>
 					<button class="btn btn-primary" type="submit"><?php echo e("Invite") ?></button>
 				</form>
-				<script>jQuery.validator.addMethod("validate_email",function(a,e){return!!/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(a)},"Please enter a valid Email."),$("#teamform").validate({rules:{email:{validate_email:!0}}});</script>
+				<script>
+					jQuery.validator.addMethod("validate_email", function(a, e) {
+						return !!/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(a)
+					}, "Please enter a valid Email."), $("#teamform").validate({
+						rules: {
+							email: {
+								validate_email: !0
+							}
+						}
+					});
+				</script>
 			</div>
 		<?php endif ?>
 
@@ -87,19 +97,19 @@
 							<th><?php echo e("Email") ?></th>
 							<th><?php echo e("Permissions") ?></th>
 							<th><?php echo e("Actions") ?></th>
-						</tr> 
+						</tr>
 					</thead>
 					<tbody>
 						<!-- Main Account -->
 						<tr>
-							<td><img width="30" height="30" src="<?php echo $this->avatar($teamleader,30) ?>" alt="" class="round"/></td>
+							<td><img width="30" height="30" src="<?php echo $this->avatar($teamleader, 30) ?>" alt="" class="round" /></td>
 							<td><?php echo $teamleader->name ? $teamleader->name : $teamleader->username ?><br><?php echo ($teamleader->active ? '<span class="label label-success">' . e("Active") . '</span>' : '<span class="label label-danger">' . e("Inactive") . '</span>') ?></td>
 							<td><?php echo $teamleader->email ?></td>
 							<td>
 								<span class='badge badge-primary'><?php echo e("Master Account") ?></span>
 							</td>
 							<td></td>
-						</tr> 				
+						</tr>
 						<!-- Sub Accounts -->
 						<?php foreach ($team as $member) : ?>
 							<tr>
@@ -138,6 +148,22 @@
 			<p><?php echo e("<b>Create</b>: A create event will allow your team member to shorten links, create splash pages & overlay and bundles.") ?></p>
 			<p><?php echo e("<b>Edit</b>: An edit event will allow your team member to edit links, splash pages & overlay and bundles.") ?></p>
 			<p><?php echo e("<b>Delete</b>: A delete event will allow your team member to delete links, splash pages & overlay and bundles.") ?></p>
+		</div>
+		<div class="panel panel-default panel-body">
+			<h3><?php echo e("Plan Limits") ?></h3>
+			<div class="member-stats">
+				<p><span><?php echo e("Used") ?> <?php echo $this->count("user_urls") ?> <?php echo e("out of") ?> <?php echo ($this->user->plan->numurls > 0 ? number_format($this->user->plan->numurls, 0) : e("Unlimited")) ?></span> <?php echo e('URLs') ?></p>
+
+				<?php echo ($this->user->plan->permission->splash->enabled ? '<p><span>' . e("Used") . ' ' . $this->count("user_splash") . ' ' . e("out of") . ' ' . ($this->user->plan->permission->splash->count > 0 ? $this->user->plan->permission->splash->count : e("Unlimited")) . '</span> ' . e('Splash Pages') . '</p>' : '') ?>
+
+				<?php echo ($this->user->plan->permission->overlay->enabled ? '<p><span>' . e("Used") . ' ' . $this->count("user_overlay") . ' ' . e("out of") . '  ' . ($this->user->plan->permission->overlay->count > 0 ? $this->user->plan->permission->overlay->count : e("Unlimited")) . '</span> ' . e('Overlay Pages') . '</p>' : '') ?>
+
+				<?php echo ($this->user->plan->permission->pixels->enabled ? '<p><span>' . e("Used") . ' ' . $this->count("user_pixels") . ' ' . e("out of") . ' ' . ($this->user->plan->permission->pixels->count > 0 ? $this->user->plan->permission->pixels->count : e("Unlimited")) . '</span> ' . e('Tracking Pixels') . '</p>' : '') ?>
+
+				<?php echo ($this->user->plan->permission->team->enabled ? '<p><span>' . e("Used") . ' ' . $this->count("user_team") . ' ' . e("out of") . '  ' . ($this->user->plan->permission->team->count > 0 ? $this->user->plan->permission->team->count : e("Unlimited")) . '</span> ' . e('Team Members') . '</p>' : '') ?>
+
+				<?php echo ($this->user->plan->permission->domain->enabled ? '<p><span>' . e("Used") . ' ' . $this->count("user_domain") . ' ' . e("out of") . ' ' . ($this->user->plan->permission->domain->count > 0 ? $this->user->plan->permission->domain->count : e("Unlimited")) . '</span> ' . e('Custom Domain') . '</p>' : '') ?>
+			</div>
 		</div>
 	</div>
 	<!--/#widgets-->

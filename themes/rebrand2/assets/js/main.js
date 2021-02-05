@@ -21,10 +21,12 @@ $(document).ready(function () {
 		if ($(this).hasClass("is-shown")) {
 			fg.find("input[name=password]").attr("type", "password");
 			fg.find("input[name=cpassword]").attr("type", "password");
+			fg.find("input[name=pass]").attr("type", "password");
 			$(this).removeClass("is-shown");
 		} else {
-			fg.find("input[type=password]").attr("type", "text");
-			fg.find("input[type=cpassword]").attr("type", "text");
+			fg.find("input[name=password]").attr("type", "text");
+			fg.find("input[name=cpassword]").attr("type", "text");
+			fg.find("input[name=pass]").attr("type", "text");
 			$(this).addClass("is-shown");
 		}
 	});
@@ -35,7 +37,40 @@ $(document).ready(function () {
 	/**
 	 * Pixels Form
 	 */
-	$("#type").on("change", function (t) { switch (t.preventDefault(), $(".chosen-single span").text()) { case "Google Tag Manager": $("#pixelsform > div > div:nth-child(3) > input").attr({ minlength: "5", type: "text" }).removeAttr("maxlength"); break; case "Facebook": $("#pixelsform > div > div:nth-child(3) > input").attr({ maxlength: "20", type: "number" }).removeAttr("minlength"); break; case "Adwords": $("#pixelsform > div > div:nth-child(3) > input").attr({ maxlength: "40", type: "text" }).removeAttr("minlength"); break; case "LinkedIn": $("#pixelsform > div > div:nth-child(3) > input").attr({ maxlength: "10", type: "text" }).removeAttr("minlength"); break; case "Twitter": $("#pixelsform > div > div:nth-child(3) > input").attr({ maxlength: "15", type: "text" }).removeAttr("minlength"); break; case "AdRoll": case "Quora": $("#pixelsform > div > div:nth-child(3) > input").attr({ maxlength: "40", type: "text" }).removeAttr("minlength") } });
+	$("#type").on("change", function (t) {
+		switch ((t.preventDefault(), $(".chosen-single span").text())) {
+			case "Google Tag Manager":
+				$("#pixelsform > div > div:nth-child(3) > input")
+					.attr({ minlength: "5", type: "text" })
+					.removeAttr("maxlength");
+				break;
+			case "Facebook":
+				$("#pixelsform > div > div:nth-child(3) > input")
+					.attr({ maxlength: "20", type: "number" })
+					.removeAttr("minlength");
+				break;
+			case "Adwords":
+				$("#pixelsform > div > div:nth-child(3) > input")
+					.attr({ maxlength: "40", type: "text" })
+					.removeAttr("minlength");
+				break;
+			case "LinkedIn":
+				$("#pixelsform > div > div:nth-child(3) > input")
+					.attr({ maxlength: "10", type: "text" })
+					.removeAttr("minlength");
+				break;
+			case "Twitter":
+				$("#pixelsform > div > div:nth-child(3) > input")
+					.attr({ maxlength: "15", type: "text" })
+					.removeAttr("minlength");
+				break;
+			case "AdRoll":
+			case "Quora":
+				$("#pixelsform > div > div:nth-child(3) > input")
+					.attr({ maxlength: "40", type: "text" })
+					.removeAttr("minlength");
+		}
+	});
 
 	// Price Table
 	var monthly_price_table = $("#price_tables").find(".monthly");
