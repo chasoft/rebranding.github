@@ -334,7 +334,7 @@ $lang = array(
     "Send" => "Gửi",
     "seconds" => "giây",
     "Contact" => "Liên hệ",
-    "Choose Language" => "Chọn Ngôn ngữ",
+    "Choose Language" => "Ngôn ngữ",
     "Copied" => "Đã sao chép",
     "Geotargeting data for" => "Dữ liệu mục tiêu theo địa lý cho",
     "URL has been successfully shortened. Click <kbd>Copy</kbd> or <kbd>CRTL</kbd>+<kbd>C</kbd> to Copy it." => "URL đã được rút ngắn thành công. Nhấp vào <kbd>Sao chép</kbd> hoặc <kbd>CRTL</kbd>+<kbd>C</kbd> để sao chép nó.",
@@ -1046,5 +1046,6 @@ $lang = array(
     "Ask a question or fire a support ticket or report an issues. Our team support team will get back to you by email." => "Mọi yêu cầu hỗ trợ về tư vấn, kỹ thuật hay thanh toán được thực hiện ở trang này. Nhóm hỗ trợ của chúng tôi sẽ liên hệ bạn qua email.",
     "There is something wrong with your input data. Please try again." => "Có lỗi phát sinh từ dữ liệu bạn cung cấp. Vui lòng thử lại.",
     "Size" => "Kích thước",
-    "Fail to initialize payment process with error code: " => "Lỗi khi khởi tạo thanh toán: "
+    "Fail to initialize payment process with error code: " => "Lỗi khi khởi tạo thanh toán: ",
+    "BizChain Vietnam Company Limited<br>27 St.08, Binh Trung Tay, Dist 2, HCMC<br><b>TAX</b>: 0314867890"=>"Công ty TNHH BizChain Việt Nam<br>27 Đường 08, Bình Trưng Tây, Q2, TP.HCM<br><b>MST</b>: 0314867890"
 );

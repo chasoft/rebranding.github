@@ -1104,7 +1104,7 @@ section .promo h1 {
   text-align: left;
   font-weight: 700;
   font-size: 45px;
-  /*line-height: 0.1em;*/
+  line-height: 0.8em;
 }
 section .promo h1 .description {
   color: #b0adc2;
@@ -4774,7 +4774,7 @@ ul.form_opt li a.current {
   /*newly added*/
   section .promo h1 {
     font-size: 40px;
-    line-height: 0em;
+    line-height: 0.7em;
   }
   .home section.hero .main-image img,
   .home section.hero .main-image svg {
