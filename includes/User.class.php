@@ -1278,8 +1278,6 @@ class User extends App
 				$data[":type"] = $_POST["type"];
 			}
 
-			var_dump($this->user->plan->permission);return;
-
 			if ($this->permission('pixels')) {
 
 				$pixels = "";
@@ -1397,7 +1395,7 @@ class User extends App
 
 <div>
   <!-- Nav tabs -->
-  <ul class='nav nav-tabs'>
+  <ul class='nav nav-tabs' style='min-width: 360px;'>
     <li class='active'><a href='#mlink' data-toggle='tab'>" . e('Link') . "</a></li>
     <li><a href='#mtarget' data-toggle='tab'>" . e('Targets') . "</a></li>
     <li><a href='#mUTM' data-toggle='tab'>" . e('UTM Builder') . "</a></li>
@@ -1488,7 +1486,7 @@ class User extends App
 			      <div class='form-group'>
 			        <label for='meta_description' class='col-sm-3 control-label'>" . e("Meta Description") . "</label>
 			        <div class='col-sm-9'>
-			          <textarea class='form-control' name='meta_description' id='meta_description'>{$url->meta_description}</textarea>
+			          <textarea class='form-control' name='meta_description' id='meta_description' rows='4'>{$url->meta_description}</textarea>
 			        </div>
 			      </div>";
 		}

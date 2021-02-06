@@ -1127,7 +1127,7 @@ class Short extends App
 							<div class="centered form">';
 		echo '     ' . Main::message() . '
 					      <form role="form" class="live_form" method="post" action="' . $url->domain . '/' . $this->action . '">
-									<h3>' . e("Enter your password to unlock this URL") . '</h3>
+									<h3>' . e("Password") . '</h3>
 									<p>' . e('The access to this URL is restricted. Please enter your password to view it.') . '</p>					      
 					        <div class="form-group">
 					          <label for="pass1">' . e("Password") . '</label>
