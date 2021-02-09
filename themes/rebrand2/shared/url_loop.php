@@ -1,6 +1,7 @@
-<?php defined("APP") or die() // This file is looped in each instances to show the URL. Please don't edit this fiel if you don't know what you are doing! 
+<?php defined("APP") or die() // This file is looped in each instances to show the URL. Please don't edit this file if you don't know what you are doing! 
 ?>
-<div class="url-list" id="url-container-<?php echo $url->id ?>" data-id="<?php echo $url->id ?>" <?php echo ((isset($this_is_bundle) && $this_is_bundle && $url->archived) ? 'style="background: #f7f8fa;"' : "") ?>>
+<div class="return-ajax-message"></div>
+<div class="url-list" id="url-container-<?php echo $url->id ?>" data-id="<?php echo $url->id ?>" <?php echo ((isset($this_is_bundle) && $this_is_bundle && $url->archived) ? 'style="background: #f7f8fa;margin-left: -15px;margin-right: -15px;padding-right: 15px;padding-left: 15px;"' : "") ?>>
 	<div class="row">
 		<div class="col-xs-10 url-info">
 			<h3 class="title fs-sm-1em">
@@ -23,7 +24,7 @@
 					}
 					?>
 					&nbsp;&bullet;&nbsp;
-					<span class="text-primary"><i class="fas fa-folder-open"></i> &nbsp;<?php echo e('Bundle') ?> <?php echo $bundle_name ?></span>
+					<span class="text-primary"><i class="fas fa-folder-open"></i> &nbsp;<?php echo $bundle_name ?></span>
 				<?php endif ?>
 				<?php if (!empty($url->location)) : ?>
 					&nbsp;&bullet;&nbsp;

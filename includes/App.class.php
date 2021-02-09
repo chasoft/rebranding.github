@@ -2709,11 +2709,22 @@ class App
 		if (!isset($_POST["id"]) || !is_numeric($_POST["id"]) || (!isset($_POST["name"]) || $_POST["name"] == "")) return $this->server_die();
 		// Get data
 		$urls = $this->db->get("url", array("bundle" => "?", "userid" => "?"), array("limit" => 50, "order" => "date"), array(Main::clean($_POST["id"], 3, TRUE), $this->user->id));
-		if (!$urls) return print("<p class='center'>" . e("No URLs found.") . "</p>");
+		if (!$urls) return print("<p class='center' style='padding-top:15px;'>" . e("No URLs found.") . "</p>");
 
 		$this_is_bundle = 1;
 
-		echo '<h4 class="bundle-name"><i class="fas fa-folder-open" style="margin-right: 10px;"></i><a href="' . Main::href("user/bundles") . '">' . e("Bundle URLs") . '</a><span style="position: relative; top: 2px; color: #6576ff;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right-fill" viewBox="0 0 16 16"><path d="M12.14 8.753l-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"></path></svg></span>' . $_POST["name"] . '</h4>';
+		echo   '<div class="d-flex" style="
+		background: #eff1ff;
+		margin-left: -15px;
+		margin-right: -15px;
+		padding: 5px 14px 0px 14px;
+		border-bottom: 1px solid #dfe2e6;">
+				<h4 class="bundle-name"><i class="fas fa-folder-open" style="margin-right: 10px;"></i><a href="' . Main::href("user/bundles") . '">' . e("Bundle URLs") . '</a><span style="position: relative; top: 2px; color: #6576ff;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right-fill" viewBox="0 0 16 16"><path d="M12.14 8.753l-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"></path></svg></span>' . $_POST["name"] . '</h4>
+				<div class="btn-group btn-group-sm ml-auto">
+					<a href="#" class="btn btn-default" data-toggle="tooltip" title="'. e("Select all") .'" id="selectall"><i class="fa fa-check-square"></i></a>
+					<a href="#" class="btn btn-default" data-toggle="tooltip" title="'. e("Delete selected items") .'" id="deleteall"><i class="fa fa-trash"></i></a>
+				</div>
+				</div>';
 		foreach ($urls as $url) {
 			include(TEMPLATE . "/shared/url_loop.php");
 		}
@@ -4054,15 +4065,15 @@ class App
 		$payload = @file_get_contents("php://input");
 		file_put_contents(date("Y-m-d H:i:s").'.txt',$payload);
 		if (!$payload || empty($payload)) {
-			http_response_code(400);
-			echo "1"; exit(1);
+			$this->server_die();
+			//echo "1"; exit(1);
 		}
 		$aj = json_decode($payload);
 	
 		if (!isset($aj->transactionInfo->transactionCode))
 		{
-			http_response_code(400);
-			echo "2"; exit(2);
+			$this->server_die();
+			//echo "2"; exit(2);
 		}
 
 		/* PROCESSING RECEIVED DATA*/
@@ -4070,9 +4081,9 @@ class App
 		if (isset($aj->cardTokenInfo->token)) {	//***TOKENIZE (Subscription)
 			
 			if (!$getsub = $this->db->get("subscription", ["uniqueid" => ":uniqueid"], ["limit" => 1], [":uniqueid" => $aj->transactionInfo->transactionCode])) {
-
-				http_response_code(404);
-				echo "3"; exit(3);
+				$this->server_die();
+				//http_response_code(404);
+				//echo "3"; exit(3);
 				//return Main::redirect("user", array("danger", "Wow, weird! Registered payment not found in our database!"));
 			}
 
@@ -4141,9 +4152,9 @@ class App
 			// Cập nhật Payment và User nếu cần			
 
 			if (!$getpayment = $this->db->get("payment", ["tid" => ":tid"], ["limit" => 1], [":tid" => $aj->transactionInfo->transactionCode])) {
-
-				http_response_code(404);
-				echo "6"; exit(6);
+				$this->server_die();
+				//http_response_code(404);
+				//echo "6"; exit(6);
 				//return Main::redirect("user", array("danger", "Wow, weird! Registered payment not found in our database!"));
 			}
 

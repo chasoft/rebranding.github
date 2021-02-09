@@ -114,26 +114,25 @@ $(document).ready(function () {
   $(document).on('click', '.ajax_call', function (p) {
     p.preventDefault();
     var e = $(this);
-    var id = $(this).attr("data-id");
-    var action = $(this).attr("data-action");
+    var id = e.attr("data-id");
+    var action = e.attr("data-action");
     var loading = "<img class='loader' src='" + appurl + "/static/loader.gif' style='margin:5px 50%;border:0;' />";
     var title = e.attr("data-title");
-    if (typeof ($(this).attr("data-container")) == "undefined") {
-      if (typeof ($(this).attr("data-class")) != "undefined") {
-        var container = $("." + $(this).attr("data-class"));
-        var loading = "<span><i class='glyphicon glyphicon-refresh'></i> Loading</span>";
+    if (typeof (e.attr("data-container")) == "undefined") {
+      if (typeof (e.attr("data-class")) != "undefined") {
+        var container = $("." + e.attr("data-class"));
+        //var loading = "<span><i class='glyphicon glyphicon-refresh'></i> Loading</span>";
       } else {
         if (typeof (title) == "undefined") title = "User Account";
-        $(this).modal({ title: title, content: "Please wait while loading...", confimation: 1 });
+        e.modal({ title: title, content: "Please wait while loading...", confimation: 1 });
         var container = $("#modal-alert > p");
       }
     } else {
-      var container = $("#" + $(this).attr("data-container"));
+      var container = $("#" + e.attr("data-container"));
     }
-    var title = $(this).attr("data-title");
 
-    if (typeof ($(this).attr("bundle-name")) !== "undefined") {
-      var bundle_name = $(this).attr("bundle-name");
+    if (typeof (e.attr("bundle-name")) !== "undefined") {
+      var bundle_name = e.attr("bundle-name");
     } else {
       bundle_name = "";
     }
@@ -159,7 +158,8 @@ $(document).ready(function () {
         container.fadeIn('fast');
       }
     });
-  });
+  }); //end of Ajax_call click
+
   if ($("#widget_activities").length > 0) {
     var intval = $("#widget_activities").attr("data-refresh");
     setInterval(function () {
@@ -170,7 +170,7 @@ $(document).ready(function () {
   $("#archiveall").click(function (e) {
     e.preventDefault();
     if ($(".url-container input[type=checkbox]:checked").length < 1) {
-      return $(".return-ajax").html('<div class="alert alert-info" style="color:#fff">' + lang.minurl + '</div><br>').fadeIn();
+      return $(".return-ajax-message").first().html('<div class="alert alert-info" style="color:#fff">' + lang.minurl + '</div><br>').fadeIn();
     }
     $(".url-container input[type=checkbox]").each(function (e) {
       if ($(this).prop("checked")) {

@@ -45,29 +45,12 @@
 			</div>
 		</div>
 		<div class="main-content col-md-7">
-			<!--		
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="#">Home</a></li>
-    <li class="breadcrumb-item active" aria-current="page">???</li>
-  </ol>
-</nav>
--->
-			<div class="panel panel-default panel-body">
+			<div class="panel panel-default panel-body no-mt">
 				<div id="data-container">
-					<div class="btn-group btn-group-sm">
-						<a href="#" class="btn btn-default" data-toggle="tooltip" title="<?php echo e("Select all") ?>" id="selectall"><i class="fa fa-check-square"></i></a>
-						<!--
-					<php if ($this->permission("bundle") !== FALSE): ?>	
-						<a href="#" class="btn btn-default" data-toggle="tooltip" title="<?php echo e("Add to bundle") ?>" id="addtobundle"><i class="fa fa-folder-open"></i></a>
-					<php endif ?>
-					-->
-						<a href="#" class="btn btn-default" data-toggle="tooltip" title="<?php echo e("Delete all") ?>" id="deleteall"><i class="fa fa-trash"></i></a>
-					</div>
 					<form action="<?php echo Main::href("user/delete") ?>" method="post" id="delete-all-urls">
-						<div class="url-container">
+						<div class="url-container">							
 							<div class="return-ajax">
-								<p class="center"><?php echo e("Please select a bundle from the left.") ?></p>
+								<p class="center" style="padding-top:15px;"><?php echo e("Please select a bundle from the left.") ?></p>
 							</div><!-- /.return-ajax -->
 						</div>
 						<?php echo Main::csrf_token(TRUE) ?>
