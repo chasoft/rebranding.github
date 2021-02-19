@@ -62,26 +62,44 @@
 								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
 								<span><?php echo e($plan["description"]) ?></span>
 							</div>
+
+							<?php if ($plan["id"] < 4) : ?>
 							<div class="price-plan-amount">
 								<div class="amount"><?php echo Main::currency($this->config["currency"], number_format($plan["price"]/1000, 0)) ?>K
 									<span>/<?php echo e("month") ?></span>
 								</div>
 								<span class="bill"></span>
 							</div>
+							<?php else: ?>
+								<div class="price-plan-amount">
+									<div class="amount">&nbsp;
+										<span>&nbsp;</span>
+									</div>
+									<span class="bill"></span>
+								</div>
+							<?php endif ?>	
+
 							<div class="price-plan-action">
-							  <?php if ($this->logged() && $this->pro() && $this->user->planid == $plan["id"]) : ?>								
-								<?php if (($subscription->plan == "monthly") && (!$this->user->trial)) : ?>  
-									<a class="btn btn-warning btn-round"><?php echo e("Current Plan") ?></a>
-								<?php else : ?>
-									<a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}") ?>" class="btn btn-primary btn-round" <?php echo (days_left($this->user->expiration) > 720) ? "disabled" : "" ?> ><?php echo e("Subscribe") ?></a>
-								<?php endif ?>
-							  <?php else: ?>
-								<?php if($plan["trial"] && (!$this->logged() || ($this->logged() && !$this->db->get("payment", "trial_days IS NOT NULL AND userid = '{$this->user->id}'", ["limit" => 1])))): ?>
-									<a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}?trial=1") ?>" class="btn btn-primary btn-round"><?php echo $plan["trial"] ?>-<?php echo e("Day") ?> <?php echo e("Free Trial") ?></a>  
+							<?php if ($plan["id"] < 4) : ?>	
+
+								<?php if ($this->logged() && $this->pro() && $this->user->planid == $plan["id"]) : ?>								
+									<?php if (($subscription->plan == "monthly") && (!$this->user->trial)) : ?>  
+										<a class="btn btn-warning btn-round"><?php echo e("Current Plan") ?></a>
+									<?php else : ?>
+										<a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}") ?>" class="btn btn-primary btn-round" <?php echo (days_left($this->user->expiration) > 720) ? "disabled" : "" ?> ><?php echo e("Subscribe") ?></a>
+									<?php endif ?>
 								<?php else: ?>
-								  <a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>  
+									<?php if($plan["trial"] && (!$this->logged() || ($this->logged() && !$this->db->get("payment", "trial_days IS NOT NULL AND userid = '{$this->user->id}'", ["limit" => 1])))): ?>
+										<a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}?trial=1") ?>" class="btn btn-primary btn-round"><?php echo $plan["trial"] ?>-<?php echo e("Day") ?> <?php echo e("Free Trial") ?></a>  
+									<?php else: ?>
+									<a href="<?php echo Main::href("upgrade/monthly/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>  
+									<?php endif ?>
 								<?php endif ?>
-							  <?php endif ?>
+
+							<?php else: ?>
+								<a class="btn btn-outline-info btn-round"><?php echo e("Coming Soon") ?></a>
+							<?php endif ?>
+
 							</div>
 						</div>
 					</div>	
@@ -141,26 +159,43 @@
 								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
 								<span><?php echo e($plan["description"]) ?></span>
 							</div>
+
+							<?php if ($plan["id"] < 4) : ?>	
 							<div class="price-plan-amount">
 								<div class="amount"><?php echo Main::currency($this->config["currency"],number_format($plan["price"] / 1000,0)) ?>K
 									<span>/<?php echo e("year") ?></span>
 								</div>
 								<span class="bill"><?php echo Main::currency($this->config["currency"], number_format($plan["price"]/12/1000, 0)) ?>k/<?php echo e("month") ?> (<?php echo e("Save.")." {$plan["discount"]}" ?>%)</span>
 							</div>
+							<?php else: ?>
+								<div class="price-plan-amount">
+									<div class="amount">&nbsp;
+										<span>&nbsp;</span>
+									</div>
+									<span class="bill">&nbsp;</span>
+								</div>
+							<?php endif ?>							
+							
 							<div class="price-plan-action">
-							  <?php if ($this->logged() && $this->pro() && $this->user->planid == $plan["id"]): ?>
-								<?php if (($subscription->plan == "yearly") && (!$this->user->trial)) : ?>
-									<a class="btn btn-warning btn-round"><?php echo e("Current Plan") ?></a> 
+							<?php if ($plan["id"] < 4) : ?>	
+
+								<?php if ($this->logged() && $this->pro() && $this->user->planid == $plan["id"]): ?>
+									<?php if (($subscription->plan == "yearly") && (!$this->user->trial)) : ?>
+										<a class="btn btn-warning btn-round"><?php echo e("Current Plan") ?></a> 
+									<?php else: ?>
+										<a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}") ?>" class="btn btn-primary btn-round" <?php echo (days_left($this->user->expiration) > 720) ? "disabled" : "" ?> ><?php echo e("Subscribe") ?></a>
+									<?php endif ?>
 								<?php else: ?>
-									<a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}") ?>" class="btn btn-primary btn-round" <?php echo (days_left($this->user->expiration) > 720) ? "disabled" : "" ?> ><?php echo e("Subscribe") ?></a>
+									<?php if($plan["trial"] && (!$this->logged() || ($this->logged() && !$this->db->get("payment", "trial_days IS NOT NULL AND userid = '{$this->user->id}'", ["limit" => 1])))): ?>                  
+										<a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}?trial=1") ?>" class="btn btn-primary btn-round"><?php echo $plan["trial"] ?>-<?php echo e("Day") ?> <?php echo e("Free Trial") ?></a>                      
+									<?php else: ?>
+									<a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>  
+									<?php endif ?>
 								<?php endif ?>
-							  <?php else: ?>
-								<?php if($plan["trial"] && (!$this->logged() || ($this->logged() && !$this->db->get("payment", "trial_days IS NOT NULL AND userid = '{$this->user->id}'", ["limit" => 1])))): ?>                  
-									<a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}?trial=1") ?>" class="btn btn-primary btn-round"><?php echo $plan["trial"] ?>-<?php echo e("Day") ?> <?php echo e("Free Trial") ?></a>                      
-								<?php else: ?>
-								  <a href="<?php echo Main::href("upgrade/yearly/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>  
-								<?php endif ?>
-							  <?php endif ?>
+
+							<?php else: ?>
+								<a class="btn btn-outline-info btn-round"><?php echo e("Coming Soon") ?></a>
+							<?php endif ?>
 							</div>
 						</div>
 					</div>	
@@ -220,13 +255,25 @@
 								<h5 class="title"><?php echo e($plan["name"]) ?></h5>
 								<span><?php echo e($plan["description"]) ?></span>
 							</div>
-							<div class="price-plan-amount">
-								<div class="amount"><?php echo Main::currency($this->config["currency"],number_format($plan["price"]/1000,0)) ?>K
-									<span>/<?php echo e("lifetime") ?></span>
+
+							<?php if ($plan["id"] < 4) : ?>
+								<div class="price-plan-amount">
+									<div class="amount"><?php echo Main::currency($this->config["currency"],number_format($plan["price"]/1000,0)) ?>K
+										<span>/<?php echo e("lifetime") ?></span>
+									</div>
+									<span class="bill"><?php echo e("Great saving!") ?></span>
 								</div>
-								<span class="bill"><?php echo e("Great saving!") ?></span>
-							</div>
+							<?php else: ?>
+								<div class="price-plan-amount">
+									<div class="amount">&nbsp;
+										<span>&nbsp;</span>
+									</div>
+									<span class="bill">&nbsp;</span>
+								</div>
+							<?php endif ?>
+
 							<div class="price-plan-action">
+							<?php if ($plan["id"] < 4) : ?>
 							  <?php if ($this->logged() && $this->pro() && $this->user->planid == $plan["id"]): ?>
 								<?php if ((days_left($this->user->expiration) > 720) && (!$this->user->trial)) : ?>
 									<a class="btn btn-warning btn-round"><?php echo e("Current Plan") ?></a> 
@@ -240,6 +287,11 @@
 								  <a href="<?php echo Main::href("upgrade/lifetime/{$plan["id"]}") ?>" class="btn btn-primary btn-round"><?php echo e("Subscribe") ?></a>  
 								<?php endif ?>
 							  <?php endif ?>
+
+							<?php else: ?>
+								<a class="btn btn-outline-info btn-round"><?php echo e("Coming Soon") ?></a>
+							<?php endif ?>
+
 							</div>
 						</div>
 					</div>	

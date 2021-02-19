@@ -72,8 +72,12 @@
       var defaults = {
         confimation: 0,
         title: $(this).attr("title"),
+        title2: $(this).attr("title2"),
         content: $(this).attr("data-content"),
         link: $(this).attr("href"),
+        param1: $(this).attr("param1"), //cmd
+        param2: $(this).attr("param2"), //data-id
+        param3: $(this).attr("param3"), //bundle-id
         header: true,
       };
       var s = $.extend(defaults, settings);
@@ -81,19 +85,41 @@
         s.content = lang.modal.content;
       }
       if (!s.title) {
-        s.title = lang.modal.title;
+          s.title = (s.title2) ? s.title2 : lang.modal.title;
       }
+
+      if (!s.param2) {s.param2 = "";}
+      if (!s.param3) {s.param3 = "";}
+
       if (s.confimation) {
         var proceed = "";
       } else {
-        var proceed =
-          "<a href='" +
-          s.link +
-          "' class='btn btn-success btn-sm'>" +
-          lang.modal.proceed +
-          "</a> <a href='#' class='btn btn-danger btn-sm close-modal'>" +
-          lang.modal.cancel +
-          "</a>";
+        if (!s.param1) {  //cmd
+          var proceed =
+            "<a href='" +
+            s.link + "2' class='btn btn-success btn-sm'>" +
+            lang.modal.proceed +
+            "</a> <a href='#' class='btn btn-danger btn-sm close-modal'>" +
+            lang.modal.cancel +
+            "</a>";
+        } else {
+
+          if (!s.param3) {
+            var proceed =
+            "<a onclick='" + s.param1 + "(" + s.param2 + ")' class='btn btn-success btn-sm'>" +
+              lang.modal.proceed +
+              "</a> <a href='#' class='btn btn-danger btn-sm close-modal'>" +
+              lang.modal.cancel +
+              "</a>";
+          } else {
+            var proceed =
+              "<a onclick='" + s.param1 + "(" + s.param2 + "," + s.param3 + ")' class='btn btn-success btn-sm'>" +
+              lang.modal.proceed +
+              "</a> <a href='#' class='btn btn-danger btn-sm close-modal'>" +
+              lang.modal.cancel +
+              "</a>";
+          }
+        }
       }
       $.fn.modal_destroy = function () {
         $("#modal-shadow").fadeOut("normal", function () {
@@ -118,7 +144,7 @@
         $("#modal-alert").html(
           "<div class='title'>" +
           s.title +
-          " <a href='#' class='btn btn-danger btn-xs pull-right close-modal'>Close</a></div><p>" +
+          " <a href='#' class='btn btn-danger btn-xs pull-right close-modal'>" + lang.modal.close + "</a></div><p>" +
           s.content +
           "</p>" +
           proceed

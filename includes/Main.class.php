@@ -236,7 +236,7 @@ class Main
         $string = strip_tags($string, '<b><i><s><u><strong><span><p><br>');
         break;
       case '1':
-        $string = strip_tags($string, '<b><i><s><u><strong><a><pre><code><p><div><span><br>');
+        $string = strip_tags($string, '<b><i><s><u><strong><a><pre><code><p><div><span><br><kbd>');
         break;
     }
     $string = str_replace('href=', 'rel="nofollow" href=', $string);
@@ -489,7 +489,7 @@ class Main
   {
 
     if (!empty($message)) {
-      $_SESSION["msg"] = self::clean("{$message[0]}::{$message[1]}", 2);
+      $_SESSION["msg"] = self::clean("{$message[0]}::{$message[1]}");
     }
     switch ($header) {
       case '301':
@@ -521,7 +521,7 @@ class Main
   public static function message()
   {
     if (isset($_SESSION["msg"]) && !empty($_SESSION["msg"])) {
-      $message = explode("::", self::clean($_SESSION["msg"], 2));
+      $message = explode("::", self::clean($_SESSION["msg"]));
       $message = "<div class='alert alert-{$message[0]} no-round'>{$message[1]}</div>";
       unset($_SESSION["msg"]);
     } else {

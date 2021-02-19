@@ -19,7 +19,12 @@
 									<?php echo $bundle->name ?>
 								</h4>
 							</a>
-							<p><strong><?php echo e("Bundle Page") ?></strong>: <?php echo $this->config["url"] . "/u/{$this->user->username}/" . Main::slug($bundle->name) . "-{$bundle->id}"; ?> <a href="#" class="copy inline-copy" data-clipboard-text="<?php echo $this->config["url"] . "/u/{$this->user->username}/" . Main::slug($bundle->name) . "-{$bundle->id}"; ?>"><?php echo e("Copy") ?></a></p>
+							<?php if ($this->isTeam()) : ?>
+								<?php $ur = $this->db->get("user", ['id' => $this->user->teamid], ['limit' => 1]) ?>
+								<p><strong><?php echo e("Bundle Page") ?></strong>: <?php echo $this->config["url"] . "/u/{$ur->username}/" . Main::slug($bundle->name) . "-{$bundle->id}"; ?> <a href="#" class="copy inline-copy" data-clipboard-text="<?php echo $this->config["url"] . "/u/{$this->user->username}/" . Main::slug($bundle->name) . "-{$bundle->id}"; ?>"><?php echo e("Copy") ?></a></p>
+							<?php else : ?>
+								<p><strong><?php echo e("Bundle Page") ?></strong>: <?php echo $this->config["url"] . "/u/{$this->user->username}/" . Main::slug($bundle->name) . "-{$bundle->id}"; ?> <a href="#" class="copy inline-copy" data-clipboard-text="<?php echo $this->config["url"] . "/u/{$this->user->username}/" . Main::slug($bundle->name) . "-{$bundle->id}"; ?>"><?php echo e("Copy") ?></a></p>
+							<?php endif ?>							
 							<?php if (!empty($bundle->slug)) : ?>
 								<p><strong><?php echo e("Rotator Link") ?></strong>: <?php echo Main::href("r/{$bundle->slug}") ?> <a href="#" class="copy inline-copy" data-clipboard-text="<?php echo Main::href("r/{$bundle->slug}") ?>"><?php echo e("Copy") ?></a></p>
 							<?php endif ?>

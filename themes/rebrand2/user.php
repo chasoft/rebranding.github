@@ -37,12 +37,12 @@
 					<div class="pl-2plus btn-group btn-group-sm">
 						<a href="#" class="btn btn-default" data-toggle="tooltip" title="<?php echo e("Select all") ?>" id="selectall"><i class="fa fa-check-square"></i></a>
 						<?php if (!isset($archive)) : ?>
-							<a href="#" class="btn btn-default" data-toggle="tooltip" title="<?php echo e("Archive selected items") ?>" id="archiveall"><i class="fa fa-briefcase"></i></a>
+							<a href="#" class="btn btn-default" data-toggle="tooltip" title="<?php echo e("Archive selected URLs") ?>" id="archiveall"><i class="fa fa-briefcase"></i></a>
 						<?php endif ?>
 						<?php if ($this->permission("bundle") !== FALSE) : ?>
 							<a href="#" class="btn btn-default" data-toggle="tooltip" title="<?php echo e("Add to bundle") ?>" id="addtobundle"><i class="fa fa-folder-open"></i></a>
 						<?php endif ?>
-						<a href="#" class="btn btn-default" data-toggle="tooltip" title="<?php echo e("Delete selected items") ?>" id="deleteall"><i class="fa fa-trash"></i></a>
+						<a href="#" class="btn btn-default" data-toggle="tooltip" title="<?php echo e("Delete selected URLs") ?>" title2="<?php echo e("Delete selected URLs") ?>" id="deleteall" param1="deleteSelectedItems"><i class="fa fa-trash"></i></a>
 					</div>
 					<div class="ml-auto"><?php echo $pagination ?></div>
 				</div>

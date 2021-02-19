@@ -682,7 +682,7 @@ class User extends App
 				if ($this->config["user_activate"])
 					return Main::redirect(Main::href("user/login", "", FALSE), array("success", e("You have been successfully registered.")));
 				else
-					return Main::redirect(Main::href("user", "", FALSE), array("success", e("You have been successfully registered and logged in. Please do not forget to check our documentation at ") . "<a href='https://help.rebranding.today'>help.rebranding.today</a>"));
+					return Main::redirect(Main::href("user", "", FALSE), array("success", e("You have been successfully registered and logged in. Please do not forget to check our documentation at ") . "<kbd><a href='https://help.rebranding.today'>help.rebranding.today</a></kbd>"));
 			}
 		}
 		// Set Meta titles
@@ -1127,17 +1127,19 @@ class User extends App
 		// Delete single URL
 		if (!empty($this->id) && is_numeric($this->id)) {
 			// Validated Nonce
-			if (Main::validate_nonce("delete_url-{$this->id}")) {
+			//if (Main::validate_nonce("delete_url-{$this->id}")) {
 
-				if ($this->isTeam() && !$this->teamPermission("links.delete")) {
-					return Main::redirect("user", array("danger", e("You do not have this permission. Please contact your team administrator.")));
-				}
+			/* replaced by server_urldelete() */
 
-				$url = $this->db->get("url", array("id" => "?", "userid" => "?"), array("limit" => 1), array($this->id, $this->user->id));
-				$this->db->delete("url", array("id" => "?", "userid" => "?"), array($this->id, $this->user->id));
-				$this->db->delete("stats", array("short" => "?"), array($url->alias . $url->custom));
-				return Main::redirect(Main::href("user", "", FALSE), array("success", e("URL has been deleted.")));
-			}
+			// if ($this->isTeam() && !$this->teamPermission("links.delete")) {
+			// 	return Main::redirect("user", array("danger", e("You do not have this permission. Please contact your team administrator.")));
+			// }
+
+			// $url = $this->db->get("url", array("id" => "?", "userid" => "?"), array("limit" => 1), array($this->id, $this->user->id));
+			// $this->db->delete("url", array("id" => "?", "userid" => "?"), array($this->id, $this->user->id));
+			// $this->db->delete("stats", array("short" => "?"), array($url->alias . $url->custom));
+			// return Main::redirect(Main::href("user", "", FALSE), array("success", e("URL has been deleted.")));
+			//}
 			// Validated Nonce
 			if (Main::validate_nonce("delete_bundle-{$this->id}")) {
 				if ($this->isTeam() && !$this->teamPermission("bundle.delete")) {
@@ -1268,17 +1270,17 @@ class User extends App
 				}
 			}
 
-			if ($this->permission('splash') && is_numeric($_POST["type"])) {
+			if ($this->permission('splash') !== FALSE && is_numeric($_POST["type"])) {
 				$data[":type"] = Main::clean($_POST["type"], 3, TRUE);
 			}
 
-			if ($this->permission('overlay') && preg_match("~overlay-(.*)~", $_POST["type"])) {
+			if ($this->permission('overlay') !== FALSE && preg_match("~overlay-(.*)~", $_POST["type"])) {
 
 				if (Main::iframePolicy($_POST["url"])) return Main::redirect(Main::href("user/edit/{$this->id}", "", FALSE), array("danger", e("This URL cannot be used with this redirect method because browsers will prevent it for security reasons.")));
 				$data[":type"] = $_POST["type"];
 			}
 
-			if ($this->permission('pixels')) {
+			if ($this->permission('pixels') !== FALSE) {
 
 				$pixels = "";
 				if (isset($_POST["pixels"]) && is_array($_POST["pixels"])) {
@@ -1286,7 +1288,7 @@ class User extends App
 				}
 			}
 
-			if (!empty($_POST["domain"]) && $this->permission('domain') && $this->db->get("domains", ["domain" => "?", "userid" => "?"], ["limit" => 1], [$_POST["domain"], $this->user->id])) {
+			if (!empty($_POST["domain"]) && $this->permission('domain')!== FALSE && $this->db->get("domains", ["domain" => "?", "userid" => "?"], ["limit" => 1], [$_POST["domain"], $this->user->id])) {
 				$data[":domain"] = Main::clean($_POST["domain"], TRUE, 3);
 			}
 
@@ -1617,7 +1619,7 @@ class User extends App
 				$content .= "</optgroup>";
 			}
 			if ($gtmpixel = json_decode($this->user->gtmpixel)) {
-				$content .= ' <optgroup label="Quora">';
+				$content .= ' <optgroup label="GTM">';
 				foreach ($gtmpixel as $key => $ad) {
 					$content .= "<option value='gtmpixel-{$key}' " . (in_array("gtmpixel-{$key}", $activePixels) ? "selected" : "") . ">{$ad->name}</option>";
 				}
@@ -4326,7 +4328,7 @@ class User extends App
 					              <td class="text-right">' . number_format($payment->amount, 0) . '</td>
 					              <td>' . date("d M, Y", strtotime($payment->date)) . '</td>
 					              <td>' . date("d M, Y", strtotime($payment->expiry)) . '</td>
-					              <td><span class="'. ((ucfirst($payment->status) == 'Pending') || (ucfirst($payment->status) == 'Thẻ bị review') ? 'badge badge-warning' : '')  .'">' . e(ucfirst($payment->status)) . '</span></td>
+					              <td><span class="' . ((ucfirst($payment->status) == 'Pending') || (ucfirst($payment->status) == 'Thẻ bị review') ? 'badge badge-warning' : '')  . '">' . e(ucfirst($payment->status)) . '</span></td>
 					            </tr>';
 			}
 			$html .= '</tbody>
@@ -4358,7 +4360,7 @@ class User extends App
 				              <td class="text-right">' . ($payment->status == "Refunded" ? "-" : "") . (($payment->trial_days) ? e('Free Trial') : number_format($payment->amount, 0)) . '</td>
 				              <td>' . date("d M, Y", strtotime($payment->date)) . '</td>
 							  <td>' . ($payment->status == "Refunded" ? "" : date("d M, Y", strtotime($payment->expiry))) . '</td>
-							  <td> <span class="'. ((ucfirst($payment->status) == 'Pending') || (ucfirst($payment->status) == 'Thẻ bị review') ? 'badge badge-warning' : '')  . '">' . ($payment->status) . '</td>
+							  <td> <span class="' . ((ucfirst($payment->status) == 'Pending') || (ucfirst($payment->status) == 'Thẻ bị review') ? 'badge badge-warning' : '')  . '">' . ($payment->status) . '</td>
 							  
 							</tr>';
 		}
@@ -4675,7 +4677,7 @@ class User extends App
 
 			if ($count > 0 && $this->db->count("domains", "userid='{$this->user->id}'") >= $count) return Main::redirect(Main::href("user/splash", "", FALSE), array("danger", e("You have reached your max limit.")));
 
-			if (!empty($this->user->domain) && empty($_POST["domain"])) return $this->domainClear();
+			//if (!empty($this->user->domain) && empty($_POST["domain"])) return $this->domainClear();
 
 			if (empty($_POST["domain"])) return Main::redirect(Main::href("user/domain", "", FALSE), array("danger", e("This is not a valid domain name.")));
 

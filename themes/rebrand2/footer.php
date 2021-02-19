@@ -50,7 +50,7 @@
 
                 <h3 class="f-title dark-mode-logo"><img alt="<?php echo $this->config["title"] ?>" style="width:100%; max-width: 215px;" src="<?php echo $this->config["url"] ?>/content/re-logo-light.png"></h3>
 
-                <div style="margin-bottom: 20px;"><?php echo e("BizChain Vietnam Company Limited<br>27 St.08, Binh Trung Tay, Dist 2, HCMC<br><b>TAX</b>: 0314867890") ?>.<br><em>Email</em>: <a href='<?php echo $this->config["url"] ?>/contact' title='<?php echo e("Contact") ?>'>support@rebranding.today</a></div>
+                <div style="margin-bottom: 20px;"><?php echo e("BizChain Vietnam Company Limited<br>27 St.08, Binh Trung Tay, Dist 2, HCMC<br><b>Tax</b>: 0314867890") ?>.<br><em>Email</em>: <a href='<?php echo $this->config["url"] ?>/contact' title='<?php echo e("Contact") ?>'>support@rebranding.today</a></div>
                 <div class="f_social_icon">
                   <a href="https://www.facebook.com/bizchain.vn"><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-facebook" viewBox="0 0 16 16">
                       <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z" />
@@ -177,7 +177,7 @@
       "proceed" => e("Proceed"),
       "cancel" => e("Cancel"),
       "close" => e("Close"),
-      "content" => e("Note that this action is permanent. Once you click proceed, you <strong>may not undo</strong> this. Click anywhere outside this modal or click <a href='#close' class='close-modal'>close</a> to close this.")
+      "content" => e("Note that this action is permanent. Once you click proceed, you <strong>may not undo</strong> this. Click anywhere outside this modal or click <a href='#close' class='close-modal'><kbd>close</kbd></a> to close this.")
     ]
   );
   ?>

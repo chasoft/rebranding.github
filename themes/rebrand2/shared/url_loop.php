@@ -19,7 +19,7 @@
 					if (isset($_POST["name"]))
 						$bundle_name = $_POST["name"];
 					else {
-						$bundle = $this->db->get("bundle", array("id" => $url->bundle), array("limit" => 1));
+						$bundle = $this->db->get("bundle", ["id" => $url->bundle], ["limit" => 1]);
 						$bundle_name = $bundle->name;
 					}
 					?>
@@ -71,19 +71,19 @@
 					<li><a href='<?php echo Main::href("user/edit/{$url->id}") ?>'><?php echo e("Edit") ?></a></li>
 				<?php endif ?>
 				<?php if (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("links.delete"))) : ?>
-					<li><a href="<?php echo Main::href("user/delete/{$url->id}") . Main::nonce("delete_url-{$url->id}") ?>" class="delete"><?php echo e("Delete") ?></a></li>
+					<li><a href="#" class="delete" param1="deleteSelectedItem" data-id="<?php echo $url->id ?>"><?php echo e("Delete") ?></a></li>
 				<?php endif ?>
 				<li><a href="#url-container-<?php echo $url->id ?>" class="drop scroll"><?php echo e("Options") ?></a>
 					<div class="dropdown">
 						<a href="<?php echo ($url->domain ? $url->domain : $this->config["url"]) ?>/<?php echo $url->alias . $url->custom ?>+"><?php echo e("View Stats") ?></a>
 						<a href="<?php echo ($url->domain ? $url->domain : $this->config["url"]) ?>/<?php echo $url->alias . $url->custom ?>/qr" target="_blank"><?php echo e("View QR") ?></a>
 						<?php if ($this->permission("bundle") !== FALSE) : ?>
-							<?php if (!empty($bundle_name)) : ?>
+							<?php if (!empty($bundle_name) && ($url->bundle)) : ?>
 								<a href="#" class="ajax_call small" data-content="<?php echo e("Click to change bundle") ?>" data-action="url_bundle_add" data-id="<?php echo $url->id ?>" data-title="<?php echo e("Change Bundle") ?>"><?php echo e("Bundle") ?>: <?php echo $bundle_name ?></a>
 							<?php else : ?>
 								<a href="#" class="ajax_call small" data-content="<?php echo e("Click to add to a bundle") ?>" data-action="url_bundle_add" data-id="<?php echo $url->id ?>" data-title="<?php echo e("Add to bundle") ?>"><?php echo e("Add to bundle") ?></a>
 							<?php endif ?>
-						<?php endif ?>
+						<?php endif ?>	
 						<?php if ($url->archived) : ?>
 							<a href='#unarchive' class='ajax_call' data-action='unarchive' data-id='<?php echo $url->id ?>' data-class='return-ajax'><?php echo e("Unarchive") ?></a>
 						<?php else : ?>

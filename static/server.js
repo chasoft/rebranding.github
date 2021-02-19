@@ -170,7 +170,7 @@ $(document).ready(function () {
   $("#archiveall").click(function (e) {
     e.preventDefault();
     if ($(".url-container input[type=checkbox]:checked").length < 1) {
-      return $(".return-ajax-message").first().html('<div class="alert alert-info" style="color:#fff">' + lang.minurl + '</div><br>').fadeIn();
+      return $(".return-ajax-message").first().html('<div class="alert alert-info" style="color:#fff">' + lang.minurl + '</div><br>').fadeIn().fadeOut(3000);
     }
     $(".url-container input[type=checkbox]").each(function (e) {
       if ($(this).prop("checked")) {
@@ -178,11 +178,12 @@ $(document).ready(function () {
       }
     });
   });
+
   $(document).on('click', '#addtobundle', function (e) {
     e.preventDefault();
 
     if ($(".url-container input[type=checkbox]:checked").length < 1) {
-      return $(".return-ajax").html('<div class="alert alert-info" style="color:#fff">' + lang.minurl + '</div><br>').fadeIn();
+      return $(".return-ajax").html('<div class="alert alert-info" style="color:#fff">' + lang.minurl + '</div><br>').fadeIn().fadeOut(3000);
     }
 
     var title = $(this).data("content");
@@ -330,6 +331,61 @@ function addtobundle(id, bundleid) {
       refreshLinks();
       $("#selectall").html('<i class="fa fa-check-square"></i>');
       $('input').iCheck('uncheck');
+    }
+  });
+}
+
+/**
+ * [Ajax Delete URLs description]
+ * @author Bizchain <https://bizchain.vn>
+ * @version 1.0
+ */
+function ajax_urlDelete(id) {
+  var container = $('.return-ajax');
+  var loading = "<img class='loader' src='" + appurl + "/static/loader.gif' style='margin:5px 50%;border:0;' />";
+  $.ajax({
+    type: "POST",
+    url: appurl + "/server",
+    data: "request=urldelete&id=" + id + "&token=" + token,
+    beforeSend: function () {
+      container.html(loading);
+    },
+    complete: function () {
+      loadall();
+      $('img.loader').fadeOut("fast");
+    },
+    success: function (html) {
+      container.hide();
+      container.html(html);
+      container.fadeIn('fast');
+    }
+  });
+}
+
+
+/**
+ * [Ajax Add URL to Bundles description]
+ * @author Bizchain <https://bizchain.vn>
+ * @version 1.0
+ */
+function ajax_urlAddToBundle(id, bundleID) {
+  var container = $('.return-ajax');
+  var loading = "<img class='loader' src='" + appurl + "/static/loader.gif' style='margin:5px 50%;border:0;' />";
+  $.ajax({
+    type: "POST",
+    url: appurl + "/server",
+    data: "request=urldelete&id=" + id + "&token=" + token,
+    beforeSend: function () {
+      container.html(loading);
+    },
+    complete: function () {
+      loadall();
+      $('img.loader').fadeOut("fast");
+    },
+    success: function (html) {
+      container.hide();
+      container.html(html);
+      container.fadeIn('fast');
     }
   });
 }

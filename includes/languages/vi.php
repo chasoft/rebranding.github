@@ -94,6 +94,7 @@ $lang = array(
     "Private" => "Riêng tư",
     "Public" => "Công khai",
     "URL successfully archived." => "URL đã được lưu trữ thành công.",
+    "URL successfully deleted." => "URL đã được xóa thành công.",    
     "URL successfully unarchived." => "Đã hủy lưu trữ thành công URL.",
     "directly " => "trực tiếp ",
     "referred by " => "gọi bằng ",
@@ -771,9 +772,9 @@ $lang = array(
     "Custom Aliases" => "URL tùy chỉnh",
     "Select all" => "Chọn tất cả",
     "Archive all" => "Lưu trữ tất cả",
-    "Archive selected items" => "Lưu trữ URLs được chọn",    
+    "Archive selected URLs" => "Lưu trữ URLs được chọn",    
     "Delete all" => "Xóa tất cả",
-    "Delete selected items" => "Xóa URLs được chọn",
+    "Delete selected URLs" => "Xóa URLs được chọn",
     "Yes" => "Có",
     "Your domain name is working. Add it to your account now." => "Tên miền của bạn đang hoạt động. Thêm nó vào tài khoản của bạn ngay bây giờ.",
     "Not Found" => "Không tìm thấy",
@@ -900,7 +901,7 @@ $lang = array(
     "Are you sure you want to proceed?" => "Bạn có chắc chắn muốn thực hiện?",
     "Proceed" => "Xử lý",
     "Cancel" => "Hủy",
-    "Note that this action is permanent. Once you click proceed, you <strong>may not undo</strong> this. Click anywhere outside this modal or click <a href='#close' class='close-modal'>close</a> to close this." => "Lưu ý rằng hành động này là vĩnh viễn. Khi bạn thực hiện, bạn <strong>không thể phục hồi</strong> lại. Nhấp vào bất kỳ đâu bên ngoài hộp thoại này hoặc nhấp vào <a href='#close' class='close-modal'>đóng</a> để dừng lại.",
+    "Note that this action is permanent. Once you click proceed, you <strong>may not undo</strong> this. Click anywhere outside this modal or click <a href='#close' class='close-modal'><kbd>close</kbd></a> to close this." => "Lưu ý rằng hành động này là vĩnh viễn. Khi bạn thực hiện, bạn <strong>không thể phục hồi</strong> lại. Nhấp vào bất kỳ đâu bên ngoài hộp thoại này hoặc nhấp vào <a href='#close' class='close-modal'><kbd>đóng</kbd></a> để dừng lại.",
     "Custom Image must be either a PNG or a JPEG." => "Hình ảnh Tùy chỉnh phải là PNG hoặc JPEG.",
     "Custom Image must be either a PNG or a JPEG (Max 500kb)." => "Hình ảnh tùy chỉnh phải là PNG hoặc JPEG (Tối đa 500kb).",
     "Integrations" => "Tích hợp",
@@ -1049,5 +1050,5 @@ $lang = array(
     "There is something wrong with your input data. Please try again." => "Có lỗi phát sinh từ dữ liệu bạn cung cấp. Vui lòng thử lại.",
     "Size" => "Kích thước",
     "Fail to initialize payment process with error code: " => "Lỗi khi khởi tạo thanh toán: ",
-    "BizChain Vietnam Company Limited<br>27 St.08, Binh Trung Tay, Dist 2, HCMC<br><b>TAX</b>: 0314867890"=>"Công ty TNHH BizChain Việt Nam<br>27 Đường 08, Bình Trưng Tây, Q2, TP.HCM<br><b>MST</b>: 0314867890"
+    "BizChain Vietnam Company Limited<br>27 St.08, Binh Trung Tay, Dist 2, HCMC<br><b>Tax</b>: 0314867890"=>"Công ty TNHH BizChain Việt Nam<br>27 Đường 08, Bình Trưng Tây, Q2, TP.HCM<br><b>MST</b>: 0314867890"
 );

@@ -107,7 +107,7 @@
         "proceed" => e("Proceed"),
         "cancel" => e("Cancel"),
         "close" => e("Close"),
-        "content" => e("Note that this action is permanent. Once you click proceed, you <strong>may not undo</strong> this. Click anywhere outside this modal or click <a href='#close' class='close-modal'>close</a> to close this.")
+        "content" => e("Note that this action is permanent. Once you click proceed, you <strong>may not undo</strong> this. Click anywhere outside this modal or click <a href='#close' class='close-modal'><kbd>close</kbd></a> to close this.")
       ]
     );
     ?>
