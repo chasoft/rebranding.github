@@ -11,8 +11,8 @@
 				</h3>
 				<ul class="list-group bundles">
 					<?php foreach ($bundles as $bundle) : ?>
-						<li class="list-group-item">
-							<a href="#" class="ajax_call" data-class="return-ajax" data-id="<?php echo $bundle->id ?>" data-active="active" data-action="bundle_urls" bundle-name="<?php echo $bundle->name ?>">
+						<li class="list-group-item xbundle-item" id="bundle-container-<?php echo $bundle->id ?>">
+							<a href="#" class="ajax_call" data-class="return-ajax-bundle" data-id="<?php echo $bundle->id ?>" data-active="active" data-action="bundle_urls" bundle-name="<?php echo $bundle->name ?>">
 								<h4 class="list-group-item-heading text-success">
 									<i class="fas fa-folder bundle-folder-close" style="margin-right: 5px;"></i>
 									<i class="fas fa-folder-open bundle-folder-open" style="margin-right: 5px;"></i>
@@ -24,7 +24,7 @@
 								<p><strong><?php echo e("Bundle Page") ?></strong>: <?php echo $this->config["url"] . "/u/{$ur->username}/" . Main::slug($bundle->name) . "-{$bundle->id}"; ?> <a href="#" class="copy inline-copy" data-clipboard-text="<?php echo $this->config["url"] . "/u/{$this->user->username}/" . Main::slug($bundle->name) . "-{$bundle->id}"; ?>"><?php echo e("Copy") ?></a></p>
 							<?php else : ?>
 								<p><strong><?php echo e("Bundle Page") ?></strong>: <?php echo $this->config["url"] . "/u/{$this->user->username}/" . Main::slug($bundle->name) . "-{$bundle->id}"; ?> <a href="#" class="copy inline-copy" data-clipboard-text="<?php echo $this->config["url"] . "/u/{$this->user->username}/" . Main::slug($bundle->name) . "-{$bundle->id}"; ?>"><?php echo e("Copy") ?></a></p>
-							<?php endif ?>							
+							<?php endif ?>
 							<?php if (!empty($bundle->slug)) : ?>
 								<p><strong><?php echo e("Rotator Link") ?></strong>: <?php echo Main::href("r/{$bundle->slug}") ?> <a href="#" class="copy inline-copy" data-clipboard-text="<?php echo Main::href("r/{$bundle->slug}") ?>"><?php echo e("Copy") ?></a></p>
 							<?php endif ?>
@@ -34,7 +34,7 @@
 									&nbsp;&nbsp;&bullet;&nbsp;&nbsp;
 								<?php endif ?>
 								<?php if (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("bundle.delete"))) : ?>
-									<a href="<?php echo Main::href("user/delete/{$bundle->id}") . Main::nonce("delete_bundle-{$bundle->id}") ?>" class="delete"><?php echo e("Delete") ?></a>
+									<a href="#" class="delete" param1="deleteSelectedItem" param2="<?php echo $bundle->id ?>" auth="<?php echo Main::nonce_token("delete_bundle-{$bundle->id}") ?>"><?php echo e("Delete") ?></a>
 									&nbsp;&nbsp;&bullet;&nbsp;&nbsp;
 								<?php endif ?>
 								<?php echo $bundle->view ?> <?php echo e("Views") ?> &nbsp;&nbsp;&bullet;&nbsp;&nbsp;
@@ -50,11 +50,12 @@
 			</div>
 		</div>
 		<div class="main-content col-md-7">
-			<div class="panel panel-default panel-body no-mt">
+			<div class="return-ajax"></div>
+			<div class="panel panel-default panel-body no-mt" style="padding-bottom:0;">
 				<div id="data-container">
 					<form action="<?php echo Main::href("user/delete") ?>" method="post" id="delete-all-urls">
-						<div class="url-container">							
-							<div class="return-ajax">
+						<div class="url-container">
+							<div class="return-ajax-bundle">
 								<p class="center" style="padding-top:15px;"><?php echo e("Please select a bundle from the left.") ?></p>
 							</div><!-- /.return-ajax -->
 						</div>

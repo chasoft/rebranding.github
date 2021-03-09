@@ -89,7 +89,7 @@ class User extends App
 
 			// Check if private
 			if ($this->config["private"] || !$this->config["user"] || $this->config["maintenance"]) Main::redirect("?error", array("danger", e("Sorry, we are not accepting users right now.")));
-			// Get method		
+			// Get method
 			$fn = "login_{$this->id}";
 			if (in_array($this->id, array("facebook", "google", "twitter")) && method_exists("User", $fn)) {
 				return $this->$fn();
@@ -566,7 +566,7 @@ class User extends App
 	 **/
 	protected function register()
 	{
-		// If user Module is disabled		
+		// If user Module is disabled
 		if (!$this->config["user"] || $this->config["private"] || $this->config["maintenance"]) return Main::redirect("", array("danger", e("We are not accepting users at this time.")));
 
 		// Filter ID
@@ -927,7 +927,7 @@ class User extends App
 		if ($this->page > 1 && $this->page > $max) Main::redirect("user", array("danger", "No URLs found."));
 		$pagination = Main::pagination($max, $this->page, Main::href("user/archive?filter={$order[2]}&amp;page=%d"));
 
-		// Show Template		
+		// Show Template
 		$this->isUser = TRUE;
 		$archive = TRUE;
 		Main::cdn("datepicker");
@@ -1127,19 +1127,15 @@ class User extends App
 		// Delete single URL
 		if (!empty($this->id) && is_numeric($this->id)) {
 			// Validated Nonce
-			//if (Main::validate_nonce("delete_url-{$this->id}")) {
-
-			/* replaced by server_urldelete() */
-
-			// if ($this->isTeam() && !$this->teamPermission("links.delete")) {
-			// 	return Main::redirect("user", array("danger", e("You do not have this permission. Please contact your team administrator.")));
-			// }
-
-			// $url = $this->db->get("url", array("id" => "?", "userid" => "?"), array("limit" => 1), array($this->id, $this->user->id));
-			// $this->db->delete("url", array("id" => "?", "userid" => "?"), array($this->id, $this->user->id));
-			// $this->db->delete("stats", array("short" => "?"), array($url->alias . $url->custom));
-			// return Main::redirect(Main::href("user", "", FALSE), array("success", e("URL has been deleted.")));
-			//}
+			if (Main::validate_nonce("delete_url-{$this->id}")) {
+				if ($this->isTeam() && !$this->teamPermission("links.delete")) {
+					return Main::redirect("user", array("danger", e("You do not have this permission. Please contact your team administrator.")));
+				}
+				$url = $this->db->get("url", array("id" => "?", "userid" => "?"), array("limit" => 1), array($this->id, $this->user->id));
+				$this->db->delete("url", array("id" => "?", "userid" => "?"), array($this->id, $this->user->id));
+				$this->db->delete("stats", array("short" => "?"), array($url->alias . $url->custom));
+				return Main::redirect(Main::href("user", "", FALSE), array("success", e("URL has been deleted.")));
+			}
 			// Validated Nonce
 			if (Main::validate_nonce("delete_bundle-{$this->id}")) {
 				if ($this->isTeam() && !$this->teamPermission("bundle.delete")) {
@@ -1204,7 +1200,7 @@ class User extends App
 
 			if (isset($_POST["expiry"]) && !empty($_POST["expiry"])) {
 				$_POST["expiry"] = substr($_POST["expiry"], 3, 2) . '/' . substr($_POST["expiry"], 0, 2) . '/' . substr($_POST["expiry"], 6, 4);
-			}
+			} //Swap DD and MM
 
 			if (isset($_POST["expiry"]) && !empty($_POST["expiry"]) && strtotime("now") >= strtotime($_POST["expiry"])) return array('error' => 1, 'msg' => e('The expiry date must be later than today.'));
 
@@ -1286,9 +1282,10 @@ class User extends App
 				if (isset($_POST["pixels"]) && is_array($_POST["pixels"])) {
 					$data[":pixels"] = implode(",", $_POST["pixels"]);
 				}
+				if (empty($data[":pixels"])) { $data[":pixels"] = null; }	//fix bug which not update when clear all pixels
 			}
 
-			if (!empty($_POST["domain"]) && $this->permission('domain')!== FALSE && $this->db->get("domains", ["domain" => "?", "userid" => "?"], ["limit" => 1], [$_POST["domain"], $this->user->id])) {
+			if (!empty($_POST["domain"]) && $this->permission('domain') !== FALSE && $this->db->get("domains", ["domain" => "?", "userid" => "?"], ["limit" => 1], [$_POST["domain"], $this->user->id])) {
 				$data[":domain"] = Main::clean($_POST["domain"], TRUE, 3);
 			}
 
@@ -1356,7 +1353,7 @@ class User extends App
                 </div>
                 <div class='col-sm-6'>
                 <label>URL</label>
-                  <input type='text' class='form-control' name='target[]' id='meta_description' value=''>                          
+                  <input type='text' class='form-control' name='target[]' id='meta_description' value=''>
                 </div>
               </div>
               <div class='form-group devices hide' style='display:none'>
@@ -1368,7 +1365,7 @@ class User extends App
                   </div>
                   <div class='col-sm-6'>
                   <label>" . e("Long URL") . "</label>
-                    <input type='text' class='form-control' name='dtarget[]' id='target_url' value=''>                          
+                    <input type='text' class='form-control' name='dtarget[]' id='target_url' value=''>
                   </div>
                 </div>
                <div class='form-group parameters hide' style='display:none'>
@@ -1378,8 +1375,8 @@ class User extends App
                   </div>
                   <div class='col-sm-6'>
                   	<label>" . e("Parameter value") . "</label>
-                    <input type='text' class='form-control' name='paramvalue[]' value=''>                          
-                  </div>   
+                    <input type='text' class='form-control' name='paramvalue[]' value=''>
+                  </div>
                 </div>";
 
 
@@ -1391,8 +1388,7 @@ class User extends App
 		<span style='position: relative; top: 3px; color: #6576ff;'><svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-caret-right-fill' viewBox='0 0 16 16'><path d='M12.14 8.753l-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z'></path></svg></span>
 		<span><a class='alink' target='_blank' href='" . $short_url . "'>" . $short_url . "</a></span>
 		</div>
-	    <form action='" . Main::href("user/edit/{$url->id}") . "' method='post' class='form-horizontal' role='form' autocomplete='off'>
-		    
+	    <form action='" . Main::href("user/edit/{$url->id}") . "' method='post' class='form-horizontal' role='form' autocomplete='off' id='editUrlForm' name='editUrlForm'>
 		    " . (!$url->status ? "<p class='alert alert-info'>" . e("We are currently manually approving links. As soon as the link is approved, you will be able to start using it.") . "</p>" : "") . "
 
 <div>
@@ -1406,14 +1402,13 @@ class User extends App
   <div class='tab-content'>
     <div class='tab-pane active' id='mlink'>
 	<h4></h4>
-	
 		  <div class='form-group'>
 	        <label for='url' class='col-sm-3 control-label'>" . e("Long URL") . "</label>
 	        <div class='col-sm-9'>
 	          <input type='url' class='form-control' name='url' id='url' value='{$url->url}' " . (!$this->pro() ? "disabled" : "") . ">
 	          <p class='help-block'>" . e("Please note that only pro users can edit URLs once they are shortened.") . "</p>
 	        </div>
-	      </div>  
+	      </div>
 
 	      <div class='form-group'>
 	        <label for='alias' class='col-sm-3 control-label'>" . e("Alias") . "</label>
@@ -1421,7 +1416,7 @@ class User extends App
 	          <input type='text' class='form-control' name='alias' id='alias' value='{$url->alias}' disabled>
 	          <p class='help-block'>" . e("The short alias cannot be changed.") . "</p>
 	        </div>
-	      </div>  
+	      </div>
 	      " . ($this->permission("alias") !== FALSE ? "
 	      <div class='form-group'>
 	        <label for='custom' class='col-sm-3 control-label'>" . e("Custom Alias") . "</label>
@@ -1476,9 +1471,9 @@ class User extends App
 				}
 				$content .= "</optgroup>";
 			}
-			$content .= "</select>	          
+			$content .= "</select>
 			        </div>
-			      </div>	      
+			      </div>
 				    <div class='form-group'>
 			        <label for='meta_title' class='col-sm-3 control-label'>" . e("Meta Title") . "</label>
 			        <div class='col-sm-9'>
@@ -1509,7 +1504,7 @@ class User extends App
 	                      </div>
 	                      <div class='col-sm-6'>
 	                      <label>" . e("Long URL") . "</label>
-	                        <input type='text' class='form-control' name='target[]' id='meta_description' value='$link'>                          
+	                        <input type='text' class='form-control' name='target[]' id='meta_description' value='$link'>
 	                      </div>
 	                    </div><p><a href='#' class='btn btn-danger btn-xs delete_geo' data-holder='div.form-group'>" . e("Delete") . "</a></p>";
 				}
@@ -1523,7 +1518,7 @@ class User extends App
                   </div>
                   <div class='col-sm-6'>
                   <label>" . e("Long URL") . "</label>
-                    <input type='text' class='form-control' name='target[]' id='target_url' value=''>                          
+                    <input type='text' class='form-control' name='target[]' id='target_url' value=''>
                   </div>
                 </div>";
 			$content .= "</div><hr>";
@@ -1544,7 +1539,7 @@ class User extends App
 	                      </div>
 	                      <div class='col-sm-6'>
 	                      <label>" . e("Long URL") . "</label>
-	                        <input type='text' class='form-control' name='dtarget[]' id='meta_description' value='$link'>                          
+	                        <input type='text' class='form-control' name='dtarget[]' id='meta_description' value='$link'>
 	                      </div>
 	                    </div><p><a href='#' class='btn btn-danger btn-xs delete_geo' data-holder='div.form-group'>" . e("Delete") . "</a></p>";
 				}
@@ -1558,7 +1553,7 @@ class User extends App
                   </div>
                   <div class='col-sm-6'>
                   <label>" . e("Long URL") . "</label>
-                    <input type='text' class='form-control' name='dtarget[]' id='target_url' value=''>                          
+                    <input type='text' class='form-control' name='dtarget[]' id='target_url' value=''>
                   </div>
                 </div>";
 			$content .= "</div><hr>";
@@ -1604,20 +1599,6 @@ class User extends App
 				}
 				$content .= "</optgroup>";
 			}
-			if ($adrollpixel = json_decode($this->user->adrollpixel)) {
-				$content .= ' <optgroup label="AdRoll">';
-				foreach ($adrollpixel as $key => $ad) {
-					$content .= "<option value='adrollpixel-{$key}' " . (in_array("adrollpixel-{$key}", $activePixels) ? "selected" : "") . ">{$ad->name}</option>";
-				}
-				$content .= "</optgroup>";
-			}
-			if ($quorapixel = json_decode($this->user->quorapixel)) {
-				$content .= ' <optgroup label="Quora">';
-				foreach ($quorapixel as $key => $ad) {
-					$content .= "<option value='quorapixel-{$key}' " . (in_array("quorapixel-{$key}", $activePixels) ? "selected" : "") . ">{$ad->name}</option>";
-				}
-				$content .= "</optgroup>";
-			}
 			if ($gtmpixel = json_decode($this->user->gtmpixel)) {
 				$content .= ' <optgroup label="GTM">';
 				foreach ($gtmpixel as $key => $ad) {
@@ -1626,7 +1607,7 @@ class User extends App
 				$content .= "</optgroup>";
 			}
 			$content .= "</select>
-                </div>              
+                </div>
               </div>
             </div>";
 			$content .= "</div><hr>";
@@ -1648,7 +1629,7 @@ class User extends App
 	                      </div>
 	                      <div class='col-sm-6'>
 	                      	<label>" . e("Parameter value") . "</label>
-	                        <input type='text' class='form-control' name='paramvalue[]' value='$value'>                          
+	                        <input type='text' class='form-control' name='paramvalue[]' value='$value'>
 	                      </div>
 	                    </div><p><a href='#' class='btn btn-danger btn-xs delete_geo' data-holder='div.form-group'>" . e("Delete") . "</a></p>";
 				}
@@ -1660,8 +1641,8 @@ class User extends App
                   </div>
                   <div class='col-sm-6'>
                   	<label>" . e("Parameter value") . "</label>
-                    <input type='text' class='form-control' name='paramvalue[]' value=''>                          
-                  </div>   
+                    <input type='text' class='form-control' name='paramvalue[]' value=''>
+                  </div>
                 </div>";
 			$content .= "</div><hr>";
 		}
@@ -1673,18 +1654,24 @@ class User extends App
 	      <li><a href='' class='last" . (!$url->public ? ' current' : '') . "' data-value='0'>" . e("Private") . "</a></li>
 	      <li><a href='' class='first" . ($url->public ? ' current' : '') . "' data-value='1'>" . e("Public") . "</a></li>
 	    </ul>
-		
+
 		<hr>
 	</div>
   </div><!--/tab-content -->
-</div><!--/navtab -->		
-		
-		
-	    <input type='hidden' name='public' id='public' value='" . $url->public . "' />             
+</div><!--/navtab -->
+
+	    <input type='hidden' name='public' id='public' value='" . $url->public . "' />
 	    " . Main::csrf_token(TRUE) . "
 	    <input type='submit' value='" . e("Update") . "' class='btn btn-primary' />
 	    <a href='" . Main::href("{$url->id}+") . "' class='btn btn-success' target='_blank'>" . e("Stats") . "</a>
 	    <a href='" . Main::href("user/delete/{$url->id}") . Main::nonce("delete_url-{$url->id}") . "' class='btn btn-danger delete pull-right text-white'>" . e("Delete") . "</a>";
+
+		$content .= '</form>
+		<script>
+		jQuery.validator.addMethod("validate_alias",function(a,e){return!!/^$|^([a-zA-Z0-9-]+){4,64}$/.test(a)},"' . e("A valid alias is 4-64 characers and only include letters, numbers and hyphen.") . '"),$("#editUrlForm").validate({rules:{custom:{validate_alias:!0}}});
+		</script>
+		';
+
 		// Add widget
 
 		$widgets = $this->widgets("countries", array("urlid" => $url->id));
@@ -1697,6 +1684,7 @@ class User extends App
 		$widgets .= '</div>';
 		$widgets .= $this->widgets("export", $url->id);
 
+		Main::cdn("jqueryvalidation");
 		if ($this->config["cdn"]) {
 			Main::cdn("datepicker");
 		} else {
@@ -1735,24 +1723,21 @@ class User extends App
 				$data->banner = Main::href("content/{$data->banner}");
 				$data->avatar = Main::href("content/{$data->avatar}");
 				$content .=
-					"<li class='list-group-item rich-list-item'>
-					<div class='custom-splash panel panel-default'>
-						<div class='banner'><a href='{$data->product}' rel='nofollow' target='_blank'><img src='{$data->banner}'></a></div><!-- /.banner -->
-						<div class='custom-message flex d-flex'>
-							<div class='l-avatar d-flex align-items-center justify-content-center'><img src='{$data->avatar}'></div><!-- /.avatar -->
-								<div class='l-message'>
-								<h5>{$data->title}</h5>
-								{$data->message}
-								<p><a href='{$data->product}' rel='nofollow' target='_blank' class='btn btn-primary btn-xs'>" . e('View site') . "</a></p>
-							</div><!-- /.messsage -->
-						<div class='l-countdown ml-auto'><span>5</span>seconds</div><!-- /.c-countdown -->
-						</div><!-- /.custom-message -->
-					</div>
-					<p class='list-group-item-text d-flex justify-content-end'> <span class='mr-auto' style='font-weight: 700;font-size: 16px;'>{$splash->name}</span>" . (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("splash.edit")) ? "<a class='btn btn-xs btn-outline-primary mr-2' href='" . Main::href("user/splash/{$splash->id}") . "'>" . e("Edit") . "</a>" : "") . '
-						' . (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("splash.delete")) ? "<a class='btn btn-xs btn-outline-primary mr-2' href='" . Main::href("user/delete/{$splash->id}") . Main::nonce("delete_splash-{$splash->id}") . "' class='delete'>" . e("Delete") . "</a>" : "") . '
-						' . Main::timeago($splash->date) . '
+					"<li class='list-group-item rich-list-item custom-list-item' id='splash-container-{$splash->id}'>
+						<p class='list-group-item-text d-flex justify-content-end align-items-center'> <span class='mr-auto' style='font-weight: 700;font-size: 16px;'>{$splash->name} ({$data->timer} ". e("seconds") .")</span>" . (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("splash.edit")) ? "<a class='btn btn-xs btn-outline-primary mr-2 d-flex align-items-center' href='" . Main::href("user/splash/{$splash->id}") . "'>" . e("Edit") . "</a>" : "") . '
+						' . (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("splash.delete")) ? "<a class='btn btn-xs btn-outline-primary mr-2 d-flex align-items-center delete' href='#' param1='deleteSelectedItem' param2='".$splash->id."' auth='". Main::nonce_token("delete_splash-{$splash->id}")."'>" . e("Delete") . "</a>" : "") . '
+						<span style="font-size:12px;">' . Main::timeago($splash->date) . "</span>
 						</p>
-					</li>';
+						<div class='custom-splash panel panel-default'>
+								<div class='custom-message' style='padding: 10px;'>
+									<div class='l-message text-justify d-flex flex-sm-wrap justify-content-center'>
+										<div><h5>{$data->title}</h5><p>{$data->message}</p></div>
+										<img src='{$data->banner}' style='height:120px;float:right;margin-left:15px;' />
+									</div>
+								</div>
+							</div>
+
+					</li>";
 			}
 			$content .= '</ul>';
 		} else {
@@ -1821,6 +1806,7 @@ class User extends App
 			$_POST["title"]		=	Main::clean($_POST["title"], 3, TRUE);
 			$_POST["message"]	=	Main::clean($_POST["message"], 3, TRUE);
 			$_POST["product"]	=	Main::clean($_POST["product"], 3, TRUE);
+			$_POST["footer"] 	= 	Main::clean($_POST["footer"], 3, TRUE);
 
 			if (empty($_POST["name"])) return Main::redirect("user/splash/create", array("danger", e("Please enter unique name.")));
 
@@ -1829,14 +1815,14 @@ class User extends App
 			if (!isset($ext[$_FILES["avatar"]["type"]])) return Main::redirect("user/splash/create", array("danger", e("Avatar must be either a PNG or a JPEG.")));
 			if (!isset($ext[$_FILES["banner"]["type"]])) return Main::redirect("user/splash/create", array("danger", e("Banner must be either a PNG or a JPEG.")));
 
-			if ($_FILES["avatar"]["size"] > 300 * 1024) return Main::redirect("user/splash/create", array("danger", e("Avatar must be either a 100x100 PNG or a JPEG (Max 300KB).")));
-			if ($_FILES["banner"]["size"] > 500 * 1024) return Main::redirect("user/splash/create", array("danger", e("Banner must be either a 980x300 PNG or a JPEG (Max 500KB).")));
+			if ($_FILES["avatar"]["size"] > 300 * 1024) return Main::redirect("user/splash/create", array("danger", e("Avatar must be max dimension 300px PNG/JPEG (Max 300KB).")));
+			if ($_FILES["banner"]["size"] > 500 * 1024) return Main::redirect("user/splash/create", array("danger", e("Recommendation for banner: (width = 800) and (250 < height < 800) PNG/JPEG (Max 500KB).")));
 
 			list($width, $height) = getimagesize($_FILES["avatar"]["tmp_name"]);
-			if ($width > 500 || $height > 500 || ($width / $height) != 1)	return Main::redirect("user/splash/create", array("danger", e("Avatar must be either a 100x100 PNG or a JPEG (Max 300KB).")));
+			if ($width > 300 || $height > 300)	return Main::redirect("user/splash/create", array("danger", e("Avatar must be max dimension 300px PNG/JPEG (Max 300KB).")));
 
 			list($width, $height) = getimagesize($_FILES["banner"]["tmp_name"]);
-			if ($width < 980 || ($height < 250 || $height > 900))	return Main::redirect("user/splash/create", array("danger", e("Banner must be either a 980x300 PNG or a JPEG (Max 500KB).")));
+			if ($width > 900 || ($height < 250 || $height > 800))	return Main::redirect("user/splash/create", array("danger", e("Recommendation for banner: (width = 800) and (250 < height < 800) PNG/JPEG (Max 500KB).")));
 
 			$unique = Main::strrand(8);
 			$avatar = $unique . "_avatar." . $ext[$_FILES["avatar"]["type"]];
@@ -1852,6 +1838,7 @@ class User extends App
 				"product" => $_POST["product"],
 				"timer" => $_POST["timer"],
 				"btn_text" => $_POST["btn_text"],
+				"footer" => $_POST["footer"]
 			);
 			$array = json_encode($array);
 			$data = array(
@@ -1874,13 +1861,13 @@ class User extends App
 		$widgets .= '<h3>' . e("Info") . '</h3>';
 		$widgets .= "<p class='text-justify'>" . e("A custom splash page is a transitional page where you can add a banner and an avatar along with a message to represent your brand or company.") . "</p>";
 		$widgets .= '</div>';
-		// Upload form		
+		// Upload form
 		$content = "
 					<form action='" . Main::href("user/splash/create") . "' class='form' method='post' enctype='multipart/form-data' id='splashform' name='splashform' >
 						<div class='form-group'>
 							<label for='name'>" . e('Unique name') . "</label>
 							<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. " . e("My Brand") . "' required autofocus />
-						</div>						
+						</div>
 						<div class='form-group'>
 							<label for='product'>" . e('Link to Product') . "</label>
 							<input type='text' class='form-control' name='product' id='product'  placeholder='e.g. http://domain.com/' required  />
@@ -1902,8 +1889,12 @@ class User extends App
 							<input type='text' class='form-control' name='title' id='title' placeholder='e.g. " . e("Get a $10 discount") . "' maxlength='50' required >
 						</div>
 						<div class='form-group'>
-							<label for='message'>" . e('Custom Message') . " (Max: 140 chars)</label>
-							<textarea name='message' id='message' cols='30' rows='5' class='form-control' placeholder='e.g. " . e("Get a $10 discount with any purchase more than $50") . "' maxlength='140' required></textarea>
+							<label for='message'>" . e('Custom Message') . " (Max: 500 chars)</label>
+							<textarea name='message' id='message' cols='30' rows='6' class='form-control' placeholder='e.g. " . e("Get a $10 discount with any purchase more than $50") . "' maxlength='500' required></textarea>
+						</div>
+						<div class='form-group'>
+							<label for='footer'>" . e('Footer') . " (Max: 300 chars)</label>
+							<textarea name='footer' id='footer' cols='30' rows='4' class='form-control' placeholder='e.g. Copyright (c) 2021 by Chasoft Corp.' maxlength='300' required></textarea>
 						</div>
 						<div class='form-group row'>
 							<div class='col-sm-6'>
@@ -1916,7 +1907,7 @@ class User extends App
 								<input type='text' class='form-control' name='btn_text' id='btn_text' value='" . e('View site') . "' maxlength='20' required >
 							</div>
 						</div>
-						" . Main::csrf_token(TRUE) . "	
+						" . Main::csrf_token(TRUE) . "
 						<button class='btn btn-primary'>" . e('Create Splash Page') . "</button>
 					</form><!-- /.form --><script>$('#splashform').validate({rules:{product:{url:!0}}});</script>";
 
@@ -1956,8 +1947,9 @@ class User extends App
 			$_POST["title"] = Main::clean($_POST["title"], 3, TRUE);
 			$_POST["message"] = Main::clean($_POST["message"], 3, TRUE);
 			$_POST["product"] = Main::clean($_POST["product"], 3, TRUE);
+			$_POST["footer"] = Main::clean($_POST["footer"], 3, TRUE);
 
-			if (empty($_POST["title"]) || empty($_POST["message"]) || empty($_POST["product"]) || empty($_POST["name"])) return Main::redirect(Main::href("user/splash/{$this->id}", "", FALSE), array("danger", e("The name, title, message and link cannot be empty.")));
+			if (empty($_POST["title"]) || empty($_POST["message"]) || empty($_POST["product"]) || empty($_POST["name"]) || empty($_POST["footer"])) return Main::redirect(Main::href("user/splash/{$this->id}", "", FALSE), array("danger", e("The name, title, message, link and footer cannot be empty.")));
 			if (!Main::is_url($_POST["product"])) return Main::redirect("user/splash/{$this->id}", array("danger", e("Please enter a valid URL.")));
 
 			$array = array(
@@ -1968,16 +1960,18 @@ class User extends App
 				"banner" => $data->banner,
 				"timer" => $_POST["timer"],
 				"btn_text" => $_POST["btn_text"],
+				"footer" => $_POST["footer"]
 			);
 			$avatar = $banner = 0;
 			// Valid avatar
 			if (!empty($_FILES["avatar"]["name"])) {
 				if (!isset($ext[$_FILES["avatar"]["type"]])) return Main::redirect("user/splash/{$this->id}", array("danger", e("Avatar must be either a PNG or a JPEG.")));
 
-				if ($_FILES["avatar"]["size"] > 300 * 1024) return Main::redirect("user/splash/{$this->id}", array("danger", e("Avatar must be either a 100x100 PNG or a JPEG (Max 300KB).")));
+				if ($_FILES["avatar"]["size"] > 300 * 1024) return Main::redirect("user/splash/{$this->id}", array("danger", e("Avatar must be max dimension 300px PNG/JPEG (Max 300KB).")));
 
 				list($width, $height) = getimagesize($_FILES["avatar"]["tmp_name"]);
-				if ($width != 100 && $height != 100)	return Main::redirect("user/splash/{$this->id}", array("danger", e("Avatar must be either a 100x100 PNG or a JPEG (Max 300KB).")));
+
+				if ($width > 300 || $height > 300)	return Main::redirect("user/splash/{$this->id}", array("danger", e("Avatar must be max dimension 300px PNG/JPEG (Max 300KB).")));
 
 				$name = explode(".", $data->avatar);
 				$array["avatar"] = $name[0] . "." . $ext[$_FILES["banner"]["type"]];
@@ -1987,10 +1981,10 @@ class User extends App
 			if (!empty($_FILES["banner"]["name"])) {
 				if (!isset($ext[$_FILES["banner"]["type"]])) return Main::redirect("user/splash/{$this->id}", array("danger", e("Banner must be either a PNG or a JPEG.")));
 
-				if ($_FILES["banner"]["size"] > 500 * 1024) return Main::redirect("user/splash/{$this->id}", array("danger", e("Banner must be either a 980x300 PNG or a JPEG (Max 500KB).")));
+				if ($_FILES["banner"]["size"] > 500 * 1024) return Main::redirect("user/splash/{$this->id}", array("danger", e("Recommendation for banner: (width = 800) and (250 < height < 800) PNG/JPEG (Max 500KB).")));
 
 				list($width, $height) = getimagesize($_FILES["banner"]["tmp_name"]);
-				if ($width < 980 || ($height < 250 || $height > 500))	return Main::redirect("user/splash/{$this->id}", array("danger", e("Banner must be either a 980x300 PNG or a JPEG (Max 500KB).")));
+				if ($width > 900 || ($height < 250 || $height > 800))	return Main::redirect("user/splash/{$this->id}", array("danger", e("Recommendation for banner: (width = 800) and (250 < height < 800) PNG/JPEG (Max 500KB).")));
 
 				$name = explode(".", $data->banner);
 				$array["banner"] = $name[0] . "." . $ext[$_FILES["banner"]["type"]];
@@ -2020,18 +2014,28 @@ class User extends App
 		$data->banner = Main::href("content/{$data->banner}");
 		$data->avatar = Main::href("content/{$data->avatar}");
 
-		$before = "<div class='custom-splash panel panel-default' id='splash'>
-									<div class='banner'><a href='{$data->product}' rel='nofollow' target='_blank'><img src='{$data->banner}'></a></div><!-- /.banner -->
-									<div class='flex d-flex custom-message'>
-										<div class='c-avatar d-flex align-items-center justify-content-center'><img src='{$data->avatar}'></div><!-- /.avatar -->
-										<div class='c-message'>
-											<h2>{$data->title}</h2>
-											{$data->message}
-											<p><a href='{$data->product}' rel='nofollow' target='_blank' class='btn btn-primary btn-xs'>" . $data->btn_text . "</a></p>
-										</div><!-- /.messsage -->
-										<div class='c-countdown ml-auto'><span>5</span>seconds</div><!-- /.c-countdown -->
-									</div><!-- /.custom-message -->
-								</div><!-- /.custom-splash -->";
+		$before = 	"<div class='custom-splash panel panel-default' id='splash' style='padding:10px;'>
+		<div style='display:flex;align-items:center;justify-content:center;min-height:100%;padding:20px 10px;'>
+			<div>
+						<a class='img-outer' href='https://rebranding.today'>
+							<img style='height: 35px;margin-bottom: 10px;' src='{$data->avatar}' alt='Rebranding Today - Your Own URL Shortener'>
+						</a>
+						<h1>{$data->title}</h1>
+						<p class='description'>{$data->message}</p>
+						<br>
+						<div class='banner'><a href='{$data->product}' rel='nofollow' target='_blank'><img style='max-width: 800px;margin-bottom: 10px;' src='{$data->banner}'></a></div>
+						<!-- /.banner -->
+						<div class='row d-flex justify-content-center'>
+							<div class='col-sm-4 col-xs-8 d-flex flex-row' style='align-items: center;'>
+								<a href='#' class='btn btn-secondary btn-block redirect' rel='nofollow'>{$data->btn_text}</a>
+								<div style='margin-left: 10px;white-space:nowrap;'><span>{$data->timer}</span> seconds</div>
+							</div>
+						</div>
+						<p style='margin-top: 30px;margin-bottom: 20px; text-align:center;'>{$data->footer}</p>
+			</div>
+		</div>
+					</div>
+					<!-- /.custom-splash -->";
 
 		$widgets = '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("Info") . '</h3>';
@@ -2044,7 +2048,7 @@ class User extends App
 						<div class='form-group'>
 							<label for='name'>" . e('Unique name') . "</label>
 							<input type='text' class='form-control' name='name' id='name' value='{$splash->name}' required autofocus >
-						</div>						
+						</div>
 						<div class='form-group'>
 							<label for='product'>" . e('Link to Product') . "</label>
 							<input type='text' class='form-control' name='product' id='product' value='{$data->product}' placeholder='e.g. http://domain.com/' required >
@@ -2052,12 +2056,12 @@ class User extends App
 						<div class='form-group row'>
 							<div class='col-sm-6'>
 								<label for='avatar'>" . e('Upload Avatar') . "</label>
-								<input type='file' class='form-control' name='avatar' id='avatar'  placeholder='e.g. http://domain.com/avatar.jpg' required >
+								<input type='file' class='form-control' name='avatar' id='avatar'  placeholder='e.g. http://domain.com/avatar.jpg' >
 								<div class='help-block'>" . e('Size') . ": 100x100, PNG or JPEG, MAX 300KB</div>
 							</div>
 							<div class='col-sm-6'>
 								<label for='banner'>" . e('Upload Banner') . "</label>
-								<input type='file' class='form-control' name='banner' id='banner' placeholder='e.g. http://domain.com/banner.jpg' required >
+								<input type='file' class='form-control' name='banner' id='banner' placeholder='e.g. http://domain.com/banner.jpg' >
 								<div class='help-block'>" . e("The minimum width must be 980px and the height must be between 250 and 500. The format must be a PNG or a JPG. Maximum size is 500KB.") . "</div>
 							</div>
 						</div>
@@ -2066,8 +2070,12 @@ class User extends App
 							<input type='text' class='form-control' name='title' id='title' value='{$data->title}' maxlength='50' required >
 						</div>
 						<div class='form-group'>
-							<label for='message'>" . e('Custom Message') . " (Max: 140 chars)</label>
-							<textarea name='message' id='message' cols='30' rows='5' class='form-control' maxlength='140' required >{$data->message}</textarea>
+							<label for='message'>" . e('Custom Message') . " (Max: 500 chars)</label>
+							<textarea name='message' id='message' cols='30' rows='6' class='form-control' maxlength='500' required >{$data->message}</textarea>
+						</div>
+						<div class='form-group'>
+							<label for='footer'>" . e('Footer') . " (Max: 300 chars)</label>
+							<textarea name='footer' id='footer' cols='30' rows='4' class='form-control' placeholder='e.g. " . e("Copyright (c) 2021 by Chasoft Corp.") . "' maxlength='300' required>{$data->footer}</textarea>
 						</div>
 						<div class='form-group row'>
 							<div class='col-sm-6'>
@@ -2152,16 +2160,34 @@ class User extends App
 
 		$before = "";
 		if ($overlays) {
-			$content = '<ul class="list-group bundles">';
+			$content = '<ul class="list-group bundles rich-list">';
 			foreach ($overlays as $overlay) {
-				$content .= '<li class="list-group-item">';
+
+				$xcontent = '';
+				$xdata = json_decode($overlay->data);
+				if (isset($xdata->question)) {
+					$xcontent = e("Question").": ".$xdata->question;
+				}
+				if (isset($xdata->email)) {
+					$xcontent = e("Email").": ".$xdata->email;
+				}
+				if (isset($xdata->message)) {
+					$xcontent = e("Message").": ".$xdata->message;
+				}
+
+				$content .= "<li class='list-group-item rich-list-item custom-list-item' id='overlay-container-{$overlay->id}'>";
 				$overlay->type = ucfirst($overlay->type);
-				$content .= "<h4>{$overlay->name} <small>{$overlay->type}</small></h4>";
-				$content .= "<p class='list-group-item-text'>
-														" . (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("overlay.edit")) ? "<a href='" . Main::href("user/overlay/{$overlay->id}") . "'>" . e("Edit") . "</a> &nbsp;&nbsp;&bullet;&nbsp;&nbsp; " : "") . "
-														" . (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("overlay.delete")) ? "<a href='" . Main::href("user/overlay/delete-{$overlay->id}") . Main::nonce("delete_overlay-{$overlay->id}") . "' class='delete'>" . e("Delete") . "</a> &nbsp;&nbsp;&bullet;&nbsp;&nbsp;" : "") . "
-														" . Main::timeago($overlay->date) . "
-											    </p>";
+				$content .= "<p class='list-group-item-text d-flex justify-content-end align-items-center'>
+								<span class='mr-auto' style='font-weight: 700;font-size: 16px;'>{$overlay->name} <small style='position:absolute;font-weight:400;margin-top:-5px;margin-left:5px;font-style: italic;font-size: 12px;'>{$overlay->type}</small></span>"
+								. (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("overlay.edit")) ? "<a class='btn btn-xs btn-outline-primary mr-2 d-flex align-items-center' href='" . Main::href("user/overlay/{$overlay->id}") . "'>" . e("Edit") . "</a>" : "")
+								. (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("overlay.delete")) ? "<a class='btn btn-xs btn-outline-primary mr-2 d-flex align-items-center delete' href='#' param1='deleteSelectedItem' param2='".$overlay->id."' auth='". Main::nonce_token("delete_overlay-{$overlay->id}") ."'>" . e("Delete") . "</a>" : "")
+								. "<span style='font-size:12px'>" . Main::timeago($overlay->date) . "</span>
+							</p>
+							<div class='custom-splash panel panel-default'>
+								<div class='custom-message' style='padding: 10px;'>
+									".$xcontent."
+								</div>
+							</div>";
 				$content .= '</li>';
 			}
 			$content .= '</ul>';
@@ -2250,14 +2276,14 @@ class User extends App
 							<span class='description'>" . e("Create a quick poll where users will be able to answer it upon visit.") . "</span>
 						</a>
 					</div>
-				</div>				
+				</div>
 				";
 
 		$header = e("Create Overlay");
 		$before = "";
 		$widgets = '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("Info") . '</h3>';
-		$widgets .= "<p>" . e("An overlay page allows you to display a small non-intrusive overlay on the destination website to advertise your product or your services. You can also use this feature to send a message to your users. You can customize the message and the appearance of the overlay right from this page. As soon as you save it, the changes will be applied immediately across all your URLs using this type. Please note that some secured and sensitive websites such as google.com or facebook.com do not work with this feature.") . "</p>";
+		$widgets .= "<p class='text-justify'>" . e("An overlay page allows you to display a small non-intrusive overlay on the destination website to advertise your product or your services. You can also use this feature to send a message to your users. You can customize the message and the appearance of the overlay right from this page. As soon as you save it, the changes will be applied immediately across all your URLs using this type. Please note that some secured and sensitive websites such as google.com or facebook.com do not work with this feature.") . "</p>";
 		$widgets .= '</div>';
 		$this->isUser = TRUE;
 		$this->header();
@@ -2372,16 +2398,16 @@ class User extends App
 
 		Main::add('<script type="text/javascript">
 							  $("input[name=logo]").change(function(e){
-							    if(!e.target.files[0]) return $(".custom-img img").remove();							  	
+							    if(!e.target.files[0]) return $(".custom-img img").remove();
 							    var type = e.target.files[0].type;
 							    if(type == "image/png" || type == "image/jpeg"){
-							      var reader = new FileReader();							      
-							      reader.onload = function (e) {							          
+							      var reader = new FileReader();
+							      reader.onload = function (e) {
 						         $(".custom-img").html("<img src=\'"+e.target.result+"\'>");
 							      }
-							      reader.readAsDataURL(e.target.files[0]);      
+							      reader.readAsDataURL(e.target.files[0]);
 							    }
-							  });  							
+							  });
 					  		function bgColor(element, color, e) {
 						        $(element).css("background-color", (color ? color.toHexString() : ""));
 						        e.val(color.toHexString());
@@ -2389,30 +2415,30 @@ class User extends App
 					  		function Color(element, color, e) {
 						        $(element).css("color", (color ? color.toHexString() : ""));
 						        e.val(color.toHexString());
-						    }		
+						    }
 						    $("#message").keyup(function(e){
 						    	if($(this).val().length > 140) return false;
 									$(".custom-message .custom-text").text($(this).val());
-						    });		
+						    });
 						    $("#label").keyup(function(e){
 						    	if($(this).val().length > 8) return false;
 						    	if($(this).val().length < 1) return $(".custom-message .custom-label").hide();
 						    	$(".custom-message .custom-label").show();
 									$(".custom-message .custom-label").text($(this).val());
-						    });	
+						    });
 						    $("#text").keyup(function(e){
 						    	if($(this).val().length > 35) return false;
 						    	if($(this).val().length < 1) return $(".custom-message .btn").hide();
 						    	return $(".custom-message .btn").show();
 									$(".custom-message .btn").text($(this).val());
-						    });							    						    				    
+						    });
 					  		$("#bg").spectrum({
 					        color: "' . $bg . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".custom-message", color, $(this)); },
 					        hide: function (color) { bgColor(".custom-message", color, $(this)); }
-					    	}); 
+					    	});
 					  		$("#color").spectrum({
 					        color: "' . $color . '",
 					        showInput: true,
@@ -2426,7 +2452,7 @@ class User extends App
 					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".custom-message .btn", color, $(this)); },
 					        hide: function (color) { bgColor(".custom-message .btn", color, $(this)); }
-						    });  
+						    });
 					  		$("#btncolor").spectrum({
 					        color: "' . $btncolor . '",
 					        showInput: true,
@@ -2437,17 +2463,17 @@ class User extends App
 					  		$("#labelbg").spectrum({
 					        color: "' . $labelbg . '",
 					        showInput: true,
-					        preferredFormat: "hex",					        
+					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".custom-message .custom-label", color, $(this)); },
 					        hide: function (color) { bgColor(".custom-message .custom-label", color, $(this)); }
-						    });  
+						    });
 					  		$("#labelcolor").spectrum({
 					        color: "' . $labelcolor . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { Color(".custom-message .custom-label", color, $(this)); },
 					        hide: function (color) { Color(".custom-message .custom-label", color, $(this)); }
-					       });					    	
+					       });
 					    </script>', "custom", TRUE);
 
 		Main::set("title", e("Customize Message Overlay"));
@@ -2483,39 +2509,45 @@ class User extends App
 						<input type='text' class='form-control' name='text' id='text'  placeholder='e.g. " . e("Learn more") . "' value='$text'>
 					</div>
 					<div class='form-group'>
-						<label for='bg'>" . e('Overlay Background Color') . "</label> <br>
-						<input type='input' name='bg' id='bg'>
+						<div class='col-sm-6'>
+							<label for='bg'>" . e('Overlay Background Color') . "</label> <br>
+							<input type='input' name='bg' id='bg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='color'>" . e('Overlay Text Color') . "</label><br>
+							<input type='input' name='color' id='color'>
+						</div>
 					</div>
 					<div class='form-group'>
-						<label for='color'>" . e('Overlay Text Color') . "</label><br>
-						<input type='input' name='color' id='color'>
+						<div class='col-sm-6'>
+							<label for='btnbg'>" . e('Button Background Color') . "</label><br>
+							<input type='input' name='btnbg' id='btnbg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='btncolor'>" . e('Button Text Color') . "</label><br>
+							<input type='input' name='btncolor' id='btncolor'>
+						</div>
 					</div>
 					<div class='form-group'>
-						<label for='btnbg'>" . e('Button Background Color') . "</label><br>
-						<input type='input' name='btnbg' id='btnbg'>
+						<div class='col-sm-6'>
+							<label for='labelbg'>" . e('Label Background Color') . "</label><br>
+							<input type='input' name='labelbg' id='labelbg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='labelcolor'>" . e('Label Text Color') . "</label><br>
+							<input type='input' name='labelcolor' id='labelcolor'>
+						</div>
 					</div>
 					<div class='form-group'>
-						<label for='btncolor'>" . e('Button Text Color') . "</label><br>
-						<input type='input' name='btncolor' id='btncolor'>
-					</div>
-					<div class='form-group'>
-						<label for='labelbg'>" . e('Label Background Color') . "</label><br>
-						<input type='input' name='labelbg' id='labelbg'>
-					</div>
-					<div class='form-group'>
-						<label for='labelcolor'>" . e('Label Text Color') . "</label><br>
-						<input type='input' name='labelcolor' id='labelcolor'>
-					</div>
-					<div class='form-group'>
-						<label for='position'>" . e('Overlay Position') . "</label>
+						<label for='position' class='fix-overlay-1'>" . e('Overlay Position') . "</label>
 						<select name='position' id='position' class='form-control'>
 							<option value='tl' " . ($position == "tl" ? "selected" : "") . ">" . e("Top Left") . "</option>
 							<option value='tr' " . ($position == "tr" ? "selected" : "") . ">" . e("Top Right") . "</option>
 							<option value='bl' " . ($position == "bl" ? "selected" : "") . ">" . e("Bottom Left") . "</option>
-							<option value='br' " . ($position == "br" ? "selected" : "") . ">" . e("Bottom Right") . "</option>							
+							<option value='br' " . ($position == "br" ? "selected" : "") . ">" . e("Bottom Right") . "</option>
 						</select>
 					</div>
-					" . Main::csrf_token(TRUE) . "	
+					" . Main::csrf_token(TRUE) . "
 					<button class='btn btn-primary'>" . e('Save overlay') . "</button>
 				</form><!-- /.form --><script>$('#overlayform').validate({rules:{link:{url:!0}}});</script>";
 
@@ -2527,14 +2559,14 @@ class User extends App
 										<div class='custom-label'>$label</div>
 										<span class='custom-img'></span>
 										<p style='color: $color'>
-											<span class='custom-text'>$message</span>											
+											<span class='custom-text'>$message</span>
 											<a href='#' class='btn btn-xs' style='background-color: $btnbg;color: $btncolor'>$text</a>
 										</p>
 								</div><!-- /.custom-message -->
 							</div><!-- /.custom-overlay -->";
 		$widgets .= '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("Info") . '</h3>';
-		$widgets .= "<p>" . e("An overlay page allows you to display a small non-intrusive overlay on the destination website to advertise your product or your services. You can also use this feature to send a message to your users. You can customize the message and the appearance of the overlay right from this page. As soon as you save it, the changes will be applied immediately across all your URLs using this type. Please note that some secured and sensitive websites such as google.com or facebook.com do not work with this feature.") . "</p>";
+		$widgets .= "<p class='text-justify'>" . e("An overlay page allows you to display a small non-intrusive overlay on the destination website to advertise your product or your services. You can also use this feature to send a message to your users. You can customize the message and the appearance of the overlay right from this page. As soon as you save it, the changes will be applied immediately across all your URLs using this type. Please note that some secured and sensitive websites such as google.com or facebook.com do not work with this feature.") . "</p>";
 		$widgets .= '</div>';
 
 		$this->isUser = TRUE;
@@ -2638,7 +2670,7 @@ class User extends App
 		Main::cdn("spectrum");
 		Main::cdn("jqueryvalidation");
 
-		Main::add('<script type="text/javascript">							
+		Main::add('<script type="text/javascript">
 					  		function bgColor(element, color, e) {
 						        $(element).css("background-color", (color ? color.toHexString() : ""));
 						        e.val(color.toHexString());
@@ -2646,38 +2678,38 @@ class User extends App
 					  		function Color(element, color, e) {
 						        $(element).css("color", (color ? color.toHexString() : ""));
 						        e.val(color.toHexString());
-						    }		
+						    }
 						    $("#name-p").keyup(function(e){
 									$("label[for=contact-name]").text($(this).val());
-						    });		
+						    });
 						    $("#email-p").keyup(function(e){
 									$("label[for=contact-email]").text($(this).val());
-						    });			
+						    });
 						    $("#message-p").keyup(function(e){
 									$("label[for=contact-message]").text($(this).val());
-						    });			
+						    });
 						    $("#button-p").keyup(function(e){
 									$("button[type=submit]").text($(this).val());
-						    });							    				    				    					    
+						    });
 						    $("#label").keyup(function(e){
 						    	if($(this).val().length > 20) return false;
 						    	if($(this).val().length < 1) return $(".contact-box .contact-label").hide();
 						    	$(".contact-box .contact-label").show();
 									$(".contact-box .contact-label").text($(this).val());
-						    });	
+						    });
 						    $("#content").keyup(function(e){
 						    	if($(this).val().length > 144) return false;
 						    	if($(this).val().length < 1) return $(".contact-box .contact-description").hide();
 						    	$(".contact-box .contact-description").show();
 									$(".contact-box .contact-description").text($(this).val());
-						    });							    						    				    
+						    });
 					  		$("#bg").spectrum({
 					        color: "' . $bg . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".contact-box", color, $(this)); },
 					        hide: function (color) { bgColor(".contact-box", color, $(this)); }
-					    	}); 
+					    	});
 					  		$("#color").spectrum({
 					        color: "' . $color . '",
 					        showInput: true,
@@ -2691,28 +2723,28 @@ class User extends App
 					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".contact-box .form-control", color, $(this)); },
 					        hide: function (color) { bgColor(".contact-box .form-control", color, $(this)); }
-						    });  
+						    });
 					  		$("#inputcolor").spectrum({
 					        color: "' . $inputcolor . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { Color(".contact-box .form-control", color, $(this)); },
 					        hide: function (color) { Color(".contact-box .form-control", color, $(this)); }
-					    	});				    	
+					    	});
 					  		$("#btnbg").spectrum({
 					        color: "' . $btnbg . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".contact-box button", color, $(this)); },
 					        hide: function (color) { bgColor(".contact-box button", color, $(this)); }
-						    });  
+						    });
 					  		$("#btncolor").spectrum({
 					        color: "' . $btncolor . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { Color(".contact-box button", color, $(this)); },
 					        hide: function (color) { Color(".contact-box button", color, $(this)); }
-					    	});						    	
+					    	});
 					    </script>', "custom", TRUE);
 
 		Main::set("title", e("Customize Contact Overlay"));
@@ -2724,19 +2756,19 @@ class User extends App
 					<div class='form-group'>
 						<label for='name'>" . e('Name.') . "</label>
 						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='' required autofocus />
-					</div>		
+					</div>
 					<div class='form-group'>
 						<label for='email'>" . e('Send Email Address') . "</label>
 						<input type='email' class='form-control' name='email' id='email'  placeholder='" . e("Emails from the form will be sent to this address") . "' required >
-					</div>		
+					</div>
 					<div class='form-group'>
 						<label for='subject'>" . e('Email Subject') . "</label>
 						<input type='text' class='form-control' name='subject' id='subject'  placeholder='" . e("Something you would know where it comes from.") . "' required >
-					</div>	
+					</div>
 					<div class='form-group'>
 						<label for='label'>" . e('Form Label') . " " . e("(leave empty to disable)") . "</label>
 						<input type='text' class='form-control' name='label' id='label'  placeholder='" . e("e.g. Need help?") . "'>
-					</div>	
+					</div>
 					<div class='form-group'>
 						<label for='content'>" . e('Form Description') . " " . e("(leave empty to disable)") . "</label>
 						<textarea class='form-control' name='content' id='content' placeholder='" . e("(optional) Provide a description or anything you want to add to the form.") . "'></textarea>
@@ -2748,69 +2780,75 @@ class User extends App
 								<label for='name-p'>" . e('Name Placeholder') . "</label>
 								<input type='text' class='form-control' name='lang[name]' id='name-p' value='Name'>
 								<p class='help-block'>" . e("If you want to use a different language, change these.") . "</p>
-							</div>					
+							</div>
 						</div>
 						<div class='col-md-3'>
 							<div class='form-group'>
 								<label for='email-p'>" . e('Email Placeholder') . "</label>
 								<input type='text' class='form-control' name='lang[email]' id='email-p' value='Email'>
 								<p class='help-block'>" . e("If you want to use a different language, change these.") . "</p>
-							</div>							
+							</div>
 						</div>
 						<div class='col-md-3'>
 							<div class='form-group'>
 								<label for='message-p'>" . e('Message Placeholder') . "</label>
 								<input type='text' class='form-control' name='lang[message]' id='message-p' value='Message'>
 								<p class='help-block'>" . e("If you want to use a different language, change these.") . "</p>
-							</div>							
+							</div>
 						</div>
 						<div class='col-md-3'>
 							<div class='form-group'>
 								<label for='message-p'>" . e('Send Button Placeholder') . "</label>
 								<input type='text' class='form-control' name='lang[button]' id='button-p' value='Send'>
 								<p class='help-block'>" . e("If you want to use a different language, change these.") . "</p>
-							</div>							
-						</div>						
+							</div>
+						</div>
 					</div>
 					<hr>
 					<div class='form-group'>
-						<label for='bg'>" . e('Form Background Color') . "</label> <br>
-						<input type='text' name='bg' id='bg'>
-					</div>			
+						<div class='col-sm-6'>
+							<label for='bg'>" . e('Form Background Color') . "</label> <br>
+							<input type='text' name='bg' id='bg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='color'>" . e('Form Text Color') . "</label><br>
+							<input type='text' name='color' id='color'>
+						</div>
+					</div>
 					<div class='form-group'>
-						<label for='color'>" . e('Form Text Color') . "</label><br>
-						<input type='text' name='color' id='color'>
-					</div>	
+						<div class='col-sm-6'>
+							<label for='inputbg'>" . e('Input Background Color') . "</label><br>
+							<input type='text' name='inputbg' id='inputbg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='inputcolor'>" . e('Input Text Color') . "</label><br>
+							<input type='text' name='inputcolor' id='inputcolor'>
+						</div>
+					</div>
 					<div class='form-group'>
-						<label for='inputbg'>" . e('Input Background Color') . "</label><br>
-						<input type='text' name='inputbg' id='inputbg'>
-					</div>		
+						<div class='col-sm-6'>
+							<label for='btnbg'>" . e('Button Background Color') . "</label><br>
+							<input type='text' name='btnbg' id='btnbg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='btncolor'>" . e('Button Text Color') . "</label><br>
+							<input type='text' name='btncolor' id='btncolor'>
+						</div>
+					</div>
 					<div class='form-group'>
-						<label for='inputcolor'>" . e('Input Text Color') . "</label><br>
-						<input type='text' name='inputcolor' id='inputcolor'>
-					</div>			
-					<div class='form-group'>
-						<label for='btnbg'>" . e('Button Background Color') . "</label><br>
-						<input type='text' name='btnbg' id='btnbg'>
-					</div>		
-					<div class='form-group'>
-						<label for='btncolor'>" . e('Button Text Color') . "</label><br>
-						<input type='text' name='btncolor' id='btncolor'>
-					</div>									
-					<div class='form-group'>
-						<label for='position'>" . e('Overlay Position') . "</label>
+						<label for='position' class='fix-overlay-1'>" . e('Overlay Position') . "</label>
 						<select name='position' id='position' class='form-control'>
 							<option value='bl' " . ($position == "bl" ? "selected" : "") . ">" . e("Bottom Left") . "</option>
-							<option value='br' " . ($position == "br" ? "selected" : "") . ">" . e("Bottom Right") . "</option>							
+							<option value='br' " . ($position == "br" ? "selected" : "") . ">" . e("Bottom Right") . "</option>
 						</select>
-					</div>	
+					</div>
 					<hr>
 					<div class='form-group'>
 						<label for='webhook'>" . e('Webhook Notification') . "</label><br>
 						<input type='text' name='webhook' id='webhook' class='form-control' placeholder='e.g. https://domain.com/path/to/webhook-receiver'>
 						<p class='help-block'>" . e("If you want to receive a notification directly to your app, add the url to your app's handler and as soon as there is a submission, we will send a notification to this url as well as an email to the address provided above. For more information, please check on the right.") . "</p>
-					</div>																													
-					" . Main::csrf_token(TRUE) . "	
+					</div>
+					" . Main::csrf_token(TRUE) . "
 					<button class='btn btn-primary'>" . e('Save overlay') .
 			"</button>
 				</form><!-- /.form -->
@@ -2830,17 +2868,17 @@ class User extends App
 									<div class='form-group'>
 										<label for='contact-email' class='control-label'>Email</label>
 										<input type='text' class='form-control' id='contact-email' placeholder='johnsmith@company.com'>
-									</div>		
+									</div>
 									<div class='form-group'>
 										<label for='contact-message' class='control-label'>Message</label>
 										<textarea class='form-control' id='contact-message' placeholder='...'></textarea>
 									</div>
-									<button type='submit' class='contact-btn'>Send</button>																
+									<button type='submit' class='contact-btn'>Send</button>
 								</div>
 							</div><!-- /.custom-overlay -->";
 		$widgets .= '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("Info") . '</h3>';
-		$widgets .= "<p>" . e("An overlay page allows you to display a small non-intrusive overlay on the destination website to advertise your product or your services. You can use this type of overlay to insert a popup-style contact form to shortened page. Please note that some secured and sensitive websites such as google.com or facebook.com do not work with this feature.") . "</p>";
+		$widgets .= "<p class='text-justify'>" . e("An overlay page allows you to display a small non-intrusive overlay on the destination website to advertise your product or your services. You can use this type of overlay to insert a popup-style contact form to shortened page. Please note that some secured and sensitive websites such as google.com or facebook.com do not work with this feature.") . "</p>";
 		$widgets .= '</div>';
 
 		$widgets .= '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
@@ -2945,45 +2983,45 @@ class User extends App
 					  		function Color(element, color, e) {
 						        $(element).css("color", (color ? color.toHexString() : ""));
 						        e.val(color.toHexString());
-						    }		
+						    }
 						    $("#question").keyup(function(e){
 						    	if($(this).val().length > 144) return false;
 									$(".poll-question").text($(this).val());
-						    });		
+						    });
 						    $("#votetext").keyup(function(e){
 									$(".votetext").text($(this).val());
-						    });	
+						    });
 						    $(".poll-answer").keyup(function(e){
 									$("label[for=contact-email]").text($(this).val());
-						    });			
+						    });
 					  		$("#bg").spectrum({
 					        color: "' . $bg . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".poll-box", color, $(this)); },
 					        hide: function (color) { bgColor(".poll-box", color, $(this)); }
-					    	}); 
+					    	});
 					  		$("#color").spectrum({
 					        color: "' . $color . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { Color(".poll-box .poll-question,.poll-answers li", color, $(this)); },
 					        hide: function (color) { Color(".poll-box .poll-question,.poll-answers li", color, $(this)); }
-					    	});					  				    	
+					    	});
 					  		$("#btnbg").spectrum({
 					        color: "' . $btnbg . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".poll-box button", color, $(this)); },
 					        hide: function (color) { bgColor(".poll-box button", color, $(this)); }
-						    });  
+						    });
 					  		$("#btncolor").spectrum({
 					        color: "' . $btncolor . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { Color(".poll-box button", color, $(this)); },
 					        hide: function (color) { Color(".poll-box button", color, $(this)); }
-					    	});						    	
+					    	});
 					    </script>', "custom", TRUE);
 
 		Main::set("title", e("Customize Poll Overlay"));
@@ -2995,7 +3033,7 @@ class User extends App
 					<div class='form-group'>
 						<label for='name'>" . e('Name.') . "</label>
 						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='' required autofocus />
-					</div>		
+					</div>
 					<div class='form-group'>
 						<label for='question'>" . e('Question') . " " . e('(max 144)') . "</label>
 						<input type='text' class='form-control' name='question' id='question' maxlength='144' placeholder='' required>
@@ -3006,41 +3044,45 @@ class User extends App
 					<div class='poll-options'>
 						<div class='form-group'>
 							<input type='text' class='form-control' name='answer[]' id='answer[]'  placeholder='#1' data-id='1' required >
-						</div>	
+						</div>
 						<div class='form-group'>
 							<input type='text' class='form-control' name='answer[]' id='answer[]'  placeholder='#2' data-id='2' required >
-						</div>						
-					</div>													
+						</div>
+					</div>
 					<hr>
 					<div class='form-group'>
 						<label for='votetext'>" . e('Button Text') . "</label>
 						<input type='text' class='form-control' name='votetext' id='votetext'  placeholder='' value='" . e("Vote") . "' required >
 					</div>
-					<hr>					
+					<hr>
 					<div class='form-group'>
-						<label for='bg'>" . e('Background Color') . "</label> <br>
-						<input type='text' name='bg' id='bg'>
-					</div>			
+						<div class='col-sm-6'>
+							<label for='bg'>" . e('Background Color') . "</label> <br>
+							<input type='text' name='bg' id='bg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='color'>" . e('Text Color') . "</label><br>
+							<input type='text' name='color' id='color'>
+						</div>
+					</div>
 					<div class='form-group'>
-						<label for='color'>" . e('Text Color') . "</label><br>
-						<input type='text' name='color' id='color'>
-					</div>		
+						<div class='col-sm-6'>
+							<label for='btnbg'>" . e('Button Background Color') . "</label><br>
+							<input type='text' name='btnbg' id='btnbg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='btncolor'>" . e('Button Text Color') . "</label><br>
+							<input type='text' name='btncolor' id='btncolor'>
+						</div>
+					</div>
 					<div class='form-group'>
-						<label for='btnbg'>" . e('Button Background Color') . "</label><br>
-						<input type='text' name='btnbg' id='btnbg'>
-					</div>		
-					<div class='form-group'>
-						<label for='btncolor'>" . e('Button Text Color') . "</label><br>
-						<input type='text' name='btncolor' id='btncolor'>
-					</div>									
-					<div class='form-group'>
-						<label for='position'>" . e('Overlay Position') . "</label>
+						<label for='position' class='fix-overlay-1'>" . e('Overlay Position') . "</label>
 						<select name='position' id='position' class='form-control'>
 							<option value='bl' " . ($position == "bl" ? "selected" : "") . ">" . e("Bottom Left") . "</option>
-							<option value='br' " . ($position == "br" ? "selected" : "") . ">" . e("Bottom Right") . "</option>								
+							<option value='br' " . ($position == "br" ? "selected" : "") . ">" . e("Bottom Right") . "</option>
 						</select>
-					</div>																													
-					" . Main::csrf_token(TRUE) . "	
+					</div>
+					" . Main::csrf_token(TRUE) . "
 					<button class='btn btn-primary'>" . e('Save overlay') . "</button>
 				</form>
 				<script>$('#overlaypollform').validate();</script>
@@ -3056,10 +3098,10 @@ class User extends App
 										<li data-id='1'>#1</li>
 										<li data-id='2'>#2</li>
 									</ol>
-									<button type='submit' class='poll-btn votetext'>" . e("Vote") . "</button>																
+									<button type='submit' class='poll-btn votetext'>" . e("Vote") . "</button>
 								</div>
 							</div><!-- /.custom-overlay -->";
-		$widgets .= '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
+		$widgets .= '<div class="panel panel-default panel-body text-justify" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("Info") . '</h3>';
 		$widgets .= "<p>" . e("An overlay page allows you to display a small non-intrusive overlay on the destination website to advertise your product or your services. You can use this type of overlay to insert a poll to shortened page. Please note that some secured and sensitive websites such as google.com or facebook.com do not work with this feature.") . "</p>";
 		$widgets .= '</div>';
@@ -3187,16 +3229,16 @@ class User extends App
 
 		Main::add('<script type="text/javascript">
 						  	$("input[name=logo]").change(function(e){
-							    if(!e.target.files[0]) return $(".custom-img img").remove();							  	
+							    if(!e.target.files[0]) return $(".custom-img img").remove();
 							    var type = e.target.files[0].type;
 							    if(type == "image/png" || type == "image/jpeg"){
-							      var reader = new FileReader();							      
-							      reader.onload = function (e) {							          
+							      var reader = new FileReader();
+							      reader.onload = function (e) {
 						         $(".custom-img").html("<img src=\'"+e.target.result+"\'>");
 							      }
-							      reader.readAsDataURL(e.target.files[0]);      
+							      reader.readAsDataURL(e.target.files[0]);
 							    }
-							  });       
+							  });
 					  		function bgColor(element, color, e) {
 						        $(element).css("background-color", (color ? color.toHexString() : ""));
 						        e.val(color.toHexString());
@@ -3204,26 +3246,26 @@ class User extends App
 					  		function Color(element, color, e) {
 						        $(element).css("color", (color ? color.toHexString() : ""));
 						        e.val(color.toHexString());
-						    }		
+						    }
 						    $("#message").keyup(function(e){
 						    	if($(this).val().length > 140) return false;
 									$(".custom-message p").text($(this).val());
-						    });		
+						    });
 						    $("#label").keyup(function(e){
 						    	if($(this).val().length > 8) return false;
 									$(".custom-message .custom-label").text($(this).val());
-						    });	
+						    });
 						    $("#text").keyup(function(e){
 						    	if($(this).val().length > 35) return false;
 									$(".custom-message .btn").text($(this).val());
-						    });							    						    				    
+						    });
 					  		$("#bg").spectrum({
 					        color: "' . $bg . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".custom-message", color, $(this)); },
 					        hide: function (color) { bgColor(".custom-message", color, $(this)); }
-					    	}); 
+					    	});
 					  		$("#color").spectrum({
 					        color: "' . $color . '",
 					        showInput: true,
@@ -3237,7 +3279,7 @@ class User extends App
 					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".custom-message .btn", color, $(this)); },
 					        hide: function (color) { bgColor(".custom-message .btn", color, $(this)); }
-						    });  
+						    });
 					  		$("#btncolor").spectrum({
 					        color: "' . $btncolor . '",
 					        showInput: true,
@@ -3248,17 +3290,17 @@ class User extends App
 					  		$("#labelbg").spectrum({
 					        color: "' . $labelbg . '",
 					        showInput: true,
-					        preferredFormat: "hex",					        
+					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".custom-message .custom-label", color, $(this)); },
 					        hide: function (color) { bgColor(".custom-message .custom-label", color, $(this)); }
-						    });  
+						    });
 					  		$("#labelcolor").spectrum({
 					        color: "' . $labelcolor . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { Color(".custom-message .custom-label", color, $(this)); },
 					        hide: function (color) { Color(".custom-message .custom-label", color, $(this)); }
-					       });					    	
+					       });
 					    </script>', "custom", TRUE);
 
 		Main::set("title", e("Customize Message Overlay"));
@@ -3270,20 +3312,20 @@ class User extends App
 					<div class='form-group'>
 						<label for='message'>" . e('Name.') . "</label>
 						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}' required autofocus />
-					</div>				
+					</div>
 					<div class='form-group'>
 						<label for='message'>" . e('Custom Message') . " (Max: 140 chars)</label>
 						<textarea name='message' id='message' cols='30' rows='5' class='form-control' maxlength='140' required>$message</textarea>
-					</div>				
+					</div>
 					<div class='form-group'>
 						<label for='label'>" . e('Overlay label') . " </label>
 						<input type='text' class='form-control' name='label' id='label'  placeholder='e.g. Promo' value='$label'>
-					</div>						
+					</div>
 					<div class='form-group'>
 						<label for='label'>" . e('Avatar') . "</label>
 						<input type='file' class='form-control' name='logo'>
 						<p class='help-block'>" . e("Avatar should be square with a maximum size of 100x100. To remove the image, click on the upload field and then cancel it.") . "</p>
-					</div>				
+					</div>
 					<div class='form-group'>
 						<label for='link'>" . e('Button Link') . " (" . e("leave empty to disable") . ")</label>
 						<input type='text' class='form-control' name='link' id='link'  placeholder='e.g. http://domain.com/' value='$link'>
@@ -3293,39 +3335,45 @@ class User extends App
 						<input type='text' class='form-control' name='text' id='text' value='$text'>
 					</div>
 					<div class='form-group'>
-						<label for='bg'>" . e('Overlay Background Color') . "</label> <br>
-						<input type='input' name='bg' id='bg'>
-					</div>			
+						<div class='col-sm-6'>
+							<label for='bg'>" . e('Overlay Background Color') . "</label> <br>
+							<input type='input' name='bg' id='bg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='color'>" . e('Overlay Text Color') . "</label><br>
+							<input type='input' name='color' id='color'>
+						</div>
+					</div>
 					<div class='form-group'>
-						<label for='color'>" . e('Overlay Text Color') . "</label><br>
-						<input type='input' name='color' id='color'>
-					</div>	
+						<div class='col-sm-6'>
+							<label for='btnbg'>" . e('Button Background Color') . "</label><br>
+							<input type='input' name='btnbg' id='btnbg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='btncolor'>" . e('Button Text Color') . "</label><br>
+							<input type='input' name='btncolor' id='btncolor'>
+						</div>
+					</div>
 					<div class='form-group'>
-						<label for='btnbg'>" . e('Button Background Color') . "</label><br>
-						<input type='input' name='btnbg' id='btnbg'>
-					</div>		
+						<div class='col-sm-6'>
+							<label for='labelbg'>" . e('Label Background Color') . "</label><br>
+							<input type='input' name='labelbg' id='labelbg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='labelcolor'>" . e('Label Text Color') . "</label><br>
+							<input type='input' name='labelcolor' id='labelcolor'>
+						</div>
+					</div>
 					<div class='form-group'>
-						<label for='btncolor'>" . e('Button Text Color') . "</label><br>
-						<input type='input' name='btncolor' id='btncolor'>
-					</div>		
-					<div class='form-group'>
-						<label for='labelbg'>" . e('Label Background Color') . "</label><br>
-						<input type='input' name='labelbg' id='labelbg'>
-					</div>		
-					<div class='form-group'>
-						<label for='labelcolor'>" . e('Label Text Color') . "</label><br>
-						<input type='input' name='labelcolor' id='labelcolor'>
-					</div>						
-					<div class='form-group'>
-						<label for='position'>" . e('Overlay Position') . "</label>
+						<label for='position' class='fix-overlay-1'>" . e('Overlay Position') . "</label>
 						<select name='position' id='position' class='form-control'>
-							<option value='tl' " . ($position == "tl" ? "selected" : "") . ">Top Left</option>
-							<option value='tr' " . ($position == "tr" ? "selected" : "") . ">Top Right</option>
-							<option value='bl' " . ($position == "bl" ? "selected" : "") . ">Bottom Left</option>
-							<option value='br' " . ($position == "br" ? "selected" : "") . ">Bottom Right</option>							
+							<option value='tl' " . ($position == "tl" ? "selected" : "") . ">". e("Top Left")."</option>
+							<option value='tr' " . ($position == "tr" ? "selected" : "") . ">". e("Top Right")."</option>
+							<option value='bl' " . ($position == "bl" ? "selected" : "") . ">". e("Bottom Left")."</option>
+							<option value='br' " . ($position == "br" ? "selected" : "") . ">". e("Bottom Right")."</option>
 						</select>
-					</div>																								
-					" . Main::csrf_token(TRUE) . "	
+					</div>
+					" . Main::csrf_token(TRUE) . "
 					<button class='btn btn-primary'>" . e('Save overlay') . "</button>
 				</form><!-- /.form --><script>$('#overlayform').validate({rules:{link:{url:!0}}});</script>";
 
@@ -3337,12 +3385,12 @@ class User extends App
 										<div class='custom-label'>$label</div>
 										<span class='custom-img'>" . (isset($overlay->data->image) && $overlay->data->image ? "<img src='{$this->config["url"]}/content/{$overlay->data->image}'>" : "") . "</span>
 										<p style='color: $color'>
-											<span class='custom-text'>$message</span>											
+											<span class='custom-text'>$message</span>
 											<a href='#' class='btn btn-xs' style='background-color: $btnbg;color: $btncolor'>$text</a>
 										</p>
 								</div><!-- /.custom-message -->
 							</div><!-- /.custom-overlay -->";
-		$widgets .= '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
+		$widgets .= '<div class="panel panel-default panel-body text-justify" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("Info") . '</h3>';
 		$widgets .= "<p>" . e("An overlay page allows you to display a small non-intrusive overlay on the destination website to advertise your product or your services. You can also use this feature to send a message to your users. You can customize the message and the appearance of the overlay right from this page. As soon as you save it, the changes will be applied immediately across all your URLs using this type. Please note that some secured and sensitive websites such as google.com or facebook.com do not work with this feature.") . "</p>";
 		$widgets .= '</div>';
@@ -3362,7 +3410,7 @@ class User extends App
 	private function overlay_contact_edit($overlay)
 	{
 
-		// Edit Splash			  	
+		// Edit Splash
 		$overlay->data = json_decode($overlay->data);
 
 		// Edit Splash
@@ -3435,7 +3483,7 @@ class User extends App
 		Main::cdn("spectrum");
 		Main::cdn("jqueryvalidation");
 
-		Main::add('<script type="text/javascript">							
+		Main::add('<script type="text/javascript">
 					  		function bgColor(element, color, e) {
 						        $(element).css("background-color", (color ? color.toHexString() : ""));
 						        e.val(color.toHexString());
@@ -3443,38 +3491,38 @@ class User extends App
 					  		function Color(element, color, e) {
 						        $(element).css("color", (color ? color.toHexString() : ""));
 						        e.val(color.toHexString());
-						    }		
+						    }
 						    $("#name-p").keyup(function(e){
 									$("label[for=contact-name]").text($(this).val());
-						    });		
+						    });
 						    $("#email-p").keyup(function(e){
 									$("label[for=contact-email]").text($(this).val());
-						    });			
+						    });
 						    $("#message-p").keyup(function(e){
 									$("label[for=contact-message]").text($(this).val());
-						    });			
+						    });
 						    $("#button-p").keyup(function(e){
 									$("button[type=submit]").text($(this).val());
-						    });							    				    				    					    
+						    });
 						    $("#label").keyup(function(e){
-						    	if($(this).val().length > 20) return false;
+						    	if($(this).val().length > 50) return false;
 						    	if($(this).val().length < 1) return $(".contact-box .contact-label").hide();
 						    	$(".contact-box .contact-label").show();
 									$(".contact-box .contact-label").text($(this).val());
-						    });	
+						    });
 						    $("#content").keyup(function(e){
 						    	if($(this).val().length > 144) return false;
 						    	if($(this).val().length < 1) return $(".contact-box .contact-description").hide();
 						    	$(".contact-box .contact-description").show();
 									$(".contact-box .contact-description").text($(this).val());
-						    });							    						    				    
+						    });
 					  		$("#bg").spectrum({
 					        color: "' . $bg . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".contact-box", color, $(this)); },
 					        hide: function (color) { bgColor(".contact-box", color, $(this)); }
-					    	}); 
+					    	});
 					  		$("#color").spectrum({
 					        color: "' . $color . '",
 					        showInput: true,
@@ -3488,28 +3536,28 @@ class User extends App
 					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".contact-box .form-control", color, $(this)); },
 					        hide: function (color) { bgColor(".contact-box .form-control", color, $(this)); }
-						    });  
+						    });
 					  		$("#inputcolor").spectrum({
 					        color: "' . $inputcolor . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { Color(".contact-box .form-control", color, $(this)); },
 					        hide: function (color) { Color(".contact-box .form-control", color, $(this)); }
-					    	});				    	
+					    	});
 					  		$("#btnbg").spectrum({
 					        color: "' . $btnbg . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".contact-box button", color, $(this)); },
 					        hide: function (color) { bgColor(".contact-box button", color, $(this)); }
-						    });  
+						    });
 					  		$("#btncolor").spectrum({
 					        color: "' . $btncolor . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { Color(".contact-box button", color, $(this)); },
 					        hide: function (color) { Color(".contact-box button", color, $(this)); }
-					    	});						    	
+					    	});
 					    </script>', "custom", TRUE);
 
 		Main::set("title", e("Customize Contact Overlay"));
@@ -3521,19 +3569,19 @@ class User extends App
 					<div class='form-group'>
 						<label for='name'>" . e('Name.') . "</label>
 						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}' required autofocus />
-					</div>		
+					</div>
 					<div class='form-group'>
 						<label for='email'>" . e('Send Email Address') . "</label>
 						<input type='email' class='form-control' name='email' id='email'  placeholder='" . e("Emails from the form will be sent to this address") . "' required value='{$overlay->data->email}'>
-					</div>		
+					</div>
 					<div class='form-group'>
 						<label for='subject'>" . e('Email Subject') . "</label>
 						<input type='text' class='form-control' name='subject' id='subject'  placeholder='" . e("Something you would know where it comes from.") . "' required value='{$overlay->data->subject}'>
-					</div>	
+					</div>
 					<div class='form-group'>
 						<label for='label'>" . e('Form Label') . " " . e("(leave empty to disable)") . "</label>
 						<input type='text' class='form-control' name='label' id='label'  placeholder='" . e("e.g. Need help?") . "' value='{$overlay->data->label}'>
-					</div>	
+					</div>
 					<div class='form-group'>
 						<label for='content'>" . e('Form Description') . " " . e("(leave empty to disable)") . "</label>
 						<textarea class='form-control' name='content' id='content' placeholder='" . e("(optional) Provide a description or anything you want to add to the form.") . "'>{$overlay->data->content}</textarea>
@@ -3545,69 +3593,75 @@ class User extends App
 								<label for='name-p'>" . e('Name Placeholder') . "</label>
 								<input type='text' class='form-control' name='lang[name]' id='name-p'  value='{$overlay->data->lang->name}' value='Name'>
 								<p class='help-block'>" . e("If you want to use a different language, change these.") . "</p>
-							</div>					
+							</div>
 						</div>
 						<div class='col-md-3'>
 							<div class='form-group'>
 								<label for='email-p'>" . e('Email Placeholder') . "</label>
 								<input type='text' class='form-control' name='lang[email]' id='email-p'  value='{$overlay->data->lang->email}' value='Email'>
 								<p class='help-block'>" . e("If you want to use a different language, change these.") . "</p>
-							</div>							
+							</div>
 						</div>
 						<div class='col-md-3'>
 							<div class='form-group'>
 								<label for='message-p'>" . e('Message Placeholder') . "</label>
 								<input type='text' class='form-control' name='lang[message]' id='message-p' value='{$overlay->data->lang->message}' value='Message'>
 								<p class='help-block'>" . e("If you want to use a different language, change these.") . "</p>
-							</div>							
+							</div>
 						</div>
 						<div class='col-md-3'>
 							<div class='form-group'>
 								<label for='message-p'>" . e('Send Button Placeholder') . "</label>
 								<input type='text' class='form-control' name='lang[button]' id='button-p' value='{$overlay->data->lang->button}' value='Send'>
 								<p class='help-block'>" . e("If you want to use a different language, change these.") . "</p>
-							</div>							
-						</div>						
+							</div>
+						</div>
 					</div>
 					<hr>
 					<div class='form-group'>
-						<label for='bg'>" . e('Form Background Color') . "</label> <br>
-						<input type='text' name='bg' id='bg'>
-					</div>			
+						<div class='col-sm-6'>
+							<label for='bg'>" . e('Form Background Color') . "</label> <br>
+							<input type='text' name='bg' id='bg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='color'>" . e('Form Text Color') . "</label><br>
+							<input type='text' name='color' id='color'>
+						</div>
+					</div>
 					<div class='form-group'>
-						<label for='color'>" . e('Form Text Color') . "</label><br>
-						<input type='text' name='color' id='color'>
-					</div>	
+						<div class='col-sm-6'>
+							<label for='inputbg'>" . e('Input Background Color') . "</label><br>
+							<input type='text' name='inputbg' id='inputbg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='inputcolor'>" . e('Input Text Color') . "</label><br>
+							<input type='text' name='inputcolor' id='inputcolor'>
+						</div>
+					</div>
 					<div class='form-group'>
-						<label for='inputbg'>" . e('Input Background Color') . "</label><br>
-						<input type='text' name='inputbg' id='inputbg'>
-					</div>		
+						<div class='col-sm-6'>
+							<label for='btnbg'>" . e('Button Background Color') . "</label><br>
+							<input type='text' name='btnbg' id='btnbg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='btncolor'>" . e('Button Text Color') . "</label><br>
+							<input type='text' name='btncolor' id='btncolor'>
+						</div>
+					</div>
 					<div class='form-group'>
-						<label for='inputcolor'>" . e('Input Text Color') . "</label><br>
-						<input type='text' name='inputcolor' id='inputcolor'>
-					</div>			
-					<div class='form-group'>
-						<label for='btnbg'>" . e('Button Background Color') . "</label><br>
-						<input type='text' name='btnbg' id='btnbg'>
-					</div>		
-					<div class='form-group'>
-						<label for='btncolor'>" . e('Button Text Color') . "</label><br>
-						<input type='text' name='btncolor' id='btncolor'>
-					</div>									
-					<div class='form-group'>
-						<label for='position'>" . e('Overlay Position') . "</label>
+						<label for='position' class='fix-overlay-1'>" . e('Overlay Position') . "</label>
 						<select name='position' id='position' class='form-control'>
 							<option value='bl' " . ($position == "bl" ? "selected" : "") . ">Bottom Left</option>
-							<option value='br' " . ($position == "br" ? "selected" : "") . ">Bottom Right</option>							
+							<option value='br' " . ($position == "br" ? "selected" : "") . ">Bottom Right</option>
 						</select>
-					</div>	
+					</div>
 					<hr>
 					<div class='form-group'>
 						<label for='webhook'>" . e('Webhook Notification') . "</label><br>
 						<input type='text' name='webhook' id='webhook' class='form-control' placeholder='e.g. https://domain.com/path/to/webhook-receiver' value='{$overlay->data->webhook}'>
 						<p class='help-block'>" . e("If you want to receive a notification directly to your app, add the url to your app's handler and as soon as there is a submission, we will send a notification to this url as well as an email to the address provided above. For more information, please check on the right.") . "</p>
-					</div>																													
-					" . Main::csrf_token(TRUE) . "	
+					</div>
+					" . Main::csrf_token(TRUE) . "
 					<button class='btn btn-primary'>" . e('Save overlay') . "</button>
 				</form><!-- /.form -->
 				<script>jQuery.validator.addMethod('validate_email',function(a,e){return!!/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(a)},'Please enter a valid Email.'),$('#overlaycontactform').validate({rules:{webhook:{url:!0},email:{validate_email:!0}}});</script>";
@@ -3626,7 +3680,7 @@ class User extends App
 									<div class='form-group'>
 										<label for='contact-email' class='control-label' style='color: {$overlay->data->color} !important'>{$overlay->data->lang->email}</label>
 										<input style='color:{$overlay->data->inputcolor};background-color:{$overlay->data->inputbg} !important' type='text' class='form-control' id='contact-email' placeholder='johnsmith@company.com'>
-									</div>		
+									</div>
 									<div class='form-group'>
 										<label for='contact-message' class='control-label' style='color: {$overlay->data->color} !important'>{$overlay->data->lang->message}</label>
 										<textarea style='color:{$overlay->data->inputcolor};background-color:{$overlay->data->inputbg} !important' class='form-control' id='contact-message' placeholder='Your message'></textarea>
@@ -3634,7 +3688,7 @@ class User extends App
 									<button type='submit' class='contact-btn' style='color:{$overlay->data->btncolor};background-color:{$overlay->data->btnbg} !important'>{$overlay->data->lang->button}</button>																
 								</div>
 							</div><!-- /.custom-overlay -->";
-		$widgets .= '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
+		$widgets .= '<div class="panel panel-default panel-body text-justify" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("Info") . '</h3>';
 		$widgets .= "<p>" . e("An overlay page allows you to display a small non-intrusive overlay on the destination website to advertise your product or your services. You can use this type of overlay to insert a popup-style contact form to shortened page. Please note that some secured and sensitive websites such as google.com or facebook.com do not work with this feature.") . "</p>";
 		$widgets .= '</div>';
@@ -3728,45 +3782,45 @@ class User extends App
 					  		function Color(element, color, e) {
 						        $(element).css("color", (color ? color.toHexString() : ""));
 						        e.val(color.toHexString());
-						    }		
+						    }
 						    $("#question").keyup(function(e){
 						    	if($(this).val().length > 144) return false;
 									$(".poll-question").text($(this).val());
-						    });		
+						    });
 								$("#votetext").keyup(function(e){
 									$(".votetext").text($(this).val());
-						    });							    
+						    });
 						    $(".poll-answer").keyup(function(e){
 									$("label[for=contact-email]").text($(this).val());
-						    });			
+						    });
 					  		$("#bg").spectrum({
 					        color: "' . $bg . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".poll-box", color, $(this)); },
 					        hide: function (color) { bgColor(".poll-box", color, $(this)); }
-					    	}); 
+					    	});
 					  		$("#color").spectrum({
 					        color: "' . $color . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { Color(".poll-box .poll-question,.poll-answers li", color, $(this)); },
 					        hide: function (color) { Color(".poll-box .poll-question,.poll-answers li", color, $(this)); }
-					    	});					  				    	
+					    	});
 					  		$("#btnbg").spectrum({
 					        color: "' . $btnbg . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { bgColor(".poll-box button", color, $(this)); },
 					        hide: function (color) { bgColor(".poll-box button", color, $(this)); }
-						    });  
+						    });
 					  		$("#btncolor").spectrum({
 					        color: "' . $btncolor . '",
 					        showInput: true,
 					        preferredFormat: "hex",
 					        move: function (color) { Color(".poll-box button", color, $(this)); },
 					        hide: function (color) { Color(".poll-box button", color, $(this)); }
-					    	});						    	
+					    	});
 					    </script>', "custom", TRUE);
 
 		Main::set("title", e("Customize Poll Overlay"));
@@ -3778,7 +3832,7 @@ class User extends App
 					<div class='form-group'>
 						<label for='name'>" . e('Name.') . "</label>
 						<input type='text' class='form-control' name='name' id='name'  placeholder='e.g. Promo' value='{$overlay->name}' required autofocus />
-					</div>		
+					</div>
 					<div class='form-group'>
 						<label for='question'>" . e('Question') . " " . e('(max 144)') . "</label>
 						<input type='text' class='form-control' name='question' id='question' maxlength='144' value='{$overlay->data->question}' required>
@@ -3791,46 +3845,50 @@ class User extends App
 			$key++;
 			$content .= "<div class='form-group'>
 							<div class='row'>
-								<div class='col-md-6'>
+								<div class='col-sm-8'>
 									<input type='text' class='form-control' name='answer[]' id='answer[]'  placeholder='Your option {$key}' value='{$answer->option}' data-id='{$key}' required>
 								</div>
-								<div class='col-md-6'>
+								<div class='col-sm-4'>
 									<strong style='display:block;padding-top:10px;'>{$answer->votes} " . e("Votes") . "</strong>
 								</div>
 							</div>
 						</div>";
 		}
-		$content .= "</div>													
+		$content .= "</div>
 					<hr>
 					<div class='form-group'>
 						<label for='votetext'>" . e('Button Text') . "</label>
 						<input type='text' class='form-control' name='votetext' id='votetext' value='{$votetext}' required>
 					</div>
-					<hr>						
+					<hr>
 					<div class='form-group'>
-						<label for='bg'>" . e('Background Color') . "</label> <br>
-						<input type='text' name='bg' id='bg'>
-					</div>			
+						<div class='col-sm-6'>
+							<label for='bg'>" . e('Background Color') . "</label> <br>
+							<input type='text' name='bg' id='bg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='color'>" . e('Text Color') . "</label><br>
+							<input type='text' name='color' id='color'>
+						</div>
+					</div>
 					<div class='form-group'>
-						<label for='color'>" . e('Text Color') . "</label><br>
-						<input type='text' name='color' id='color'>
-					</div>		
+						<div class='col-sm-6'>
+							<label for='btnbg'>" . e('Button Background Color') . "</label><br>
+							<input type='text' name='btnbg' id='btnbg'>
+						</div>
+						<div class='col-sm-6'>
+							<label for='btncolor'>" . e('Button Text Color') . "</label><br>
+							<input type='text' name='btncolor' id='btncolor'>
+						</div>
+					</div>
 					<div class='form-group'>
-						<label for='btnbg'>" . e('Button Background Color') . "</label><br>
-						<input type='text' name='btnbg' id='btnbg'>
-					</div>		
-					<div class='form-group'>
-						<label for='btncolor'>" . e('Button Text Color') . "</label><br>
-						<input type='text' name='btncolor' id='btncolor'>
-					</div>									
-					<div class='form-group'>
-						<label for='position'>" . e('Overlay Position') . "</label>
+						<label for='position' class='fix-overlay-1'>" . e('Overlay Position') . "</label>
 						<select name='position' id='position' class='form-control'>
 							<option value='bl' " . ($position == "bl" ? "selected" : "") . ">Bottom Left</option>
-							<option value='br' " . ($position == "br" ? "selected" : "") . ">Bottom Right</option>							
+							<option value='br' " . ($position == "br" ? "selected" : "") . ">Bottom Right</option>
 						</select>
-					</div>																													
-					" . Main::csrf_token(TRUE) . "	
+					</div>
+					" . Main::csrf_token(TRUE) . "
 					<button class='btn btn-primary'>" . e('Save overlay') . "</button>
 				</form>
 				<script>$('#overlaypollform').validate();</script>
@@ -3848,10 +3906,10 @@ class User extends App
 			$widgets .= "<li data-id='{$key}' style='color: {$overlay->data->color} !important'>{$answer->option}</li>";
 		}
 		$widgets .= "</ol>
-									<button type='submit' class='poll-btn votetext' style='color: {$overlay->data->btncolor};background-color:{$overlay->data->btnbg} !important'>{$votetext}</button>																
+									<button type='submit' class='poll-btn votetext' style='color: {$overlay->data->btncolor};background-color:{$overlay->data->btnbg} !important'>{$votetext}</button>
 								</div>
 							</div><!-- /.custom-overlay -->";
-		$widgets .= '<div class="panel panel-default panel-body" id="' . __FUNCTION__ . '">';
+		$widgets .= '<div class="panel panel-default panel-body text-justify" id="' . __FUNCTION__ . '">';
 		$widgets .= '<h3>' . e("Info") . '</h3>';
 		$widgets .= "<p>" . e("An overlay page allows you to display a small non-intrusive overlay on the destination website to advertise your product or your services. You can use this type of overlay to insert a poll to shortened page. Please note that some secured and sensitive websites such as google.com or facebook.com do not work with this feature.") . "</p>";
 		$widgets .= '</div>';
@@ -4443,8 +4501,6 @@ class User extends App
 		$adwordspixel	 = json_decode($this->user->adwordspixel, TRUE);
 		$linkedinpixel	= json_decode($this->user->linkedinpixel, TRUE);
 		$twitterpixel	= json_decode($this->user->twitterpixel, TRUE);
-		$adrollpixel	= json_decode($this->user->adrollpixel, TRUE);
-		$quorapixel	= json_decode($this->user->quorapixel, TRUE);
 		$gtmpixel	= json_decode($this->user->gtmpixel, TRUE);
 
 		$total = $this->count("user_pixels");
@@ -4486,16 +4542,6 @@ class User extends App
 			if ($_POST["type"] == "twitter") {
 				if ((strlen($_POST["tag"]) > 15)) return Main::redirect(Main::href("user/pixels", "", FALSE), array("danger", e("Twitter ID is not correct. Please double check.")));
 				$key = "twitterpixel";
-			}
-
-			if ($_POST["type"] == "adroll") {
-				if ((strlen($_POST["tag"]) > 50)) return Main::redirect(Main::href("user/pixels", "", FALSE), array("danger", e("AdRoll ID is not correct. Please double check.")));
-				$key = "adrollpixel";
-			}
-
-			if ($_POST["type"] == "quora") {
-				if ((strlen($_POST["tag"]) < 30)) return Main::redirect(Main::href("user/pixels", "", FALSE), array("danger", e("Quora ID is not correct. Please double check.")));
-				$key = "quorapixel";
 			}
 
 			if ($_POST["type"] == "gtm") {
@@ -4582,15 +4628,6 @@ class User extends App
 			$key = "twitterpixel";
 		}
 
-		if ($provider == "adrollpixel") {
-			if ((strlen($_POST[$provider]["tag"]) > 40)) return Main::redirect(Main::href("user/pixels", "", FALSE), array("danger", e("AdRoll ID is not correct. Please double check.")));
-			$key = "adrollpixel";
-		}
-
-		if ($provider == "quorapixel") {
-			if ((strlen($_POST[$provider]["tag"]) > 40)) return Main::redirect(Main::href("user/pixels", "", FALSE), array("danger", e("AdRoll ID is not correct. Please double check.")));
-			$key = "quorapixel";
-		}
 		if ($provider == "gtmpixel") {
 			if ((strlen($_POST[$provider]["tag"]) < 5 || strpos($_POST[$provider]["tag"], "GTM") === false)) return Main::redirect(Main::href("user/pixels", "", FALSE), array("danger", e("GTM container ID is not correct. Please double check.")));
 			$key = "gtmpixel";
@@ -4617,7 +4654,6 @@ class User extends App
 	 */
 	protected function pixels_delete()
 	{
-
 		if ($this->isTeam() && !$this->teamPermission("pixels.delete")) {
 			return Main::redirect("user/pixels", array("danger", e("You do not have this permission. Please contact your team administrator.")));
 		}
@@ -4628,8 +4664,7 @@ class User extends App
 
 		$type = Main::clean($_GET["type"], 3, TRUE);
 
-		if (!isset($this->user->{$type})) return Main::redirect(Main::href("user/pixels", "", FALSE), array("danger", e("An error occured. Please try 
-			again.")));
+		if (!isset($this->user->{$type})) return Main::redirect(Main::href("user/pixels", "", FALSE), array("danger", e("An error occured. Please try again.")));
 
 		$cData = json_decode($this->user->{$type}, TRUE);
 		if (!isset($cData[$id])) return $this->_404();

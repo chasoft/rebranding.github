@@ -111,7 +111,6 @@
 }
 #custom-profile .url-list {
   text-align: left;
-  margin-bottom: 10px;
   border-bottom: 1px solid #eee;
   padding: 10px 15px;
   background: transparent;
@@ -129,6 +128,9 @@
 }
 #custom-profile .url-list .url-stats {
   text-align: center;
+}
+#custom-profile .url-list .url-stats strong {
+  font-size: 1.2em;
 }
 #custom-profile.custom-profile_white-black .btn-custom {
   background: #000;

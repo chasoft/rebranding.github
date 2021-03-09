@@ -146,12 +146,10 @@ class App
 						$this->user->adwordspixel = $user->adwordspixel;
 						$this->user->linkedinpixel = $user->linkedinpixel;
 						$this->user->twitterpixel = $user->twitterpixel;
-						$this->user->adrollpixel = $user->adrollpixel;
-						$this->user->quorapixel = $user->quorapixel;
 					}
 				}
 
-				//Set the default timezone				
+				//Set the default timezone
 				$address = json_decode($this->user->address, TRUE);
 				include(ROOT . "/includes/library/timezone.php");
 				if (isset($address["timezone"]) && isset($timezonelist[$address["timezone"]]))
@@ -655,8 +653,9 @@ class App
 		if ($this->page > 1 && $this->page > $max) Main::redirect("user", array("danger", "No URLs found."));
 		$pagination = Main::pagination($max, $this->page, Main::href("user?filter={$order[2]}&amp;page=%d"));
 
-		// Show Template		
+		// Show Template
 		$this->isUser = TRUE;
+		Main::cdn("jqueryvalidation");
 		Main::cdn("datepicker");
 		Main::set("title", e("User Account"));
 		$this->header();
@@ -1348,7 +1347,7 @@ class App
 	{
 
 		$fn = "webhook_{$this->do}";
-		if (in_array($this->do, ["slack", "paypal", "alepay"]) && method_exists(__CLASS__, $fn)) {
+		if (in_array($this->do, ["slack", "paypal", "alepay", "demo"]) && method_exists(__CLASS__, $fn)) {
 			return $this->$fn();
 		}
 
@@ -1668,9 +1667,9 @@ class App
 
 			// Get URLs
 			$urls = $this->db->get("url", array("userid" => "?", "public" => "?", "bundle" => "?"), array("order" => "date", "limit" => (($this->page - 1) * $this->limit) . ", {$this->limit}", "count" => TRUE), array($user->id, "1", $bundle->id));
-			// Update view 
+			// Update view
 			$this->db->update("bundle", "view= view + 1", array("id" => $bundle->id));
-			// Set Meta data	
+			// Set Meta data
 			Main::set("title", $bundle->name . " " . e("Bundle URLs"));
 			Main::set("description", "{$bundle->name} is a bundle that includes a series of grouped URLs shared with everyone.");
 			// Pagination
@@ -2037,6 +2036,7 @@ class App
 			exit;
 		}
 
+		if (!empty($_GET) || !empty($_POST)) { return; }		//Quick fix, allow other pointed domain to do the query!
 
 		// Set Meta Tags
 		Main::set("title", e("Great! Your domain name is working!"));
@@ -2328,7 +2328,7 @@ class App
 				$menu .= '<li><a href="' . Main::href("blog") . '">' . e("Blog") . '</a></li>';
 			}
 			if (!$this->user->pro || $this->user->trial) {
-				$menu .= '<li><a href="' . $this->config["url"] . '/pricing" class="active">' . e("Upgrade") . '</a></li>';
+				$menu .= '<li><a href="' . $this->config["url"] . '/pricing" class="active has-outline">' . e("Upgrade") . '</a></li>';
 			}
 			if (!empty($option) && is_array($option)) {
 				foreach ($option as $item) {
@@ -2425,11 +2425,11 @@ class App
 			if ($this->admin()) {
 				$menu .= '<a class="list-group-item" href="' . $this->config["url"] . '/admin/" class="active">' . e("Admin") . '</a>';
 			}
+			if (!$this->user->pro || $this->user->trial) {
+				$menu .= '<a class="list-group-item" href="' . Main::href("pricing") . '"><span class="fas fa-shopping-cart icon-red"></span>' . e("Upgrade Pro") . '</a>';
+			}
 			if ($this->config["blog"]) {
 				$menu .= '<a class="list-group-item" href="' . Main::href("blog") . '">' . e("Blog") . '</a>';
-			}
-			if (!$this->pro() && $this->config["pro"]) {
-				$menu .= '<a class="list-group-item" href="' . $this->config["url"] . '/pricing" class="active">' . e("Upgrade") . '</a>';
 			}
 			if (!empty($option) && is_array($option)) {
 				foreach ($option as $item) {
@@ -2523,12 +2523,14 @@ class App
 	protected function server()
 	{
 
+		//file_put_contents($_POST["request"]."-called-".date("Y-m-d H:i:s") . '.txt', "");
+
 		// Make sure that the request is valid!
 		if (!isset($_POST["request"]) || !isset($_POST["token"]) || $_POST["token"] !== $this->config["public_token"]) return $this->server_die();
 
 		$server = Main::clean($_POST["request"], 3, TRUE);
 		// Swtich requests
-		$system = array("unlock", "lock", "bundle", "edit", "archive", "unarchive", "activities", "bundle_urls", "url_bundle_add", "bundle_create", "bundle_edit", "cancel", "refreshlinks", "bulk_bundle", "bulk_bundle_add", "validatecoupon", "urldelete");
+		$system = array("unlock", "lock", "bundle", "edit", "archive", "unarchive", "activities", "bundle_urls", "url_bundle_add", "bundle_create", "bundle_edit", "cancel", "refreshlinks", "bulk_bundle", "bulk_bundle_add", "validatecoupon", "assetsdelete");
 
 		if ($this->config["allowdelete"]) {
 			$system[] = "delete_account";
@@ -2609,12 +2611,15 @@ class App
 				$email = Main::clean($_POST["email"], 3, TRUE);
 				$message = Main::clean($_POST["message"], 3, TRUE);
 
+				$_POST["shorturl"] = Main::clean($_POST["shorturl"]);
+				$_POST["longurl"] = Main::clean($_POST["longurl"]);
+
 				if (!empty($contact->data->webhook)) {
 
 					Main::curl($contact->data->webhook, [
 						"post" => true,
 						"json" => true,
-						"body" => json_encode(["type" => "contact", "data" => ["name" => $name, "email" => $email, "message" => $message, "date" => date("Y-m-d H:i")]])
+						"body" => json_encode(["type" => "contact", "data" => ["overlay" => $contact->name,"shorturl" => $_POST["shorturl"],"longurl" => $_POST["longurl"],"name" => $name, "email" => $email, "message" => $message, "date" => date("Y-m-d H:i")]])
 					]);
 				}
 
@@ -2622,8 +2627,20 @@ class App
 				$mail["from"] = $email;
 
 				$mail["subject"] = $contact->data->subject;
-				$mail["message"] = "<p><strong>Contact Data</strong></p>Name: {$name}<br>Email: {$email}<br>Message: {$message}";
-
+				$mail["message"] = "
+									<p><strong>You've just received a message</strong></p>
+									<p><strong>Details:</strong></p>
+									<ul>
+										<li>Overlay Name: ". $contact->name ." </li>
+										<li>Short URL: ". $_POST["shorturl"] ."</li>
+										<li>Long URL: ". $_POST["longurl"] ."</li>
+									</ul>
+									<ul>
+										<li>Date: ". date("F j, Y, g:i a") ."</li>
+										<li>Name: ". $name ."</li>
+										<li>Email: ". $email ."</li>
+										<li>Message: ". $message ."</li>
+									</ul>";
 				Main::sendCustomer($mail);
 			}
 
@@ -2655,7 +2672,7 @@ class App
 		}
 	}
 	/**
-	 * URL Archive 
+	 * URL Archive
 	 * @since v3.0
 	 */
 	private function server_archive()
@@ -2667,28 +2684,126 @@ class App
 		}
 	}
 	/**
-	 * URL Delete Ajax 
+	 * Assets Delete Ajax
+	 * auth : URL		=> delete_url-{$url->id}
+	 * 		: Overlay	=> delete_overlay-{}
+	 * 		: Domain	=> delete_domain-{}
+	 * 		: Splash	=> delete_splash-{}
+	 * 		: Bundle	=> delete_bundle-{}
 	 * @author BizChain
 	 */
-	private function server_urldelete()
+	private function server_assetsdelete()
 	{
+
 		if (!isset($_POST["id"]) || !is_numeric($_POST["id"])) return $this->server_die();
 
-		if ($this->isTeam() && !$this->teamPermission("links.delete")) {
-			echo "<div class='alert alert-warning'>" . e("You do not have this permission. Please contact your team administrator.") . "</div>";
-		} else {
-			//Delete
-			$url = $this->db->get("url", ["id" => Main::clean($_POST["id"])], ["limit" => 1]);
-			$this->db->delete("url", array("id" => "?", "userid" => "?"), array($url->id, $this->user->id));
-			$this->db->delete("stats", array("short" => "?"), array($url->alias . $url->custom));
-			//Message
-			echo "<div id='xnotification' class='alert alert-success'>" . e("URL successfully deleted.") . "</div>";
-			echo "<script type='text/javascript'>$('#url-container-" . Main::clean($_POST["id"], 3, TRUE) . "').fadeOut('slow');</script>";
-			echo "<script type='text/javascript'>$('#xnotification').fadeOut(3000);</script>";
+		$_POST["id"] = Main::clean($_POST["id"]);
+
+		if (Main::validate_nonce_token("delete_url-{$_POST["id"]}", $_POST["auth"])) {
+			if ($this->isTeam() && !$this->teamPermission("links.delete")) {
+				echo "<div class='alert alert-warning'>" . e("You do not have this permission. Please contact your team administrator.") . "</div>";
+			} else {
+				//Delete
+				$url = $this->db->get("url", ["id" => $_POST["id"]], ["limit" => 1]);
+				$this->db->delete("url", array("id" => "?", "userid" => "?"), array($url->id, $this->user->id));
+				$this->db->delete("stats", array("short" => "?"), array($url->alias . $url->custom));
+				//Message
+				echo "<div id='xnotification' class='alert alert-success'>" . e("URL successfully deleted.") . "</div>";
+				echo "<script type='text/javascript'>$('#url-container-" . $_POST["id"] . "').fadeOut('slow');</script>";
+				echo "<script type='text/javascript'>$('#xnotification').fadeOut(3000);</script>";
+			}
+			return;
 		}
+
+		if (Main::validate_nonce_token("delete_overlay-{$_POST["id"]}", $_POST["auth"])) {
+			if ($this->isTeam() && !$this->teamPermission("overlay.delete")) {
+				echo "<div class='alert alert-warning'>" . e("You do not have this permission. Please contact your team administrator.") . "</div>";
+			} else {
+				//Delete
+				$this->db->update("url", array("type" => "?"), array("userid" => "?", "type" => "?"), array(null, $this->user->id, "overlay-" . $_POST["id"]));
+				$this->db->delete("overlay", array("userid" => "?", "id" => "?"), array($this->user->id, $_POST["id"]));
+				//Message
+				echo "<div id='xnotification' class='alert alert-success'>" . e("Overlay successfully deleted.") . "</div>";
+				echo "<script type='text/javascript'>$('#overlay-container-" . $_POST["id"] . "').fadeOut('slow');</script>";
+				echo "<script type='text/javascript'>$('#xnotification').fadeOut(3000);</script>";
+			}
+			return;
+		}
+
+		if (Main::validate_nonce_token("delete_splash-{$_POST["id"]}", $_POST["auth"])) {
+			if ($this->isTeam() && !$this->teamPermission("splash.delete")) {
+				echo "<div class='alert alert-warning'>" . e("You do not have this permission. Please contact your team administrator.") . "</div>";
+			} else {
+				//Delete
+				$splash = $this->db->get("splash", array("id" => "?", "userid" => "?"), array("limit" => 1), array($_POST["id"], $this->user->id));
+				if ($splash) {
+					$data = json_decode($splash->data);
+					if (is_file(ROOT . "/content/{$data->avatar}") && is_file(ROOT . "/content/{$data->banner}")) {
+						unlink(ROOT . "/content/{$data->avatar}");
+						unlink(ROOT . "/content/{$data->banner}");
+					}
+					$this->db->update("url", array("type" => "?"), array("userid" => "?", "type" => "?"), array(null, $this->user->id, $_POST["id"]));
+					$this->db->delete("splash", array("userid" => "?", "id" => "?"), array($this->user->id, $_POST["id"]));
+				}
+				//Message
+				echo "<div id='xnotification' class='alert alert-success'>" . e("Splash successfully deleted.") . "</div>";
+				echo "<script type='text/javascript'>$('#splash-container-" . $_POST["id"] . "').fadeOut('slow');</script>";
+				echo "<script type='text/javascript'>$('#xnotification').fadeOut(3000);</script>";
+			}
+			return;
+		}
+
+		if (Main::validate_nonce_token("delete_bundle-{$_POST["id"]}", $_POST["auth"])) {
+			if ($this->isTeam() && !$this->teamPermission("bundle.delete")) {
+				echo "<div class='alert alert-warning'>" . e("You do not have this permission. Please contact your team administrator.") . "</div>";
+			} else {
+				//Delete
+				$this->db->update("url", array("bundle" => "?"), array("userid" => "?", "bundle" => "?"), array(NULL, $this->user->id, $_POST["id"]));
+				$this->db->delete("bundle", array("userid" => "?", "id" => "?"), array($this->user->id, $_POST["id"]));
+				//Message
+				echo "<div id='xnotification' class='alert alert-success'>" . e("Bundle successfully deleted.") . "</div>";
+				echo "<script type='text/javascript'>$('#bundle-container-" . $_POST["id"] . "').fadeOut('slow');</script>";
+				echo "<script type='text/javascript'>$('#xnotification').fadeOut(3000);</script>";
+			}
+			return;
+		}
+
+		if (Main::validate_nonce_token("delete_domain-{$_POST["id"]}", $_POST["auth"])) {
+			if ($this->isTeam() && !$this->teamPermission("domain.delete")) {
+				echo "<div class='alert alert-warning'>" . e("You do not have this permission. Please contact your team administrator.") . "</div>";
+			} else {
+				//Delete
+				$this->db->update("url", array("domain" => "?"), array("userid" => "?", "type" => "?"), array(null, $this->user->id, $_POST["id"]));
+				$this->db->delete("domains", ["id" => $_POST["id"], "userid" => $this->user->id]);
+				//Message
+				echo "<div id='xnotification' class='alert alert-success'>" . e("Domain successfully deleted.") . "</div>";
+				echo "<script type='text/javascript'>$('#domain-container-" . $_POST["id"] . "').fadeOut('slow');</script>";
+				echo "<script type='text/javascript'>$('#xnotification').fadeOut(3000);</script>";
+			}
+			return;
+		}
+
+		// if (Main::validate_nonce_token("delete_pixels-{$_POST["id"]}", $_POST["auth"])) {
+		// 	if ($this->isTeam() && !$this->teamPermission("pixels.delete")) {
+		// 		echo "<div class='alert alert-warning'>" . e("You do not have this permission. Please contact your team administrator.") . "</div>";
+		// 	} else {
+		 		//Delete
+		// 		$url = $this->db->get("url", ["id" => Main::clean($_POST["id"])], ["limit" => 1]);
+		// 		$this->db->delete("url", array("id" => "?", "userid" => "?"), array($url->id, $this->user->id));
+		// 		$this->db->delete("stats", array("short" => "?"), array($url->alias . $url->custom));
+		 		//Message
+		// 		echo "<div id='xnotification' class='alert alert-success'>" . e("Pixel successfully deleted.") . "</div>";
+		// 		echo "<script type='text/javascript'>$('#url-container-" . $_POST["id"] . "').fadeOut('slow');</script>";
+		// 		echo "<script type='text/javascript'>$('#xnotification').fadeOut(3000);</script>";
+		// 	}
+		// 	return;
+		// }
+
+		echo "<div id='xnotification' class='alert alert-warning'>" . e("Security token expired. Please try again.") . "</div>";
+		echo "<script type='text/javascript'>$('#xnotification').fadeOut(3000);</script>";
 	}
 	/**
-	 * URL Unrchive 
+	 * URL Unrchive
 	 * @since v3.0
 	 */
 	private function server_unarchive()
@@ -2715,7 +2830,7 @@ class App
 			// Get Domain
 			$domain = (empty($item->referer) || $item->referer == "direct") ? e("directly ") : e("referred by ") . "<a href='" . Main::clean($item->referer, 3, TRUE) . "' target='_blank'>" . Main::domain($item->referer, 0) . "</a>";
 
-			$html .= "<li data-id='{$item->id}'>" . sprintf(e("%s from %s %s visited %s %s"), ($item->os ? "<strong>{$item->os}</strong> user" : e("Someone")), "<strong>" . ucwords($item->country) . "</strong>", $domain, "<a href='{$this->user->domain}/{$item->short}+' target='_blank'>" . (!empty($url->meta_title) ? Main::truncate(fixTitle($url->meta_title), 15) : e("Undefined Title")) . "</a>", "<span>" . Main::timeago($item->date) . "</span>") . "</li>";
+			$html .= "<li class='xlist-item' data-id='{$item->id}'>" . sprintf(e("%s from %s %s visited %s %s"), ($item->os ? "<strong>{$item->os}</strong> user" : e("Someone")), "<strong>" . ucwords($item->country) . "</strong>", $domain, "<a href='{$this->user->domain}/{$item->short}+' target='_blank'>" . (!empty($url->meta_title) ? Main::truncate(fixTitle($url->meta_title), 15) : e("Undefined Title")) . "</a>", "<span style='white-space:nowrap'>" . Main::timeago($item->date) . "</span>") . "</li>";
 		}
 		echo $html;
 		return FALSE;
@@ -2743,7 +2858,7 @@ class App
 				<h4 class="bundle-name"><i class="fas fa-folder-open" style="margin-right: 10px;"></i><a href="' . Main::href("user/bundles") . '">' . e("Bundle URLs") . '</a><span style="position: relative; top: 2px; color: #6576ff;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right-fill" viewBox="0 0 16 16"><path d="M12.14 8.753l-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"></path></svg></span>' . $_POST["name"] . '</h4>
 				<div class="btn-group btn-group-sm ml-auto">
 					<a href="#" class="btn btn-default" data-toggle="tooltip" title="' . e("Select all") . '" id="selectall"><i class="fa fa-check-square"></i></a>
-					<a href="rebranding.com/a" class="btn btn-default" data-toggle="tooltip" title="' . e("Delete selected URLs") . '" id="deleteall" title2="' . e("Delete selected URLs") . '" param1="deleteSelectedItems"><i class="fa fa-trash"></i></a>
+					<a href="#" class="btn btn-default" data-toggle="tooltip" title="' . e("Delete selected URLs") . '" id="deleteall" title2="' . e("Delete selected URLs") . '" param1="deleteSelectedItems"><i class="fa fa-trash"></i></a>
 				</div>
 				</div>';
 		foreach ($urls as $url) {
@@ -2789,7 +2904,7 @@ class App
 			echo '</select>';
 		}
 		echo '
-							  </div>							  
+							  </div>
 								' . Main::csrf_token(TRUE) . '
 								<input type="hidden" name="url_id" value="' . $url->id . '">
 								<button type="submit" class="btn btn-primary">' . e("Add to bundle") . '</button>
@@ -2813,7 +2928,7 @@ class App
 				echo '<option value="' . $bundle->id . '" ' . ($url->bundle == $bundle->id ? 'selected' : '') . '>' . $bundle->name . '</option>';
 			}
 			echo '</select>
-						  </div>							  
+						  </div>
 							<button type="submit" class="btn btn-primary">' . e("Add to bundle") . '</button>
 							<script>$("select").chosen();</script>';
 		} else {
@@ -2854,14 +2969,14 @@ class App
 		}
 		echo '<form action="' . Main::href("user/bundles/add") . '" method="post" class="form">
 							<div class="form-group">
-								<label>' . e("Bundle Name") . ' (' . e("required") . ')</label>			
+								<label>' . e("Bundle Name") . ' (' . e("required") . ')</label>
 								<input type="text" value="" name="name" class="form-control" />
 							</div>
 							<div class="form-group">
-								<label>' . e("Rotator Slug") . ' (' . e("optional") . ')</label>			
+								<label>' . e("Rotator Slug") . ' (' . e("optional") . ')</label>
 								<input type="text" value="" name="slug" class="form-control" />
 								<p class="help-block">' . e("To enable rotator link, fill this field.") . '</p>
-							</div>							
+							</div>
 								<ul class="form_opt" data-id="access">
 									<li class="text-label">' . e("Bundle Access") . '
 									<small>' . e("If you set it to private, only you can access the URLs") . '.</small>
@@ -2872,7 +2987,7 @@ class App
 								<input type="hidden" name="access" id="access" value="private">	
 
 								' . Main::csrf_token(TRUE) . '
-								<button type="submit" class="btn btn-primary">' . e("Create Bundle") . '</button>							
+								<button type="submit" class="btn btn-primary">' . e("Create Bundle") . '</button>
 						</form>';
 	}
 	/**
@@ -2890,14 +3005,14 @@ class App
 
 		echo '<form action="' . Main::href("user/bundles/edit") . '" method="post" class="form">
 							<div class="form-group">
-								<label>' . e("Bundle Name") . ' (' . e("required") . ')</label>			
+								<label>' . e("Bundle Name") . ' (' . e("required") . ')</label>
 								<input type="text" value="' . $bundle->name . '" name="name" class="form-control" />
 							</div>
 							<div class="form-group">
-								<label>' . e("Rotator Slug") . ' (' . e("optional") . ')</label>			
+								<label>' . e("Rotator Slug") . ' (' . e("optional") . ')</label>
 								<input type="text" value="' . $bundle->slug . '" name="slug" class="form-control" />
 								<p class="help-block">' . e("To enable rotator link, fill this field.") . '</p>
-							</div>							
+							</div>
 								<ul class="form_opt" data-id="access">
 									<li class="text-label">' . e("Bundle Access") . '
 									<small>' . e("If you set it to private, only you can access the URLs") . '.</small>
@@ -2905,11 +3020,11 @@ class App
 									<li><a href="" class="last' . ($bundle->access == "private" ? " current" : "") . '" data-value="private">' . e("Private") . '</a></li>
 									<li><a href="" class="first' . ($bundle->access == "public" ? " current" : "") . '" data-value="public">' . e("Public") . '</a></li>
 								</ul>
-								<input type="hidden" name="access" id="access" value="' . $bundle->access . '">	
+								<input type="hidden" name="access" id="access" value="' . $bundle->access . '">
 
 								' . Main::csrf_token(TRUE) . '
 								<input type="hidden" name="id" value="' . $bundle->id . '" />
-								<button type="submit" class="btn btn-primary">' . e("Update Bundle") . '</button>							
+								<button type="submit" class="btn btn-primary">' . e("Update Bundle") . '</button>
 						</form>';
 	}
 	/**
@@ -2987,18 +3102,18 @@ class App
 		$html .= '<ul class="list-group bundles">';
 		foreach ($bundles as $bundle) {
 			$url = $this->config["url"] . '/u/' . $user->username . '/' . Main::slug($bundle->name) . '-' . $bundle->id;
-			$html .= '<li class="list-group-item">';
+			$html .= '<li class="list-group-item xbundle-item">';
 			$html .= '<a href="' . $url . '"><h4 class="list-group-item-heading">' . $bundle->name . '</h4></a>';
 			$html .= '<p>' . $url . ' <a href="#" class="inline-copy copy" data-clipboard-text="' . $url . '">' . e("Copy") . '</a></p>';
 
 			$html .= '<p class="list-group-item-text">
 								    	<strong>' . $this->count("user_public_bundle_urls", $bundle->id) . ' ' . e("URLs") . '</strong>
-								    	&nbsp;&nbsp;&bullet;&nbsp;&nbsp;	
+								    	&nbsp;&nbsp;&bullet;&nbsp;&nbsp;
 											' . Main::timeago($bundle->date) . '
 											&nbsp;&nbsp;&bullet;&nbsp;&nbsp;
-            					<a href="https://twitter.com/share?url=' . $url . '&amp;text=Check+out+this+bundle" class="u_share">' . e("Share on") . ' Twitter</a>
+            					<a href="https://twitter.com/share?url=' . $url . '&amp;text=Check+out+this+bundle" class="u_share">Twitter</a>
 											&nbsp;&nbsp;&bullet;&nbsp;&nbsp;
-											<a href="https://www.facebook.com/sharer.php?u=' . $url . '" class="u_share">' . e("Share on") . ' Facebook</a>											
+											<a href="https://www.facebook.com/sharer.php?u=' . $url . '" class="u_share">Facebook</a>
 								    </p>';
 			$html .= '</li>';
 		}
@@ -3033,16 +3148,14 @@ class App
 								<p>' . e("Although we respect your decision, we are still sorry to see you go. If you want to share anything with us, please use the box below and we will do our best to improve our service.") . '</p>
 
 								<div class="form-group">
-									<label>' . e("Password") . '</label>			
+									<label>' . e("Password") . '</label>
 									<input type="password" name="password" class="form-control" />
-								</div>				
-								<div class="form-group">
-									<label>' . e("Reason for cancellation") . '</label>			
-									<textarea name="reason" class="form-control"></textarea>
 								</div>
-
-								' . Main::csrf_token(TRUE) . '
-								<button type="submit" class="btn btn-primary">' . e("Cancel my membership") . '</button>							
+								<div class="form-group">
+									<label>' . e("Reason for cancellation") . '</label>
+									<textarea name="reason" class="form-control"></textarea>
+								</div>' . Main::csrf_token(TRUE) . '
+								<button type="submit" class="btn btn-primary">' . e("Cancel my membership") . '</button>
 						</form>';
 	}
 	/**
@@ -3057,12 +3170,10 @@ class App
 								<p class="text-justify">' . e("We respect your privacy and as such you can delete your account permanently and remove all your data from our server. Please note that this action is permanent and cannot be reversed.") . '</p>
 
 								<div class="form-group">
-									<label>' . e("Password") . '</label>			
+									<label>' . e("Password") . '</label>
 									<input type="password" name="password" class="form-control" />
-								</div>				
-
-								' . Main::csrf_token(TRUE) . '
-								<button type="submit" class="btn btn-primary">' . e("Delete permanently") . '</button>							
+								</div>' . Main::csrf_token(TRUE) . '
+								<button type="submit" class="btn btn-primary">' . e("Delete permanently") . '</button>
 						</form>';
 	}
 
@@ -3132,7 +3243,7 @@ class App
 	}
 	/**
 	 * Recent Activity Widgets
-	 * @since 4.3		 
+	 * @since 4.3
 	 **/
 	protected function widget_activities($option = array())
 	{
@@ -3161,7 +3272,7 @@ class App
 
 				if (empty($url->domain)) $url->domain = $this->config["url"];
 
-				$html .= "<li data-id='{$item->id}'>" . sprintf(e("%s from %s %s visited %s %s"), ($item->os ? "<strong>{$item->os}</strong> user" : e("Someone")), "<strong>" . ucwords($item->country) . "</strong>", $domain, "<a href='{$url->domain}/{$item->short}+' target='_blank'>" . (!empty($url->meta_title) ? Main::truncate(fixTitle($url->meta_title), 15) : e("Undefined Title")) . "</a>", "<span>" . Main::timeago($item->date) . "</span>") . "</li>";
+				$html .= "<li class='xlist-item' data-id='{$item->id}'>" . sprintf(e("%s from %s %s visited %s %s"), ($item->os ? "<strong>{$item->os}</strong> user" : e("Someone")), "<strong>" . ucwords($item->country) . "</strong>", $domain, "<a href='{$url->domain}/{$item->short}+' target='_blank'>" . (!empty($url->meta_title) ? Main::truncate(fixTitle($url->meta_title), 15) : e("Undefined Title")) . "</a>", "<span style='white-space:nowrap'>" . Main::timeago($item->date) . "</span>") . "</li>";
 			}
 			$html .= "</ul>";
 		}
@@ -3187,11 +3298,10 @@ class App
 			$html .= "<ul>";
 			foreach ($data as $url) {
 				if (empty($url->domain)) $url->domain = $this->config["url"];
-				$html .= "<li>
+				$html .= "<li class='xlist-item'>
         		  <a href='{$url->domain}/{$url->alias}{$url->custom}+' target='_blank'>
-        		  &nbsp;<img src='https://www.google.com/s2/favicons?domain={$url->url}' alt='favicon'>
-        		  " . (empty($url->meta_title) ? "{$url->domain}/{$url->alias}{$url->custom}" : Main::truncate(fixTitle($url->meta_title), 30)) . "
-        		  </a> - <strong>{$url->click} " . e("Click") . "</strong> <span>" . Main::timeago($url->date) . "</span>
+        		  &nbsp;<img src='https://www.google.com/s2/favicons?domain={$url->url}' alt='favicon'>" . (empty($url->meta_title) ? "{$url->domain}/{$url->alias}{$url->custom}" : Main::truncate(fixTitle($url->meta_title), 30)) . "
+        		  </a><span style='white-space:nowrap;padding-left:22px;'><strong>{$url->click} " . e("Click") . "</strong> <span>" . Main::timeago($url->date) . "</span></span>
         		  </li>";
 			}
 			$html .= "</ul>";
@@ -3244,7 +3354,7 @@ class App
         },
         onRegionLabelShow: function(e, el, code){
           if(typeof data[code]!='undefined') el.html(el.html()+' ('+data[code]+' Clicks)');
-        }     
+        }
       });</script>", "custom");
 		$html = "<div class='panel panel-dark panel-body' id='" . __FUNCTION__ . "'>";
 		$html .= "<div id='country-map' style='width:100%;height:300px;'></div>";
@@ -3474,18 +3584,10 @@ class App
 			$tw = [];
 		}
 
-		if (!$adr = is_array($this->user->adrollpixel) ? $this->user->adrollpixel : json_decode($this->user->adrollpixel, TRUE)) {
-			$adr = [];
-		}
-
-		if (!$quo = is_array($this->user->quorapixel) ? $this->user->quorapixel : json_decode($this->user->quorapixel, TRUE)) {
-			$quo = [];
-		}
-
 		if (!$gtm = is_array($this->user->gtmpixel) ? $this->user->gtmpixel : json_decode($this->user->gtmpixel, TRUE)) {
 			$gtm = [];
 		}
-		return count($fb) + count($adw) + count($lkd) + count($tw) + count($adr) + count($quo) + count($gtm);
+		return count($fb) + count($adw) + count($lkd) + count($tw) + count($gtm);
 	}
 
 	/**
@@ -4229,6 +4331,14 @@ class App
 		exit(9);
 	}
 
+	protected function webhook_demo()
+	{
+		$payload = @file_get_contents("php://input");
+		file_put_contents("webhook-demo-".date("Y-m-d H:i:s") . '.txt', $payload);
+		http_response_code(200);
+		exit(9);
+	}
+
 	/**
 	 * [ProcessAlepayAPI description]
 	 * @author BizChain Labs
@@ -4519,7 +4629,15 @@ class App
 	protected function testing()
 	{
 
-		var_dump(Main::clean("<kbd><a href='https://help.rebranding.today'>help.rebranding.today</a></kbd>"));
+		$current = $this->http . "://{$_SERVER["HTTP_HOST"]}";
+
+		$cU = parse_url($current);
+
+		$cH = parse_url($this->config["url"]);
+
+
+		//$addeddomain = $this->db->get("domains", "domain = ?", ["limit" => 1], [$cU["scheme"] . "://" . $cU["host"]]);
+
 
 
 		// require(ROOT . '/includes/library/alepay/config.php');

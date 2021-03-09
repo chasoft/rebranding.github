@@ -15,6 +15,7 @@
 
   <title><?php echo Main::title() ?></title>
 
+  <script type="text/javascript">"#_=_"===window.location.hash&&(history.replaceState?history.replaceState(null,null,window.location.href.split("#")[0]):window.location.hash="");</script>
   <!-- Bootstrap core CSS -->
   <link href="<?php echo $this->config["url"] ?>/static/css/bootstrap.min.css" rel="stylesheet">
   <!-- Component CSS -->

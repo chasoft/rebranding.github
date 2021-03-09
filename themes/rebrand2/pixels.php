@@ -18,8 +18,6 @@
 									<option value="adwords">Adwords</option>
 									<option value="linkedin">LinkedIn</option>
 									<option value="twitter">Twitter</option>
-									<option value="adroll">AdRoll</option>
-									<option value="quora">Quora</option>
 								</select>
 							</div>
 						</div>
@@ -33,7 +31,7 @@
 						</div>
 					</div>
 					<?php echo Main::csrf_token(TRUE) ?>
-					<p><button type="submit" class="btn btn-primary"><?php echo e("Add Pixel") ?></button></p>
+					<p class="d-flex justify-content-end"><button type="submit" class="btn btn-primary"><?php echo e("Add Pixel") ?></button></p>
 				</form>
 				<script>
 					jQuery.validator.addMethod("gtmfirst", function(value, element) {
@@ -218,64 +216,6 @@
 				<?php endforeach ?>
 				<hr>
 			<?php endif ?>
-			<?php if (is_array($adrollpixel) && !empty($adrollpixel)) : ?>
-				<h3><?php echo e("AdRoll Pixels") ?></h3>
-				<?php foreach ($adrollpixel as $id => $adr) : ?>
-					<form action="<?php echo Main::href("user/pixels/save?id={$id}") ?>" method="post" id="adroll_pixels_form" name="adroll_pixels_form">
-						<div class="form-group">
-							<div class="row">
-								<div class="col-sm-4">
-									<label class="control-label"><?php echo e("Name") ?></label>
-									<input type="text" value="<?php echo $adr["name"] ?>" name="adrollpixel[name]" class="form-control" placeholder="e.g. Shopify Campaign" required />
-								</div>
-								<div class="col-sm-4">
-									<label class="control-label"><?php echo e("Tag") ?></label>
-									<input type="text" value="<?php echo $adr["tag"] ?>" name="adrollpixel[tag]" class="form-control" maxlength="40" placeholder="e.g. 12345678901/ABCDEFGHIJKLMOPQRST" required />
-								</div>
-								<div class="col-sm-4">
-									<div class="btn-group addmargin">
-										<button type="submit" class="btn btn-default"><i class="fa fa-save"></i></button>
-										<a href="<?php echo Main::href("user/pixels/delete?id={$id}&type=adrollpixel") ?>" class="btn btn-default delete"><i class="fa fa-trash"></i></a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</form>
-					<script>
-						$('#adroll_pixels_form').validate();
-					</script>
-				<?php endforeach ?>
-				<hr>
-			<?php endif ?>
-			<?php if (is_array($quorapixel) && !empty($quorapixel)) : ?>
-				<h3><?php echo e("Quora Pixels") ?></h3>
-				<?php foreach ($quorapixel as $id => $quo) : ?>
-					<form action="<?php echo Main::href("user/pixels/save?id={$id}") ?>" method="post" id="quora_pixels_form" name="quora_pixels_form">
-						<div class="form-group">
-							<div class="row">
-								<div class="col-sm-4">
-									<label class="control-label"><?php echo e("Name") ?></label>
-									<input type="text" value="<?php echo $quo["name"] ?>" name="quorapixel[name]" class="form-control" placeholder="e.g. Shopify Campaign" required />
-								</div>
-								<div class="col-sm-4">
-									<label class="control-label"><?php echo e("Tag") ?></label>
-									<input type="text" value="<?php echo $quo["tag"] ?>" name="quorapixel[tag]" class="form-control" maxlength="40" placeholder="e.g. <?php echo md5("example") ?>" required />
-								</div>
-								<div class="col-sm-4">
-									<div class="btn-group addmargin">
-										<button type="submit" class="btn btn-default"><i class="fa fa-save"></i></button>
-										<a href="<?php echo Main::href("user/pixels/delete?id={$id}&type=quorapixel") ?>" class="btn btn-default delete"><i class="fa fa-trash"></i></a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</form>
-					<script>
-						$('#quora_pixels_form').validate();
-					</script>
-				<?php endforeach ?>
-				<hr>
-			<?php endif ?>
 		</div>
 	</div>
 	<!--/#user-content-->
@@ -315,18 +255,6 @@
 			<p><?php echo e("Conversion tracking for websites enables you to measure your return on investment by tracking the actions users take after viewing or engaging with your ads on Twitter.") ?></p>
 			<p><code>e.g. 123456789</code></p>
 			<a href="https://business.twitter.com/en/help/campaign-measurement-and-analytics/conversion-tracking-for-websites.html" target="_blank" class="btn btn-primary btn-xs"><?php echo e("Learn more") ?></a>
-		</div>
-		<div class="panel panel-default panel-body text-justify">
-			<h3><?php echo e("AdRoll Pixel Tag") ?></h3>
-			<p><?php echo e("The AdRoll Pixel is uniquely generated when you create an AdRoll account. The AdRoll ID has two components: the Advertiser ID or adroll_adv_id (X) and Pixel ID or adroll_pix_id (Y) for the AdRoll Pixel. To use the adRoll pixel, merge the two components together, separating them by a slash (/).") ?></p>
-			<p><code>e.g. adroll_adv_id/adroll_pix_id</code></p>
-			<a href="https://help.adroll.com/hc/en-us/articles/211846018" target="_blank" class="btn btn-primary btn-xs"><?php echo e("Learn more") ?></a>
-		</div>
-		<div class="panel panel-default panel-body text-justify">
-			<h3><?php echo e("Quora Pixel Tag") ?></h3>
-			<p><?php echo e("The Quora Pixel is a tool that is placed in your website code to track traffic and conversions. When someone clicks on your ad and lands on your website, the Quora Pixel allows you to identify how many people are visiting your website and what actions they are taking.") ?></p>
-			<p><code>e.g. <?php echo md5("example") ?></code></p>
-			<a href="https://quoraadsupport.zendesk.com/hc/en-us/articles/115010466208-How-do-I-install-the-Quora-pixel-" target="_blank" class="btn btn-primary btn-xs"><?php echo e("Learn more") ?></a>
 		</div>
 	</div>
 	<!--/#widgets-->

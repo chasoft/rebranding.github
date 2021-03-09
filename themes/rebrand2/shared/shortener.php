@@ -6,7 +6,7 @@
 <?php endif ?>
 <div class="share-this"></div>
 <div class="ajax"></div>
-<form action="<?php echo Main::href("shorten") ?>" id="main-form" role="form" method="post" autocomplete="off">
+<form action="<?php echo Main::href("shorten") ?>" id="main-form" role="form" method="post" autocomplete="off" name="main-form">
   <div class="main-form">
     <div class="row" id="single">
       <div class="input-group">
@@ -27,6 +27,11 @@
   </div>
   <!-- /.main-form -->
   <div class="main-options clearfix">
+    <?php 
+      if (!$this->logged()) {
+        echo e("Need inspiration? Please visit <a style='white-space:nowrap;' target='_blank' href='https://help.rebranding.today/benefits'>Inspiration @ Rebranding.today</a>"); 
+        }
+    ?>
     <?php if ($option["advanced"]) : ?>
       <a href="#" class="btn btn-primary advanced"><?php echo e("Advanced Options") ?></a>
     <?php endif; ?>
@@ -47,7 +52,7 @@
               <span class="input-group-addon"><i class="glyphicon glyphicon-pencil"></i></span>
               <input type="text" class="form-control" name="custom" placeholder="<?php echo e("Type your custom alias here") ?>" autocomplete="off">
             </div>
-            <p style="padding-top: 10px;"><?php echo e('If you need a custom alias, you can enter it above.') ?></p>
+            <p style="padding-top: 10px;"><?php echo e('A valid alias is 4-64 characers and only include letters, numbers and hyphen.') ?></p>
           </div>
         <?php endif ?>
         <!-- /.col-md-3 -->
@@ -169,22 +174,8 @@
                         <?php endforeach ?>
                       </optgroup>
                     <?php endif ?>
-                    <?php if ($adrollpixel = json_decode($this->user->adrollpixel)) : ?>
-                      <optgroup label="AdRoll">
-                        <?php foreach ($adrollpixel as $key => $ad) : ?>
-                          <option value="adrollpixel-<?php echo $key ?>"><?php echo $ad->name ?></option>
-                        <?php endforeach ?>
-                      </optgroup>
-                    <?php endif ?>
-                    <?php if ($quorapixel = json_decode($this->user->quorapixel)) : ?>
-                      <optgroup label="Quora">
-                        <?php foreach ($quorapixel as $key => $ad) : ?>
-                          <option value="quorapixel-<?php echo $key ?>"><?php echo $ad->name ?></option>
-                        <?php endforeach ?>
-                      </optgroup>
-                    <?php endif ?>
                     <?php if ($gtmpixel = json_decode($this->user->gtmpixel)) : ?>
-                      <optgroup label="Quora">
+                      <optgroup label="GTM">
                         <?php foreach ($gtmpixel as $key => $ad) : ?>
                           <option value="gtmpixel-<?php echo $key ?>"><?php echo $ad->name ?></option>
                         <?php endforeach ?>
@@ -225,6 +216,12 @@
   <input type="hidden" value="0" name="multiple" id="multiple-form">
   <input type="hidden" value="<?php echo md5($this->config["public_token"]) ?>">
 </form>
+
+<?php 
+  if ($this->logged()) {
+    echo '<script>jQuery.validator.addMethod("validate_alias",function(a,e){return!!/^$|^([a-zA-Z0-9-]+){4,64}$/.test(a)},"'.e("Invalid alias!").'"),$("#main-form").validate({rules:{custom:{validate_alias:!0}}});</script>';
+  }
+?>
 <!--/.form-->
 <?php if ($option["multiple"]) : ?>
   <ul class="form_opt" data-id="multiple-form" data-callback="form_switch">

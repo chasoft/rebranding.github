@@ -98,10 +98,10 @@
                 <div class="f_widget about-widget pl_70 wow fadeInLeft" data-wow-delay="0.2s" style="visibility: visible; animation-delay: 0.2s; animation-name: fadeInLeft;">
                   <h3 class="f-title f_600 t_color f_size_18"><?php echo e("Solutions") ?></h3>
                   <ul class="list-unstyled f_list">
-                    <li><a href="#">Social Media</a></li>
-                    <li><a href="#">Digital Marketing</a></li>
-                    <li><a href="#">Customer Service</a></li>
-                    <li><a href="#">For Developers</a></li>
+                    <li><a href="https://rebranding.today/page/social-media"><?php echo e("Social Media") ?></a></li>
+                    <li><a href="https://rebranding.today/page/digital-marketing"><?php echo e("Digital Marketing") ?></a></li>
+                    <li><a href="https://rebranding.today/page/customer-service"><?php echo e("Customer Service") ?></a></li>
+                    <li><a href="#" class="not-active"><?php echo e("For Developers") ?></a></li>
                   </ul>
                 </div>
               </div>
@@ -109,12 +109,12 @@
                 <div class="f_widget about-widget pl_70 wow fadeInLeft" data-wow-delay="0.6s" style="visibility: visible; animation-delay: 0.6s; animation-name: fadeInLeft;">
                   <h3 class="f-title f_600 t_color f_size_18"><?php echo e("Resources") ?></h3>
                   <ul class="list-unstyled f_list">
-                    <li><a href="#">Register domain names</a></li>
-                    <li><a href="#">Branded links blog</a></li>
-                    <li><a href="#">Knowledge base (FAQ)</a></li>
-                    <li><a href="#">Browser extension</a></li>
-                    <li><a href="#">LinkGallery</a></li>
-                    <li><a href="#">Apps and Integrations</a></li>
+                    <li><a target="_blank" href="https://help.rebranding.today/benefits#khuyen-nghi-so-huu-toi-thieu-1-ten-mien"><?php echo e("Register domain names") ?></a></li>
+                    <li><a href="https://rebranding.today/blog"><?php echo e("Branded links blog") ?></a></li>
+                    <li><a target="_blank" href="https://help.rebranding.today/faqs/frequently-asked-questions"><?php echo e("Knowledge base (FAQ)") ?></a></li>
+                    <li><a target="_blank" href="https://help.rebranding.today/user-guide/profile-builder"><?php echo e("Profile") ?></a></li>
+                    <li><a href="#" class="not-active"><?php echo e("Browser extension") ?></a></li>
+                    <li><a href="#" class="not-active"><?php echo e("Apps and Integrations") ?></a></li>
                   </ul>
                 </div>
               </div>

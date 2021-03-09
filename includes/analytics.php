@@ -80,12 +80,12 @@ $('#country').vectorMap({
 // Append Country List
 $('#country-list').html('');
 <?php foreach($top_country as $c=>$click): ?>
-$("#country-list").append('<li><?php echo $c ?> <small>(<?php echo round(($click/$total*100),1) ?>%)</small><span class="label label-primary pull-right"><?php echo $click?></span></li>');
+$("#country-list").append('<li><?php echo $c ?> <small>(<?php echo round(($click/$total*100),1) ?>%)</small><span class="label label-primary pull-right" style="color:white;"><?php echo $click?></span></li>');
 <?php endforeach ?> 
 // Append Referrer 
 $('#referrer').html('');
 <?php foreach($referrers as $r=>$click): ?>
-$("#referrer").append('<li><img src="https://www.google.com/s2/favicons?domain=<?php echo $r ?>"> <?php echo $r ?> <small>(<?php echo round(($click/$total*100),1) ?>%)</small><span class="label label-primary pull-right"><?php echo $click?></span></li>');
+$("#referrer").append('<li><img src="https://www.google.com/s2/favicons?domain=<?php echo $r ?>"> <?php echo $r ?> <small>(<?php echo round(($click/$total*100),1) ?>%)</small><span class="label label-primary pull-right" style="color:white;"><?php echo $click?></span></li>');
 <?php endforeach ?>    
 // Append Social Cicks
 <?php if(!$fb && !$tw && !$gl): ?>

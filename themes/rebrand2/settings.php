@@ -7,16 +7,25 @@
 		<div class="main-content panel panel-default panel-body">
 			<h3><?php echo e("Account Settings") ?></h3>
 
-			<?php if (!empty($this->user->auth) && (!isset($_COOKIE["Social-login-remind-info"]) || $_COOKIE["Social-login-remind-info"] !== "on")) : ?>
-				<div class="alert alert-warning"><?php echo e("You have used a social network to login. Please note that in this case you don't have a password set.") ?></div>
 			<?php
+				$custom_message = '';
+				if (!empty($this->user->auth) && (!isset($_COOKIE["Social-login-remind-info"]) || $_COOKIE["Social-login-remind-info"] !== "on")) {
+					$custom_message = "You have used a social network to login. Please note that in this case you don't have a password set.";
+				}
 				Main::cookie("Social-login-remind-info", "on", 31 * 24 * 60);
-			endif
+
+				if(empty($this->user->username)) {
+					if (empty($custom_message)) {
+						$custom_message = "You have used a social network to login. You will need to choose a <b>username</b>.";
+					} else {
+						$custom_message .= " And you will need to choose a <b>username</b>.";
+					}
+				}
+				if(!empty($custom_message)) {
+					echo '<div class="alert alert-warning">'.e($custom_message).'</div>';
+				}
 			?>
 
-			<?php if (empty($this->user->username)) : ?>
-				<div class="alert alert-warning"><?php echo e("You have used a social network to login. You will need to choose a username.") ?></div>
-			<?php endif ?>
 			<form id="settingsform" name="settingsForm" action="<?php echo Main::href("user/settings") ?>" role="form" class="form-horizontal" method="post" enctype="multipart/form-data" autocomplete="off">
 				<!-- Nav tabs -->
 				<ul class='nav nav-tabs'>
@@ -87,7 +96,7 @@
 									<?php endforeach ?>
 								</select>
 							</div>
-						</div>
+						</div>						
 					</div>
 					<div class='tab-pane' id='msettings'>
 						<h4></h4>
@@ -99,7 +108,6 @@
 										<option value='direct' <?php echo ($this->user->defaulttype == "direct" || $this->user->defaulttype == "" ? " selected" : "") ?>> <?php echo e('Direct') ?></option>
 										<option value='frame' <?php echo ($this->user->defaulttype == "frame" ? " selected" : "") ?>> <?php echo e('Frame') ?></option>
 										<option value='splash' <?php echo ($this->user->defaulttype == "splash" ? " selected" : "") ?>> <?php echo e('Splash') ?></option>
-										<option value='overlay' <?php echo ($this->user->defaulttype == "overlay" ? " selected" : "") ?>> <?php echo e("Overlay") ?></option>
 									</select>
 								</div>
 							</div>

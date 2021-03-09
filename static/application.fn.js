@@ -2,6 +2,7 @@
  *  Premium URL Shortener jQuery Custom Functions - Don't edit anything below!
  *  Copyright @KBRmedia - All rights Reserved
  */
+
 (function ($) {
   // Sticky
   $.fn.extend({
@@ -78,6 +79,7 @@
         param1: $(this).attr("param1"), //cmd
         param2: $(this).attr("param2"), //data-id
         param3: $(this).attr("param3"), //bundle-id
+        auth: $(this).attr("auth"), //token
         header: true,
       };
       var s = $.extend(defaults, settings);
@@ -85,40 +87,37 @@
         s.content = lang.modal.content;
       }
       if (!s.title) {
-          s.title = (s.title2) ? s.title2 : lang.modal.title;
+        s.title = (s.title2) ? s.title2 : lang.modal.title;
       }
 
-      if (!s.param2) {s.param2 = "";}
-      if (!s.param3) {s.param3 = "";}
+      if (!s.param2) { s.param2 = ""; }
+      if (!s.param3) { s.param3 = ""; }
 
       if (s.confimation) {
         var proceed = "";
       } else {
-        if (!s.param1) {  //cmd
-          var proceed =
-            "<a href='" +
-            s.link + "2' class='btn btn-success btn-sm'>" +
+        // 2 trường hợp:
+        // 1 : không dùng Ajax
+        // 2 : dùng Ajax (param1, param2, param3)
+        //-----------------------------------------
+        var proceed = "<a href='" + s.link + "' class='btn btn-success btn-sm'>" + lang.modal.proceed + "</a> <a href='#' class='btn btn-danger btn-sm close-modal'>" + lang.modal.cancel + "</a>";
+        // 2 - trường hợp này, có thể set 1 cái dummy param1 = "yeah"
+        if (s.param1 && !s.param2) {
+          proceed = "<a onclick='" + s.param1 + "()' class='btn btn-success btn-sm'>" + lang.modal.proceed + "</a> <a href='#' class='btn btn-danger btn-sm close-modal'>" + lang.modal.cancel + "</a>";
+        } else if (s.param2 && !s.param3) {
+          proceed =
+            "<a onclick='" + s.param1 + '("' + s.auth + '",' + s.param2 + ")' class='btn btn-success btn-sm'>" +
             lang.modal.proceed +
             "</a> <a href='#' class='btn btn-danger btn-sm close-modal'>" +
             lang.modal.cancel +
             "</a>";
-        } else {
-
-          if (!s.param3) {
-            var proceed =
-            "<a onclick='" + s.param1 + "(" + s.param2 + ")' class='btn btn-success btn-sm'>" +
-              lang.modal.proceed +
-              "</a> <a href='#' class='btn btn-danger btn-sm close-modal'>" +
-              lang.modal.cancel +
-              "</a>";
-          } else {
-            var proceed =
-              "<a onclick='" + s.param1 + "(" + s.param2 + "," + s.param3 + ")' class='btn btn-success btn-sm'>" +
-              lang.modal.proceed +
-              "</a> <a href='#' class='btn btn-danger btn-sm close-modal'>" +
-              lang.modal.cancel +
-              "</a>";
-          }
+        } else if (s.param2 && s.param3) {
+          proceed =
+            "<a onclick='" + s.param1 + "(" + s.auth + "," + s.param2 + "," + s.param3 + ")' class='btn btn-success btn-sm'>" +
+            lang.modal.proceed +
+            "</a> <a href='#' class='btn btn-danger btn-sm close-modal'>" +
+            lang.modal.cancel +
+            "</a>";
         }
       }
       $.fn.modal_destroy = function () {

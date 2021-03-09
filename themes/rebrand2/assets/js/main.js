@@ -8,7 +8,7 @@ $(document).ready(function () {
 			startDelay: 1e3,
 			typeSpeed: 80,
 			backSpeed: 10,
-			backDelay: 800,
+			backDelay: 2000,
 			loop: !0,
 		}));
 
@@ -61,11 +61,6 @@ $(document).ready(function () {
 					.attr({ maxlength: "15", type: "text" })
 					.removeAttr("minlength");
 				break;
-			case "AdRoll":
-			case "Quora":
-				$("#pixelsform > div > div:nth-child(3) > input")
-					.attr({ maxlength: "40", type: "text" })
-					.removeAttr("minlength");
 		}
 	});
 

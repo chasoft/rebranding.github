@@ -17,7 +17,7 @@
       	<hr>
         <div class="form-group">
           <label><?php echo e("Email") ?> (<?php echo e("Required") ?>)</label>
-          <input type="email" class="form-control" name="email" value="<?php echo ($this->logged() ? $this->user->email : "") ?>" required>		            
+          <input type="email" class="form-control" name="email" value="<?php echo ($this->logged() ? $this->user->email : "") ?>" required autofocus >		            
         </div>  
         <div class="form-group">
           <label><?php echo e("Short Link") ?> (<?php echo e("Required") ?>)</label>

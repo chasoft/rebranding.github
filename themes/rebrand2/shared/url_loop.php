@@ -1,9 +1,9 @@
 <?php defined("APP") or die() // This file is looped in each instances to show the URL. Please don't edit this file if you don't know what you are doing! 
 ?>
 <div class="return-ajax-message"></div>
-<div class="url-list" id="url-container-<?php echo $url->id ?>" data-id="<?php echo $url->id ?>" <?php echo ((isset($this_is_bundle) && $this_is_bundle && $url->archived) ? 'style="background: #f7f8fa;margin-left: -15px;margin-right: -15px;padding-right: 15px;padding-left: 15px;"' : "") ?>>
-	<div class="row">
-		<div class="col-xs-10 url-info">
+<div class="url-list" id="url-container-<?php echo $url->id ?>" data-id="<?php echo $url->id ?>" <?php echo ((isset($this_is_bundle) && $this_is_bundle && $url->archived) ? ' style="margin-left: -15px;margin-right: -15px;background: #f7f8fa;"' : '') ?> <?php echo ((isset($this_is_bundle) && $this_is_bundle) ? ' style="margin-left: -15px;margin-right: -15px;"' : '') ?>>
+	<div class="d-flex justify-content-between">
+		<div class="url-info">
 			<h3 class="title fs-sm-1em">
 				<img src="<?php echo Main::href("{$url->alias}{$url->custom}/ico") ?>" alt="Favicon">
 				<a href="<?php echo $url->url ?>" target="_blank"><?php echo Main::truncate(empty($url->meta_title) ? $url->url : fixTitle($url->meta_title), 50) ?></a>
@@ -14,6 +14,23 @@
 			<div class="short-url">
 				<a href="<?php echo ($url->domain ? $url->domain : $this->config["url"]) ?>/<?php echo $url->alias . $url->custom ?>" target="_blank"><?php echo ($url->domain ? $url->domain : $this->config["url"]) ?>/<?php echo $url->alias . $url->custom ?></a>
 				<a href="#copy" class="copy inline-copy" data-clipboard-text="<?php echo ($url->domain ? $url->domain : $this->config["url"]) ?>/<?php echo $url->alias . $url->custom ?>"><?php echo e("Copy") ?></a>
+
+				<?php
+					$xtype = '';
+					if (!isset($url->type)) {
+						$xtype = 'direct'; //default redirect type
+					} elseif (in_array($url->type, array("direct", "frame", "splash"))) {
+						$xtype = $url->type;
+					} elseif (preg_match("~overlay-(.*)~", $url->type)) {
+						$xtype = 'Overlay';
+					} else {
+						$xtype = 'Splash';
+					}
+				?>
+
+				&nbsp;&bullet;&nbsp;
+				<span style="color: #0c8877;white-space:nowrap;" data-toggle="tooltip" title="<?php echo e("Redirection") ?>"><i class="fas fa-map-signs"></i> <?php echo e(ucfirst($xtype)) ?></span>
+
 				<?php if ($url->bundle) : ?>
 					<?php
 					if (isset($_POST["name"]))
@@ -42,7 +59,7 @@
 					&nbsp;&bullet;&nbsp;
 					<a style="color: green;" href="#" data-toggle="tooltip" title="<?php echo e("Expiry on") ?> <?php echo date("d M, Y", strtotime($url->expiry)) ?>"><i class="far fa-calendar-alt"></i></a>
 				<?php endif ?>
-				<?php if (!empty($url->pixels)) : ?>
+				<?php if (!empty($url->pixels) && ($this->urlPixel($url->pixels) !=="") ) : ?>
 					&nbsp;&bullet;&nbsp;
 					<a href="#" data-toggle="tooltip" title="<?php echo $this->urlPixel($url->pixels) ?>"><span><i class='glyphicon glyphicon-filter'></i> <?php echo e('Pixels') ?></span></a>
 				<?php endif ?>
@@ -58,7 +75,7 @@
 			<p>
 			<ul class="toggle">
 				<?php if (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("links.delete"))) : ?>
-					<li><input type="checkbox" name="delete-id[]" data-id="<?php echo $url->id ?>" value="<?php echo $url->alias . $url->custom ?>"></li>
+					<li><input type="checkbox" name="delete-id[]" data-id="<?php echo $url->id ?>" data-auth="<?php echo Main::nonce_token("delete_url-{$url->id}") ?>" value="<?php echo $url->alias . $url->custom ?>"></li>
 				<?php endif ?>
 				<li class="lock-url-<?php echo $url->id ?>">
 					<?php if ($url->public) : ?>
@@ -71,7 +88,7 @@
 					<li><a href='<?php echo Main::href("user/edit/{$url->id}") ?>'><?php echo e("Edit") ?></a></li>
 				<?php endif ?>
 				<?php if (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("links.delete"))) : ?>
-					<li><a href="#" class="delete" param1="deleteSelectedItem" data-id="<?php echo $url->id ?>"><?php echo e("Delete") ?></a></li>
+					<li><a href="#" class="delete" param1="deleteSelectedItem" param2="<?php echo $url->id ?>" auth="<?php echo Main::nonce_token("delete_url-{$url->id}") ?>"><?php echo e("Delete") ?></a></li>
 				<?php endif ?>
 				<li><a href="#url-container-<?php echo $url->id ?>" class="drop scroll"><?php echo e("Options") ?></a>
 					<div class="dropdown">
@@ -106,9 +123,9 @@
 			</ul>
 			</p>
 		</div>
-		<div class="col-xs-2 url-stats">
+		<div class="url-stats mr-10">
 			<strong><?php echo number_format($url->click, 0) ?></strong>
-			<a href="<?php echo ($url->domain ? $url->domain : $this->config["url"]) ?>/<?php echo $url->alias . $url->custom ?>+" target="_blank" class="stats-count"><?php echo e("Clicks") ?></a>
+			<a href="<?php echo ($url->domain ? $url->domain : $this->config["url"]) ?>/<?php echo $url->alias . $url->custom ?>+" target="_blank" class="stats-count"><i class="far fa-chart-bar"></i> <?php echo e("Clicks") ?></a>
 		</div>
 	</div>
 </div><!-- /.url-list -->

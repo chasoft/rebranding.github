@@ -37,9 +37,10 @@
 				<script>$("#domainform").validate({rules:{domain:{url:!0},default:{url:!0},default404:{url:!0}}});</script>
 				<hr>
 			<?php endif ?>
+			<div class="return-ajax"></div>
 			<h3><?php echo e("Domain Names") ?></h3>
 			<div class="table-responsive">
-				<table class="table table-striped">
+				<table class="table">
 					<thead>
 						<tr>
 							<th><?php echo e("Domain Name") ?></th>
@@ -51,7 +52,7 @@
 					</thead>
 					<tbody>
 						<?php foreach ($domains as $domain) : ?>
-							<tr data-id="<?php echo $domain->id ?>">
+							<tr data-id="<?php echo $domain->id ?>" id="domain-container-<?php echo $domain->id ?>">
 								<td><?php echo $domain->domain ?></td>
 								<td><?php echo $domain->redirect ? $domain->redirect : "N/A" ?></td>
 								<td><?php echo $domain->redirect404 ? $domain->redirect404 : "N/A" ?></td>
@@ -66,7 +67,7 @@
 								</td>
 								<td>
 									<?php if (!$this->isTeam() || ($this->isTeam() && $this->teamPermission("domain.delete"))) : ?>
-										<a href="<?php echo Main::href("user/domain/{$domain->id}") . Main::nonce("delete_domain-{$domain->id}") ?>" class="btn btn-default btn-xs delete"><i class="fa fa-trash"></i></a>
+										<a href="#" param1="deleteSelectedItem" param2="<?php echo $domain->id ?>" auth="<?php echo Main::nonce_token("delete_domain-{$domain->id}") ?>" class="btn btn-default btn-xs delete"><i class="fa fa-trash"></i></a>
 									<?php endif ?>
 								</td>
 							</tr>

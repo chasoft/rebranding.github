@@ -52,7 +52,7 @@ class Short extends App
 	 * @var boolean, If TRUE, it will be possible to shorten the URL of the domain where this script is located.
 	 * @since 3.0
 	 */
-	private $self_shortening = FALSE;
+	private $self_shortening = TRUE;
 	/**
 	 * Anti-Flood Time
 	 * @var integer Minutes, Stats will not be updated when the same visitor clicks the same url for this amount of time
@@ -165,7 +165,7 @@ class Short extends App
 		if (empty($url) || !$url) return array('error' => 1, 'msg' => e('Please enter a valid URL.'));
 
 		// Prevent self-shortening;
-		if ($domain == Main::domain($this->config["url"], TRUE, FALSE) && !$this->self_shortening) return  array('error' => 1, 'msg' => 'You cannot shorten URLs of this website.');
+		if ($domain == Main::domain($this->config["url"], TRUE, FALSE) && !$this->self_shortening) return  array('error' => 1, 'msg' => e('You cannot shorten URLs of this website.'));
 
 		// Check domain is blacklisted
 		if ($this->blacklist_domain($url)) return  array('error' => 1, 'msg' => e('This domain name or link has been blacklisted.'));
@@ -183,6 +183,9 @@ class Short extends App
 		if ($this->config["adult"] && in_array($ext, $this->executables)) return  array('error' => 1, 'msg' => e('Linking to executable files is not allowed.'));
 
 		// Check expiration
+		if (isset($_POST["expiry"]) && !empty($_POST["expiry"])) {
+			$_POST["expiry"] = substr($_POST["expiry"], 3, 2) . '/' . substr($_POST["expiry"], 0, 2) . '/' . substr($_POST["expiry"], 6, 4);
+		}
 		if (isset($_POST["expiry"]) && !empty($_POST["expiry"]) && strtotime("now") > strtotime($_POST["expiry"])) return array('error' => 1, 'msg' => e('The expiry date must be later than today.'));
 
 		// Check domain name
@@ -268,7 +271,7 @@ class Short extends App
 		if (isset($this->user) && $this->user->pro && isset($array["pixels"]) && is_array($array["pixels"])) {
 			$pixels = [];
 			foreach ($array["pixels"] as $pixel) {
-				if (in_array($pixel, ["facebook", "adwords", "linkedin", "gtm", "adwords", "adroll", "quora"])) {
+				if (in_array($pixel, ["facebook", "adwords", "linkedin", "gtm", "adwords"])) {
 					$pixels[] = trim($pixel);
 				}
 			}
@@ -309,7 +312,7 @@ class Short extends App
 		// If not logged and and URL is already shortened, retrieve it
 		if (!isset($this->user) && (!isset($array["password"]) || empty($array["password"])) &&  (!isset($array["custom"]) || empty($array["custom"]))) {
 			if ($data = $this->db->get("url", array("url" => "?", "userid" => "?", "location" => "?", "pass" => "?", "custom" => "?"), array("limit" => 1), array($url, 0, "", "", ""))) {
-				// Add to public history			
+				// Add to public history
 				$this->check_history($data->alias . $data->custom);
 				return $this->build($data->alias . $data->custom);
 			}
@@ -534,7 +537,6 @@ class Short extends App
 		//$current = explode("?", idn_to_utf8($current))[0];
 		$current = explode("?", $current)[0];
 
-
 		if ("http://" . $current == $this->config["url"] || "https://" . $current == $this->config["url"]) {
 			// Fetch URL and show 404 if doesn't exist
 			$url = $this->db->get("url", "(BINARY alias=:id OR BINARY custom=:id) AND (domain LIKE :domain OR domain IS NULL OR  domain = '')", array("limit" => 1), array(":id" => $this->action, ":domain" => "%$current"));
@@ -567,7 +569,7 @@ class Short extends App
 		if ($url->userid > 0) {
 			//$current = idn_to_utf8($_SERVER["HTTP_HOST"]);
 			$current = $_SERVER["HTTP_HOST"];
-			$user = $this->db->get("user", ["id" => $url->userid], ["limit" => 1]);
+			$user = $this->db->get("user", ["id" => $url->userid], ["limit" => "1"]);
 
 			$list = [
 				str_replace(["http://", "https://"], "", $this->config["url"])
@@ -615,7 +617,7 @@ class Short extends App
 			if (strlen($url->pass) >= 32) $_POST["password"] = md5($_POST["password"]);
 			// Check Password
 			if ($_POST["password"] !== $url->pass) {
-				return Main::redirect(Main::href($this->action, FALSE), array("danger", e("Please enter a valid password.")));
+				return Main::redirect($this->action, array("danger", e("Your password is not correct. Please try again.")),"",TRUE);
 			}
 			// Set Session
 			$_SESSION["{$url->id}_passcheck"] = TRUE;
@@ -831,7 +833,7 @@ class Short extends App
           <p style='color:{$data->color}'>
             <span class='custom-text'>{$data->message}</span> 
           " . ($data->text ? "
-              <a href='{$data->link}' class='btn btn-xs' style='background-color: {$data->btnbg};color: {$data->btncolor}'>{$data->text}</a>              
+              <a href='{$data->link}' class='btn btn-xs' style='background-color: {$data->btnbg};color: {$data->btncolor}'>{$data->text}</a>
           " : "") . "
           </p>
         </div>
@@ -854,7 +856,7 @@ class Short extends App
 						<div class='form-group'>
 							<label for='contact-email' class='control-label' style='color: {$data->color};'>" . ($data->lang->email ? $data->lang->email : "Email") . "</label>
 							<input type='email' class='form-control' id='contact-email' placeholder='johnsmith@company.com' style='color:{$data->inputcolor};background-color:{$data->inputbg} !important' name='email' data-required='true'>
-						</div>		
+						</div>
 						<div class='form-group'>
 							<label for='contact-message' class='control-label' style='color: {$data->color};'>" . ($data->lang->message ? $data->lang->message : "Message") . "</label>
 							<textarea class='form-control' id='contact-message' placeholder='Your message' style='color:{$data->inputcolor};background-color:{$data->inputbg} !important' name='message' data-required='true'></textarea>
@@ -862,8 +864,10 @@ class Short extends App
 						" . Main::captcha() . "
 						" . Main::csrf_token(true) . "
 						<input type='hidden' name='integrity' value='" . str_replace("=", "", base64_encode(Main::strrand(5) . "." . $overlay->id)) . "'>
+						<input type='hidden' name='shorturl' value='". ($url->domain ? $url->domain : $this->config["url"]) . "/" . $url->alias . $url->custom ."'>
+						<input type='hidden' name='longurl' value='". $url->url ."'>
 						<button type='submit' class='contact-btn' style='color:{$data->btncolor};background-color:{$data->btnbg} !important'>" . ($data->lang->button ? $data->lang->button : "Send") . "</button>	
-					</form>															
+					</form>
 				</div></div>";
 		}
 		if ($overlay->type == "poll") {
@@ -878,7 +882,7 @@ class Short extends App
 			$overlay_data .= "</ol>
 						<input type='hidden' name='integrity' value='" . str_replace("=", "", base64_encode(Main::strrand(5) . "." . $overlay->id)) . "'>
 						<button type='submit' class='poll-btn' style='color:{$data->btncolor};background-color:{$data->btnbg} !important'>" . (isset($data->votetext) ? $data->votetext : e("Vote")) . "</button>	
-					</form>															
+					</form>
 				</div></div>";
 			Main::cdn("icheck");
 		}
@@ -1120,26 +1124,29 @@ class Short extends App
 		}
 		// Let's show the password field
 		$this->isUser = FALSE;
+		Main::add('<style>header{visibility: hidden !important;}</style>',"custom",FALSE);
 		$this->header();
 		if (empty($url->domain)) $url->domain = $this->config["url"];
-		echo '<section>
-						<div class="container">    
+		echo '<section style="height:100%;">
+						<div class="container">
 							<div class="centered form">';
 		echo '     ' . Main::message() . '
 					      <form role="form" class="live_form" method="post" action="' . $url->domain . '/' . $this->action . '">
 									<h3>' . e("Password") . '</h3>
-									<p>' . e('The access to this URL is restricted. Please enter your password to view it.') . '</p>					      
+									<p>' . e('The access to this URL is restricted. Please enter your password to view it.') . '</p>
 					        <div class="form-group">
 					          <label for="pass1">' . e("Password") . '</label>
-					          <input type="password" class="form-control" id="pass1" placeholder="Password" name="password" autofocus />             
-					        </div>        
+					          <input type="password" class="form-control" id="pass1" placeholder="Password" name="password" autofocus required/>
+					        </div>
 					        ' . Main::csrf_token(TRUE) . '
-					        <button type="submit" class="btn btn-primary">' . e("Unlock") . '</button>        
+					        <p class="d-flex justify-content-end">
+								<button type="submit" class="btn btn-primary">' . e("Unlock") . '</button>
+							</p>
 					      </form>';
 		echo '    </div>
 						</div>
 					</section>';
-		$this->footer();
+		//$this->footer();
 		return;
 	}
 	/**
@@ -1281,7 +1288,7 @@ class Short extends App
 		$this->config["user"] = 1;
 		$this->config["require_registration"] = 0;
 		// Check Request type
-		if (!isset($_GET["url"]) && !isset($_GET["short"])) return $this->api_build(array("error" => 1, "msg" => "Please enter a valid URL."));
+		if (!isset($_GET["url"]) && !isset($_GET["short"])) return $this->api_build(array("error" => 1, "msg" => "Please enter a valid long URL."));
 
 		// Check if shorten request is made
 		if (isset($_GET["url"])) {
@@ -1662,7 +1669,7 @@ class Short extends App
 						  s.parentNode.insertBefore(t,s)}(window, document,'script',
 						  'https://connect.facebook.net/en_US/fbevents.js');
 						  fbq('init', '{$id}');
-						  fbq('track', 'PageView');		
+						  fbq('track', 'PageView');
 						  fbq('track', 'Lead');
 						</script>
 						<noscript><img height='1' width='1' style='display:none'
@@ -1718,40 +1725,6 @@ class Short extends App
 						</noscript>';
 	}
 	/**
-	 * [pixel_adroll description]
-	 * @author KBRmedia <http://gempixel.com>
-	 * @version 5.1
-	 * @param   [type] $id [description]
-	 * @return  [type]     [description]
-	 */
-	protected function pixel_adrollpixel($id)
-	{
-
-		if (empty($id) || strlen($id) < 9) return;
-
-		$Eid = explode("/", $id);
-
-		return '<script type="text/javascript">
-					    adroll_adv_id = "' . $Eid[0] . '";
-					    adroll_pix_id = "' . $Eid[1] . '";
-					    (function () {
-					        var _onload = function(){
-					            if (document.readyState && !/loaded|complete/.test(document.readyState)){setTimeout(_onload, 10);return}
-					            if (!window.__adroll_loaded){__adroll_loaded=true;setTimeout(_onload, 50);return}
-					            var scr = document.createElement("script");
-					            var host = (("https:" == document.location.protocol) ? "https://s.adroll.com" : "http://a.adroll.com");
-					            scr.setAttribute(\'async\', \'true\');
-					            scr.type = "text/javascript";
-					            scr.src = host + "/j/roundtrip.js";
-					            ((document.getElementsByTagName(\'head\') || [null])[0] ||
-					                document.getElementsByTagName(\'script\')[0].parentNode).appendChild(scr);
-					        };
-					        if (window.addEventListener) {window.addEventListener(\'load\', _onload, false);}
-					        else {window.attachEvent(\'onload\', _onload)}
-					    }());
-					</script>';
-	}
-	/**
 	 * [pixel_twitter description]
 	 * @author KBRmedia <http://gempixel.com>
 	 * @version 5.1
@@ -1764,26 +1737,9 @@ class Short extends App
 						  !function(e,t,n,s,u,a){e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments);
 						  },s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,u.src='//static.ads-twitter.com/uwt.js',
 						  a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))}(window,document,'script');
-						  
 						  twq('init','$id');
 						  twq('track','PageView');
 					  </script>";
-	}
-	/**
-	 * [pixel_quorapixel description]
-	 * @author KBRmedia <https://gempixel.com>
-	 * @version 5.6.3
-	 * @param   [type] $id [description]
-	 * @return  [type]     [description]
-	 */
-	protected function pixel_quorapixel($id)
-	{
-		return "<script>
-							!function(q,e,v,n,t,s){if(q.qp) return; n=q.qp=function(){n.qp?n.qp.apply(n,arguments):n.queue.push(arguments);}; n.queue=[];t=document.createElement(e);t.async=!0;t.src=v; s=document.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t,s);}(window, 'script', 'https://a.quora.com/qevents.js');
-							qp('init', '$id');
-							qp('track', 'ViewContent');
-							</script>
-							<noscript><img height=\"1\" width=\"1\" style=\"display:none\" src=\"https://q.quora.com/_/ad/$id/pixel?tag=ViewContent&noscript=1\"/></noscript>";
 	}
 	/**
 	 * Google Tag Manger

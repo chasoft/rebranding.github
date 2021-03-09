@@ -105,7 +105,7 @@
 	<!--/#user-content-->
 	<div id="widgets" class="col-md-5">
 		<?php if (!$this->user->public) : ?>
-			<div class="alert alert-danger"><?php echo e("You have to make your profile public for this page to be accessible.") ?></div>
+			<div class="alert alert-danger"><?php echo e("You have to make your profile public for this page to be accessible. <a href='https://rebranding.today/user/settings#msettings'>Change Profile access</a>!") ?></div>
 		<?php endif ?>
 		<div class="panel panel-default">
 			<div class="text-center">

@@ -306,7 +306,7 @@ function archive(id) {
     success: function (html) {
       container.hide();
       container.html(html);
-      container.fadeIn('fast');
+      container.fadeIn('fast').fadeOut(3000);
     }
   });
 }
@@ -327,7 +327,7 @@ function addtobundle(id, bundleid) {
       $(document).modal_destroy();
       container.hide();
       container.html(html.msg);
-      container.fadeIn('fast');
+      container.fadeIn('fast').fadeOut(3000);
       refreshLinks();
       $("#selectall").html('<i class="fa fa-check-square"></i>');
       $('input').iCheck('uncheck');
@@ -336,17 +336,17 @@ function addtobundle(id, bundleid) {
 }
 
 /**
- * [Ajax Delete URLs description]
+ * [Ajax Assets (apply for URL, Splash, Overlay, Domain, Pixels) Delete description]
  * @author Bizchain <https://bizchain.vn>
- * @version 1.0
+ * @version 1.1
  */
-function ajax_urlDelete(id) {
+function ajax_delete(auth, id) {
   var container = $('.return-ajax');
   var loading = "<img class='loader' src='" + appurl + "/static/loader.gif' style='margin:5px 50%;border:0;' />";
   $.ajax({
     type: "POST",
     url: appurl + "/server",
-    data: "request=urldelete&id=" + id + "&token=" + token,
+    data: "request=assetsdelete&id=" + id + "&auth=" + auth +"&token=" + token,
     beforeSend: function () {
       container.html(loading);
     },
@@ -369,23 +369,23 @@ function ajax_urlDelete(id) {
  * @version 1.0
  */
 function ajax_urlAddToBundle(id, bundleID) {
-  var container = $('.return-ajax');
-  var loading = "<img class='loader' src='" + appurl + "/static/loader.gif' style='margin:5px 50%;border:0;' />";
-  $.ajax({
-    type: "POST",
-    url: appurl + "/server",
-    data: "request=urldelete&id=" + id + "&token=" + token,
-    beforeSend: function () {
-      container.html(loading);
-    },
-    complete: function () {
-      loadall();
-      $('img.loader').fadeOut("fast");
-    },
-    success: function (html) {
-      container.hide();
-      container.html(html);
-      container.fadeIn('fast');
-    }
-  });
+  // var container = $('.return-ajax');
+  // var loading = "<img class='loader' src='" + appurl + "/static/loader.gif' style='margin:5px 50%;border:0;' />";
+  // $.ajax({
+  //   type: "POST",
+  //   url: appurl + "/server",
+  //   data: "request=urldelete??????????????????&id=" + id + "&token=" + token,
+  //   beforeSend: function () {
+  //     container.html(loading);
+  //   },
+  //   complete: function () {
+  //     loadall();
+  //     $('img.loader').fadeOut("fast");
+  //   },
+  //   success: function (html) {
+  //     container.hide();
+  //     container.html(html);
+  //     container.fadeIn('fast');
+  //   }
+  // });
 }

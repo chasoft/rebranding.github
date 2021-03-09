@@ -522,7 +522,8 @@ class Main
   {
     if (isset($_SESSION["msg"]) && !empty($_SESSION["msg"])) {
       $message = explode("::", self::clean($_SESSION["msg"]));
-      $message = "<div class='alert alert-{$message[0]} no-round'>{$message[1]}</div>";
+      $message = "<div class='alert alert-{$message[0]} no-round' id='custom-message'>{$message[1]}</div>";
+      $message .= "<script type='text/javascript'>$('#custom-message').fadeOut(5000);</script>";
       unset($_SESSION["msg"]);
     } else {
       $message = "";
@@ -791,6 +792,23 @@ class Main
   public static function nonce($action = "", $key = "nonce")
   {
     return "?" . $key . "=" . substr(self::nonce_create($action), -12, 10);
+  }
+  /**
+   * Return token only & validate token only
+   * @param action, GET key
+   * @return token
+   * @since v4.0
+   */
+  public static function nonce_token($action = "")
+  {
+    return substr(self::nonce_create($action), -12, 10);
+  }
+  public static function validate_nonce_token($action = "", $auth = "")
+  {
+    if (substr(self::nonce_create($action), -12, 10) == $auth) {
+      return true;
+    }
+    return false;
   }
   /**
    * Validate Nonce
@@ -1284,7 +1302,7 @@ class Main
 
     $mail->IsHTML(true);
     $mail->CharSet = "utf-8";
-    $mail->SetFrom(self::$config["email"], self::$config["title"]);
+    $mail->SetFrom(self::$config["smtp"]["user"], self::$config["title"]);
     $mail->AddReplyTo(self::$config["email"], self::$config["title"]);
     $mail->AddAddress($array["to"]);
     $mail->Subject = $array["subject"];
@@ -1315,6 +1333,7 @@ class Main
 
     if (!$mail->send()) {
       error_log("SMTP Error: {$mail->ErrorInfo}");
+      file_put_contents("email-error-".date("Y-m-d H:i:s") . '.txt', "SMTP Error: {$mail->ErrorInfo}");
       $headers  = 'From:  ' . self::$config["title"] . ' <' . self::$config["email"] . '>' . "\r\n";
       $headers .= 'MIME-Version: 1.0' . "\r\n";
       $headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
@@ -1352,15 +1371,21 @@ class Main
       $mail->Password  = self::$config["smtp"]["pass"];
     }
 
+    $content = file_get_contents(TEMPLATE . "/email.overlay.contact.php");
+    $content = str_replace("[subject]", $array["subject"], $content);
+    $content = str_replace("[message]", $array["message"], $content);
+
     $mail->IsHTML(true);
-    $mail->SetFrom(self::$config["email"], self::$config["title"]);
+    $mail->CharSet = "utf-8";
+    $mail->SetFrom(self::$config["smtp"]["user"], self::$config["title"]);
     $mail->AddReplyTo($array["from"]);
     $mail->AddAddress($array["to"]);
     $mail->Subject = $array["subject"];
-    $mail->msgHTML($array["message"]);
+    $mail->msgHTML($content);
 
     if (!$mail->send()) {
       error_log("SMTP Error: {$mail->ErrorInfo}");
+      file_put_contents("email-customer-error-".date("Y-m-d H:i:s") . '.txt', "SMTP Error: {$mail->ErrorInfo}"."---------------------------".$content);
       $headers  = 'From:  ' . self::$config["title"] . ' <' . self::$config["email"] . '>' . "\r\n";
       $headers .= 'MIME-Version: 1.0' . "\r\n";
       $headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";

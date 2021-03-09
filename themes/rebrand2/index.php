@@ -10,6 +10,7 @@
             <h1><?php echo '<span class="yellow-underline">' . e("Your Own") . '</span> ' . e("URL Shortener") ?></h1>
           </div>
           <p class="description"><?php echo e("Shorten, Personalize, and Share") . ' <span class="yellow-underline">' . e("<b>fully branded</b>") . '</span> ' . e("ShortURLs for your business. Try Rebranding Today for free.") ?></p>
+          <a href="<?php echo Main::href("user/register") ?>" class="btn btn-secondary btn-lg btn-round"><?php echo e("Free Account") ?></a>
         </div>
         <?php echo Main::message() ?>
         <?php echo $this->shortener(array("multiple" => FALSE)) ?>
@@ -24,31 +25,19 @@
     </div>
   </div>
 </section>
-<section class="alt-hero">
-  <div class="container">
+<section class="alt-hero" style="padding-bottom: 20px;">
+  <div class="container" style="margin-bottom:20px;">
+    <?php if (3 == 4) : ?>
     <div class="integrations">
-      <h3><?php echo e("Integrations") ?></h3>
-      <p><?php echo e("Connect with the following apps and others to extend your application.") ?></p>
+      <h3><?php echo e("Better links, better results") ?></h3>
+      <p><?php echo e("Rebranding.today (RT) is a URL shortener that helps individuals and businesses shine by transforming their links into powerful tools for marketers and customer support teams.") ?></p>
       <ul>
-        <li>
-          <h3><?php echo e("Slack") ?></h3>
-          <img src="<?php echo assets("img/slack.png") ?>" alt="<?php echo e("Slack") ?>">
-        </li>
-        <li>
-          <h3><?php echo e("Zapier") ?></h3>
-          <img src="<?php echo assets("img/zapier.png") ?>" alt="<?php echo e("Zapier") ?>">
-        </li>
-        <li>
-          <h3><?php echo e("Google Tag Manager") ?></h3>
-          <img src="<?php echo assets("img/gtm.png") ?>" alt="<?php echo e("Google Tag Manager") ?>">
-        </li>
-        <li>
-          <h3><?php echo e("Facebook Pixels") ?></h3>
-          <img src="<?php echo assets("img/fbpixel.png") ?>" alt="<?php echo e("Facebook Pixels") ?>">
-        </li>
+        <li><?php echo e("Brand every post, comment and message.") ?></li>
+        <li><?php echo e("Swap “gon.li” with your brand to boosting your click-throughs by up to 34%.") ?></li>
+        <li><?php echo e("Deeper insights with every click — like geographic data and information on referring channels.") ?></li>
       </ul>
     </div>
-    <a href="<?php echo Main::href("user/register") ?>" class="btn btn-primary btn-round"><?php echo e("Create an account") ?></a>
+    <?php endif; ?>
   </div>
 </section>
 <?php $this->history() ?>
@@ -121,7 +110,7 @@
         <a href="<?php echo Main::href("user/register") ?>" class="c2a"><?php echo e("Get Started") ?></a>
       </div>
       <div class="col-sm-7 image">
-        <img src="<?php echo $this->config["url"] ?>/themes/cleanex/assets/images/landing.png" alt="<?php echo e("Powerful tools that work") ?>" loading="lazy">
+        <img src="<?php echo $this->config["url"] ?>/themes/rebrand2/assets/images/landing.png" alt="<?php echo e("Powerful tools that work") ?>" loading="lazy">
       </div>
     </div>
   </div>

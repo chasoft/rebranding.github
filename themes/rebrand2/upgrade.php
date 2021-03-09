@@ -3,8 +3,8 @@
   <div class="container">
     <?php echo Main::message() ?>
     <div class="text-center">
-      <h1><?php echo e("Simple Pricing") ?></h1>
-      <p><?php echo e("Transparent pricing for everyone. Always know what you will pay.") ?></p>
+      <h1><?php echo e("Pricing") ?></h1>
+      <p><?php echo e("Choose your desire package and build long-term brand-building plan today!") ?></p>
       <br>
       <div class="toggle-container cf">
         <div class="switch-toggles">
@@ -361,7 +361,7 @@
 						<span class="features no"></span>
 					<?php endif ?>
 				</td>
-			</td>
+			</tr>
 			<tr class="tb-ftr-item">
 				<td class="tb-ftr-info"><?php echo e("Custom Domains") ?></td>
 				<td class="tb-ftr-plan">
@@ -377,7 +377,7 @@
 				<td class="tb-ftr-plan">
 				<?php echo $monthly[1]["permission"]->domain->count == "0" ? e("Unlimited") : $monthly[1]["permission"]->domain->count ?>
 				</td>
-			</td>
+			</tr>
 			<tr class="tb-ftr-item">
 				<td class="tb-ftr-info"><?php echo e("Custom Splash Pages") ?></td>
 				<td class="tb-ftr-plan">
@@ -401,7 +401,7 @@
 						<span class="features no"></span>
 					<?php endif ?>
 				</td>
-			</td>
+			</tr>
 			<tr class="tb-ftr-item">
 				<td class="tb-ftr-info"><?php echo e("Custom Overlay Pages") ?></td>
 				<td class="tb-ftr-plan">
@@ -425,7 +425,7 @@
 						<span class="features no"></span>
 					<?php endif ?>
 				</td>
-			</td>
+			</tr>
 			<tr class="tb-ftr-item">
 				<td class="tb-ftr-info"><?php echo e("Event Tracking") ?></td>
 				<td class="tb-ftr-plan">
@@ -449,43 +449,7 @@
 						<span class="features no"></span>
 					<?php endif ?>
 				</td>
-			</td>
-			<tr class="tb-ftr-item">
-				<td class="tb-ftr-info"><?php echo e("Geotargeting") ?></td>
-				<td class="tb-ftr-plan">
-				  <span class="features <?php echo $free[0]["permission"]->geo->enabled == true?"yes":"no"?>"></span>
-				</td>
-				<td class="tb-ftr-plan">
-				  <span class="features <?php echo $monthly[0]["permission"]->geo->enabled == true?"yes":"no"?>"></span>
-				</td>
-				<td class="tb-ftr-plan">
-				  <span class="features <?php echo $monthly[1]["permission"]->geo->enabled == true?"yes":"no"?>"></span>
-				</td>					
-			</td>
-			<tr class="tb-ftr-item">
-				<td class="tb-ftr-info"><?php echo e("Device Targeting") ?></td>
-				<td class="tb-ftr-plan">
-				  <span class="features <?php echo $free[0]["permission"]->device->enabled == true?"yes":"no"?>"></span>
-				</td>
-				<td class="tb-ftr-plan">
-				  <span class="features <?php echo $monthly[0]["permission"]->device->enabled == true?"yes":"no"?>"></span>
-				</td>
-				<td class="tb-ftr-plan">
-				  <span class="features <?php echo $monthly[1]["permission"]->device->enabled == true?"yes":"no"?>"></span>
-				</td>					
-			</td>
-			<tr class="tb-ftr-item">
-				<td class="tb-ftr-info"><?php echo e("Bundles & Link Rotator") ?></td>
-				<td class="tb-ftr-plan">
-				  <span class="features <?php echo $free[0]["permission"]->bundle->enabled == true?"yes":"no"?>"></span>
-				</td>
-				<td class="tb-ftr-plan">
-				  <span class="features <?php echo $monthly[0]["permission"]->bundle->enabled == true?"yes":"no"?>"></span>
-				</td>
-				<td class="tb-ftr-plan">
-				  <span class="features <?php echo $monthly[1]["permission"]->bundle->enabled == true?"yes":"no"?>"></span>
-				</td>					
-			</td>
+			</tr>
 			<tr class="tb-ftr-item">
 				<td class="tb-ftr-info"><?php echo e("Custom Aliases") ?></td>
 				<td class="tb-ftr-plan">
@@ -497,7 +461,43 @@
 				<td class="tb-ftr-plan">
 				  <span class="features <?php echo $monthly[1]["permission"]->alias->enabled == true?"yes":"no"?>"></span>
 				</td>					
-			</td>
+			</tr>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Geotargeting") ?></td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $free[0]["permission"]->geo->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[0]["permission"]->geo->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[1]["permission"]->geo->enabled == true?"yes":"no"?>"></span>
+				</td>					
+			</tr>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Device Targeting") ?></td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $free[0]["permission"]->device->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[0]["permission"]->device->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[1]["permission"]->device->enabled == true?"yes":"no"?>"></span>
+				</td>					
+			</tr>
+			<tr class="tb-ftr-item">
+				<td class="tb-ftr-info"><?php echo e("Bundles & Link Rotator") ?></td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $free[0]["permission"]->bundle->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[0]["permission"]->bundle->enabled == true?"yes":"no"?>"></span>
+				</td>
+				<td class="tb-ftr-plan">
+				  <span class="features <?php echo $monthly[1]["permission"]->bundle->enabled == true?"yes":"no"?>"></span>
+				</td>					
+			</tr>
 			<tr class="tb-ftr-item">
 				<td class="tb-ftr-info"><?php echo e("Export Data") ?></td>
 				<td class="tb-ftr-plan">
@@ -509,7 +509,7 @@
 				<td class="tb-ftr-plan">
 				  <span class="features <?php echo $monthly[1]["permission"]->export->enabled == true?"yes":"no"?>"></span>
 				</td>					
-			</td>
+			</tr>
 			<tr class="tb-ftr-item">
 				<td class="tb-ftr-info"><?php echo e("Developer API") ?></td>
 				<td class="tb-ftr-plan">
@@ -521,19 +521,13 @@
 				<td class="tb-ftr-plan">
 				  <span class="features <?php echo $monthly[1]["permission"]->api->enabled == true?"yes":"no"?>"></span>
 				</td>					
-			</td>
-			<tr class="tb-ftr-item"><!-- URL Customization -->
-				<td class="tb-ftr-info"><?php echo e("URL Customization") ?></td>
-				<td class="tb-ftr-plan"><span class="features no"></span></td>
-				<td class="tb-ftr-plan"><span class="features yes"></span></td>
-				<td class="tb-ftr-plan"><span class="features yes"></span></td>
-			</td>
+			</tr>
 			<tr class="tb-ftr-item"><!-- Advertisements -->
 				<td class="tb-ftr-info"><?php echo e("Advertisements") ?></td>
-				<td class="tb-ftr-plan"><span class="features yes"></span></td>
 				<td class="tb-ftr-plan"><span class="features no"></span></td>
 				<td class="tb-ftr-plan"><span class="features no"></span></td>
-			</td>
+				<td class="tb-ftr-plan"><span class="features no"></span></td>
+			</tr>
 			</tbody>
 		</table>
 	</div>
@@ -545,57 +539,39 @@
   <div class="container">
     <div class="panel panel-body">
       <div class="text-center">
-        <h1><?php echo e("Frequently Asked Questions") ?></h1>    
+        <h1><?php echo e("Frequently Asked Questions") ?></h1>
       </div>
       <div class="row">
         <div class="col-md-6">
-          <?php if ($discountMax): ?>
             <div class="faq-list clearfix">
-              <h2><i class="glyphicon glyphicon-gift"></i> <?php echo e("If I pay yearly, do I get a discount?") ?></h2>
-              <p class="info"><?php echo e("Definitely! If you choose to pay yearly, not only will you make great use of premium features but also you will get a discount of up to ").$discountMax."%." ?></p>
-            </div>                  
-          <?php endif ?>            
+              <h2><i class="glyphicon glyphicon-gift"></i> <?php echo e("Can I change the service pack?") ?></h2>
+              <p class="info"><?php echo e("Sure! You are free to switch your service pack at any time you want. All operations are completely automatic.") ?></p>
+            </div>
         </div>
         <div class="col-md-6">
           <div class="faq-list clearfix">
-            <h2><i class="glyphicon glyphicon-flash"></i> <?php echo e("Can I upgrade my account at any time?") ?></h2>
-            <p class="info"><?php echo e("Yes! You can start with our free package and upgrade anytime to enjoy premium features.") ?></p>
-          </div>        
+            <h2><i class="glyphicon glyphicon-flash"></i> <?php echo e("Can I request a new feature?") ?></h2>
+            <p class="info"><?php echo e("May! We're always listening and considering new features! You can also refer to <a href='https://help.rebranding.today/roadmap' target='_blank'> development roadmap </a> of Rebranding.today for more details.") ?></p>
+          </div>
         </div>
       </div>
       <div class="row">
         <div class="col-md-6">
-          <?php if (isset($this->config["pt"]) && $this->config["pt"] == "stripe"): ?>
             <div class="faq-list clearfix">
-              <h2><i class="glyphicon glyphicon-credit-card"></i> <?php echo e("How will I be charged?") ?></h2>
-              <p class="info"><?php echo e("You will be charged at the beginning of each period automatically until canceled.") ?></p>
-            </div>           
-          <?php else: ?>
-            <div class="faq-list clearfix">
-              <h2><i class="glyphicon glyphicon-credit-card"></i> <?php echo e("How will I be charged?") ?></h2>
-              <p class="info"><?php echo e("You will be reminded to renew your membership 7 days before your expiration.") ?></p>
-            </div>          
-          <?php endif ?>        
+              <h2><i class="glyphicon glyphicon-credit-card"></i> <?php echo e("How can I get help?") ?></h2>
+              <p class="info"><?php echo e("First check out our documentation at <a href='https://help.rebranding.today' target='_blank'>help.rebranding.today</a>. If you still have any questions, contact us via <a href='https://rebranding.today/contact' target='_blank'>contact page</a>.") ?></p>
+            </div>
         </div>
         <div class="col-md-6">
-          <?php if (isset($this->config["pt"]) && $this->config["pt"] == "stripe"): ?>
-            <div class="faq-list clearfix">
-              <h2><i class="glyphicon glyphicon-log-in"></i> <?php echo e("How do refunds work?") ?></h2>
-              <p class="info">
-                <?php echo e("Upon request, we will issue a refund at the moment of the request for all <strong>upcoming</strong> periods. If you are on a monthly plan, we will stop charging you at the end of your current billing period. If you are on a yearly plan, we will refund amounts for the remaining months.") ?>            
-              </p>
-            </div>          
-          <?php else: ?>
           <div class="faq-list clearfix">
-            <h2><i class="glyphicon glyphicon-log-in"></i> <?php echo e("How do refunds work?") ?></h2>
+            <h2><i class="glyphicon glyphicon-log-in"></i> <?php echo e("Is automatic payment safe?") ?></h2>
             <p class="info">
-              <?php echo e("Upon request, we will issue a refund at the moment of the request for all <strong>upcoming</strong> periods. You will just need to contact us and we will take care of everything.") ?>            
+              <?php echo e("Rebranding.today uses Alepay payment gateway from Nganluong.vn, so payment operations are completely guaranteed.") ?>
             </p>
-          </div>       
-          <?php endif ?>        
+          </div>
         </div>
-      </div>       
-    </div>  
+      </div>
+    </div>
   </div>
 </section>
 
